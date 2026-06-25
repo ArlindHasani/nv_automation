@@ -1,0 +1,26 @@
+{
+  "name": "Kantar ES, Power brand Pymes BBVA B2B wave 1 (Brand AR)",
+  "nvLoginUrl": "https://nv25.ffind.com/nv_rev2/login.php",
+  "liveLink": "https://nv25.ffind.com/nv_rev2/login.php",
+  "testLink": "https://nv25.ffind.com/nv_rev2/test.php?token=wIK0ca8Oe9",
+  "mode": "Cloning",
+  "loi": {
+    "targetMinutes": 12,
+    "jitterPercent": 15
+  },
+  "workers": {
+    "maxConcurrent": 2
+  },
+  "savFieldMap": {
+    "station": "nomp",
+    "password": "password",
+    "id": "ws",
+    "project": "quest",
+    "group": "s_ini"
+  },
+  "exploreDefaults": {
+    "IDINT": "0001",
+    "INT01": "OK"
+  },
+  "exploreSeedRowIndex": 0
+}

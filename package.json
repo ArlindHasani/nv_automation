@@ -1,0 +1,27 @@
+{
+  "name": "nv-automation",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run build --workspace=@nv/core && npm run dev --workspace=@nv/web",
+    "playwright:install": "node scripts/playwright-install.mjs",
+    "build": "npm run build --workspaces --if-present",
+    "import-sav": "tsx scripts/import-sav.ts",
+    "explore": "tsx scripts/explore.ts",
+    "discover": "tsx scripts/discover.ts",
+    "fix-gaps": "tsx scripts/fix-gaps.ts",
+    "parity-test": "tsx scripts/parity-test.ts",
+    "run-interview": "tsx workers/run-interview.ts",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,0 +1,169 @@
+[
+  {
+    "id": "80bcde16-74f5-454c-9de0-e17b9b9e5056",
+    "status": "partial",
+    "added": [],
+    "updated": [
+      "SCR1"
+    ],
+    "conflicts": [],
+    "discovered": 5,
+    "blockers": [
+      {
+        "question": "SCR1",
+        "type": "Multi",
+        "reason": "Checkbox option not found: SCR1=09",
+        "screenshot": "explore-blocked-apply-SCR1.png"
+      }
+    ],
+    "steps": 4,
+    "discoveredNames": [
+      "IDINT",
+      "INT01",
+      "PRVCY",
+      "Q_REC",
+      "SCR1"
+    ],
+    "createdAt": "2026-06-25T13:22:33.789Z"
+  },
+  {
+    "id": "dcf5433b-8bcc-4350-9030-5b9e284e47ef",
+    "status": "partial",
+    "added": [],
+    "updated": [
+      "SCR1"
+    ],
+    "conflicts": [
+      {
+        "name": "SCR1",
+        "field": "Type",
+        "existing": "Single",
+        "incoming": "Multi"
+      }
+    ],
+    "discovered": 5,
+    "blockers": [
+      {
+        "question": "SCR1",
+        "type": "Multi",
+        "reason": "Checkbox option not found: SCR1=01",
+        "screenshot": "explore-blocked-apply-SCR1.png"
+      }
+    ],
+    "steps": 4,
+    "discoveredNames": [
+      "IDINT",
+      "INT01",
+      "PRVCY",
+      "Q_REC",
+      "SCR1"
+    ],
+    "createdAt": "2026-06-25T13:10:26.655Z"
+  },
+  {
+    "id": "4f24db35-c61a-4826-831b-9bc5309d33c1",
+    "status": "partial",
+    "added": [
+      "Q_REC"
+    ],
+    "updated": [],
+    "conflicts": [],
+    "discovered": 4,
+    "blockers": [
+      {
+        "question": "Q_REC",
+        "type": "Single",
+        "reason": "locator.check: Timeout 30000ms exceeded.\nCall log:\n  - waiting for locator('input[type=\"radio\"][name=\"Q_REC\"][value=\"1\"], input[type=\"RADIO\"][name=\"Q_REC\"][value=\"1\"]').first()\n    - locator resolved to <input value=\"1\" type=\"RADIO\" name=\"Q_REC\" id=\"Q_REC_1\" class=\"form-control \" data-autosubmit=\"true\"/>\n  - attempting click action\n    2 × waiting for element to be visible, enabled and stable\n      - element is not visible\n    - retrying click action\n    - waiting 20ms\n    2 × waiting for element to be visible, enabled and stable\n      - element is not visible\n    - retrying click action\n      - waiting 100ms\n    58 × waiting for element to be visible, enabled and stable\n       - element is not visible\n     - retrying click action\n       - waiting 500ms\n",
+        "screenshot": "explore-blocked-apply-Q_REC.png"
+      }
+    ],
+    "steps": 3,
+    "discoveredNames": [
+      "IDINT",
+      "INT01",
+      "PRVCY",
+      "Q_REC"
+    ],
+    "createdAt": "2026-06-25T13:08:41.337Z"
+  },
+  {
+    "id": "65c87f9b-76c0-4cd9-9c60-679701b494d2",
+    "status": "partial",
+    "added": [
+      "PRVCY"
+    ],
+    "updated": [
+      "INT01"
+    ],
+    "conflicts": [],
+    "discovered": 3,
+    "blockers": [
+      {
+        "question": "PRVCY",
+        "type": "Single",
+        "reason": "Stuck after 3 attempts. Add an explore override for \"PRVCY\" in Setup or check the dataset seed row.",
+        "screenshot": "explore-blocked-stuck-PRVCY.png"
+      }
+    ],
+    "steps": 4,
+    "discoveredNames": [
+      "IDINT",
+      "INT01",
+      "PRVCY"
+    ],
+    "createdAt": "2026-06-25T13:02:46.126Z"
+  },
+  {
+    "id": "f63c02d2-e016-409a-a568-60a8c749c1ba",
+    "status": "partial",
+    "added": [
+      "IDINT",
+      "INT01"
+    ],
+    "updated": [],
+    "conflicts": [],
+    "discovered": 2,
+    "blockers": [
+      {
+        "question": "INT01",
+        "type": "Open",
+        "reason": "Stuck after 3 attempts. Add an explore default for \"INT01\" in Setup (e.g. IDINT → 0001 for test-link login gates).",
+        "screenshot": "explore-blocked-stuck-INT01.png"
+      }
+    ],
+    "steps": 3,
+    "discoveredNames": [
+      "IDINT",
+      "INT01"
+    ],
+    "createdAt": "2026-06-25T12:25:42.686Z"
+  },
+  {
+    "id": "0a5cca40-77d8-44c3-aba7-f7e32da8a953",
+    "status": "partial",
+    "added": [],
+    "updated": [],
+    "conflicts": [],
+    "discovered": 0,
+    "blockers": [
+      {
+        "question": "?",
+        "type": "unknown",
+        "reason": "Could not detect a question on this page. Check explore-cache screenshot.",
+        "screenshot": "explore-blocked-unclassified-0.png"
+      }
+    ],
+    "steps": 0,
+    "discoveredNames": [],
+    "createdAt": "2026-06-25T12:20:49.036Z"
+  },
+  {
+    "id": "c62d2aa0-4664-4c27-88bc-07d69ad97e99",
+    "status": "completed",
+    "added": [],
+    "updated": [],
+    "conflicts": [],
+    "discovered": 0,
+    "createdAt": "2026-06-25T12:02:28.339Z"
+  }
+]

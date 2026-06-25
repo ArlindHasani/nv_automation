@@ -1,0 +1,13 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "moduleResolution": "bundler",
+    "module": "ESNext",
+    "paths": {
+      "@nv/core": ["./packages/core/src/index.ts"],
+      "@nv/playwright": ["./packages/nv-playwright/src/index.ts"]
+    }
+  },
+  "include": ["scripts/**/*", "workers/**/*"]
+}

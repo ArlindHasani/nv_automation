@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.next/
+data/
+.playwright-browsers/
+*.log
+projects/*/explore-cache/
+projects/*/datasets/*.sav
