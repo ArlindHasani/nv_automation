@@ -1,0 +1,888 @@
+{
+  "cati": {
+    "valueLabels": {
+      "1": "CATI",
+      "2": "ONL"
+    }
+  },
+  "scr1m1": {
+    "valueLabels": {
+      "1": "Publicidad",
+      "2": "Investigaci&#243;n de mercados",
+      "3": "Marketing",
+      "4": "Periodismo / medios",
+      "5": "Entidades financieras / bancos / cajas de ahorro",
+      "9": "NINGUNO DE ESTOS SECTORES"
+    }
+  },
+  "scr1m2": {
+    "valueLabels": {
+      "1": "Publicidad",
+      "2": "Investigaci&#243;n de mercados",
+      "3": "Marketing",
+      "4": "Periodismo / medios",
+      "5": "Entidades financieras / bancos / cajas de ahorro",
+      "9": "NINGUNO DE ESTOS SECTORES"
+    }
+  },
+  "scr1m3": {
+    "valueLabels": {
+      "1": "Publicidad",
+      "2": "Investigaci&#243;n de mercados",
+      "3": "Marketing",
+      "4": "Periodismo / medios",
+      "5": "Entidades financieras / bancos / cajas de ahorro",
+      "9": "NINGUNO DE ESTOS SECTORES"
+    }
+  },
+  "scr1m4": {
+    "valueLabels": {
+      "1": "Publicidad",
+      "2": "Investigaci&#243;n de mercados",
+      "3": "Marketing",
+      "4": "Periodismo / medios",
+      "5": "Entidades financieras / bancos / cajas de ahorro",
+      "9": "NINGUNO DE ESTOS SECTORES"
+    }
+  },
+  "scr1m5": {
+    "valueLabels": {
+      "1": "Publicidad",
+      "2": "Investigaci&#243;n de mercados",
+      "3": "Marketing",
+      "4": "Periodismo / medios",
+      "5": "Entidades financieras / bancos / cajas de ahorro",
+      "9": "NINGUNO DE ESTOS SECTORES"
+    }
+  },
+  "scr2": {
+    "valueLabels": {
+      "1": "SI",
+      "2": "NO",
+      "9": "NS/NC"
+    }
+  },
+  "scr3": {
+    "valueLabels": {
+      "1": "Agro (agricultura, ganader&#237;a, silvicultura y pesca)",
+      "2": "Comercio",
+      "3": "Servicios",
+      "4": "Industr&#237;a y Mineria",
+      "5": "Instituciones (Colegios, Instituciones de Salud, Congregacio",
+      "6": "Otros sectores"
+    }
+  },
+  "scr4": {
+    "valueLabels": {
+      "1": "Menos de USD 2,5 Millones anuales",
+      "2": "Entre USD 2,5 Millones y 5 Millones anuales",
+      "3": "Entre USD 5 y 10 Millones anuales",
+      "4": "M&#225;s de USD 10 millones anuales"
+    }
+  },
+  "scr5": {
+    "valueLabels": {
+      "1": "Buenos Aires",
+      "2": "Catamarca",
+      "3": "Chaco",
+      "4": "Chubut",
+      "5": "Ciudad Aut&#243;noma de Buenos Aires",
+      "6": "C&#243;rdoba",
+      "7": "Corrientes",
+      "8": "Entre R&#237;os",
+      "9": "Formosa",
+      "10": "Jujuy",
+      "11": "La Pampa",
+      "12": "La Rioja",
+      "13": "Mendoza",
+      "14": "Misiones",
+      "15": "Neuqu&#233;n",
+      "16": "R&#237;o Negro",
+      "17": "Salta",
+      "18": "San Juan",
+      "19": "San Luis",
+      "20": "Santa Cruz",
+      "21": "Santa Fe",
+      "22": "Santiago del Estero",
+      "23": "Tierra del Fuego",
+      "24": "Tucum&#225;n"
+    }
+  },
+  "be1_1": {
+    "valueLabels": {
+      "1": "Acindar Pymes SGR",
+      "2": "Aval Federal SGR",
+      "3": "Banco Ciudad",
+      "4": "Banco Comafi",
+      "5": "Banco de C&#243;rdoba",
+      "6": "Banco de Entre R&#237;os",
+      "7": "Banco de la Naci&#243;n /Naci&#243;n/BNA",
+      "8": "Banco de La Pampa",
+      "9": "Banco de Santa Fe",
+      "10": "Banco Frances",
+      "11": "Banco Hipotecario",
+      "12": "Banco Macro/Macro",
+      "13": "Banco Mendoza",
+      "14": "Banco Patagonia",
+      "15": "Banco Provincia /BAPRO",
+      "16": "Banco Supervielle",
+      "17": "BBV",
+      "18": "BBVA",
+      "19": "BICE",
+      "20": "Brubank",
+      "21": "Citibank/Citi",
+      "22": "Credicoop",
+      "23": "Galicia",
+      "24": "Garantizar SGR",
+      "25": "HSBC",
+      "26": "ICBC",
+      "27": "JP Morgan",
+      "28": "Mercado Pago",
+      "29": "Naranja X",
+      "30": "Reba (Rebanking)",
+      "31": "Santander",
+      "32": "SGR Crecer",
+      "33": "Ual&#225;",
+      "88": "OTROS (anotar)",
+      "99": "Ninguna"
+    }
+  },
+  "be1_2m1": {
+    "valueLabels": {
+      "1": "Acindar Pymes SGR",
+      "2": "Aval Federal SGR",
+      "3": "Banco Ciudad",
+      "4": "Banco Comafi",
+      "5": "Banco de C&#243;rdoba",
+      "6": "Banco de Entre R&#237;os",
+      "7": "Banco de la Naci&#243;n /Naci&#243;n/BNA",
+      "8": "Banco de La Pampa",
+      "9": "Banco de Santa Fe",
+      "10": "Banco Frances",
+      "11": "Banco Hipotecario",
+      "12": "Banco Macro/Macro",
+      "13": "Banco Mendoza",
+      "14": "Banco Patagonia",
+      "15": "Banco Provincia /BAPRO",
+      "16": "Banco Supervielle",
+      "17": "BBV",
+      "18": "BBVA",
+      "19": "BICE",
+      "20": "Brubank",
+      "21": "Citibank/Citi",
+      "22": "Credicoop",
+      "23": "Galicia",
+      "24": "Garantizar SGR",
+      "25": "HSBC",
+      "26": "ICBC",
+      "27": "JP Morgan",
+      "28": "Mercado Pago",
+      "29": "Naranja X",
+      "30": "Reba (Rebanking)",
+      "31": "Santander",
+      "32": "SGR Crecer",
+      "33": "Ual&#225;",
+      "88": "OTROS (anotar)",
+      "99": "Ninguna"
+    }
+  },
+  "be1_2m2": {
+    "valueLabels": {
+      "1": "Acindar Pymes SGR",
+      "2": "Aval Federal SGR",
+      "3": "Banco Ciudad",
+      "4": "Banco Comafi",
+      "5": "Banco de C&#243;rdoba",
+      "6": "Banco de Entre R&#237;os",
+      "7": "Banco de la Naci&#243;n /Naci&#243;n/BNA",
+      "8": "Banco de La Pampa",
+      "9": "Banco de Santa Fe",
+      "10": "Banco Frances",
+      "11": "Banco Hipotecario",
+      "12": "Banco Macro/Macro",
+      "13": "Banco Mendoza",
+      "14": "Banco Patagonia",
+      "15": "Banco Provincia /BAPRO",
+      "16": "Banco Supervielle",
+      "17": "BBV",
+      "18": "BBVA",
+      "19": "BICE",
+      "20": "Brubank",
+      "21": "Citibank/Citi",
+      "22": "Credicoop",
+      "23": "Galicia",
+      "24": "Garantizar SGR",
+      "25": "HSBC",
+      "26": "ICBC",
+      "27": "JP Morgan",
+      "28": "Mercado Pago",
+      "29": "Naranja X",
+      "30": "Reba (Rebanking)",
+      "31": "Santander",
+      "32": "SGR Crecer",
+      "33": "Ual&#225;",
+      "88": "OTROS (anotar)",
+      "99": "Ninguna"
+    }
+  },
+  "be1_2m3": {
+    "valueLabels": {
+      "1": "Acindar Pymes SGR",
+      "2": "Aval Federal SGR",
+      "3": "Banco Ciudad",
+      "4": "Banco Comafi",
+      "5": "Banco de C&#243;rdoba",
+      "6": "Banco de Entre R&#237;os",
+      "7": "Banco de la Naci&#243;n /Naci&#243;n/BNA",
+      "8": "Banco de La Pampa",
+      "9": "Banco de Santa Fe",
+      "10": "Banco Frances",
+      "11": "Banco Hipotecario",
+      "12": "Banco Macro/Macro",
+      "13": "Banco Mendoza",
+      "14": "Banco Patagonia",
+      "15": "Banco Provincia /BAPRO",
+      "16": "Banco Supervielle",
+      "17": "BBV",
+      "18": "BBVA",
+      "19": "BICE",
+      "20": "Brubank",
+      "21": "Citibank/Citi",
+      "22": "Credicoop",
+      "23": "Galicia",
+      "24": "Garantizar SGR",
+      "25": "HSBC",
+      "26": "ICBC",
+      "27": "JP Morgan",
+      "28": "Mercado Pago",
+      "29": "Naranja X",
+      "30": "Reba (Rebanking)",
+      "31": "Santander",
+      "32": "SGR Crecer",
+      "33": "Ual&#225;",
+      "88": "OTROS (anotar)",
+      "99": "Ninguna"
+    }
+  },
+  "be1_2m4": {
+    "valueLabels": {
+      "1": "Acindar Pymes SGR",
+      "2": "Aval Federal SGR",
+      "3": "Banco Ciudad",
+      "4": "Banco Comafi",
+      "5": "Banco de C&#243;rdoba",
+      "6": "Banco de Entre R&#237;os",
+      "7": "Banco de la Naci&#243;n /Naci&#243;n/BNA",
+      "8": "Banco de La Pampa",
+      "9": "Banco de Santa Fe",
+      "10": "Banco Frances",
+      "11": "Banco Hipotecario",
+      "12": "Banco Macro/Macro",
+      "13": "Banco Mendoza",
+      "14": "Banco Patagonia",
+      "15": "Banco Provincia /BAPRO",
+      "16": "Banco Supervielle",
+      "17": "BBV",
+      "18": "BBVA",
+      "19": "BICE",
+      "20": "Brubank",
+      "21": "Citibank/Citi",
+      "22": "Credicoop",
+      "23": "Galicia",
+      "24": "Garantizar SGR",
+      "25": "HSBC",
+      "26": "ICBC",
+      "27": "JP Morgan",
+      "28": "Mercado Pago",
+      "29": "Naranja X",
+      "30": "Reba (Rebanking)",
+      "31": "Santander",
+      "32": "SGR Crecer",
+      "33": "Ual&#225;",
+      "88": "OTROS (anotar)",
+      "99": "Ninguna"
+    }
+  },
+  "be1_2m5": {
+    "valueLabels": {
+      "1": "Acindar Pymes SGR",
+      "2": "Aval Federal SGR",
+      "3": "Banco Ciudad",
+      "4": "Banco Comafi",
+      "5": "Banco de C&#243;rdoba",
+      "6": "Banco de Entre R&#237;os",
+      "7": "Banco de la Naci&#243;n /Naci&#243;n/BNA",
+      "8": "Banco de La Pampa",
+      "9": "Banco de Santa Fe",
+      "10": "Banco Frances",
+      "11": "Banco Hipotecario",
+      "12": "Banco Macro/Macro",
+      "13": "Banco Mendoza",
+      "14": "Banco Patagonia",
+      "15": "Banco Provincia /BAPRO",
+      "16": "Banco Supervielle",
+      "17": "BBV",
+      "18": "BBVA",
+      "19": "BICE",
+      "20": "Brubank",
+      "21": "Citibank/Citi",
+      "22": "Credicoop",
+      "23": "Galicia",
+      "24": "Garantizar SGR",
+      "25": "HSBC",
+      "26": "ICBC",
+      "27": "JP Morgan",
+      "28": "Mercado Pago",
+      "29": "Naranja X",
+      "30": "Reba (Rebanking)",
+      "31": "Santander",
+      "32": "SGR Crecer",
+      "33": "Ual&#225;",
+      "88": "OTROS (anotar)",
+      "99": "Ninguna"
+    }
+  },
+  "be1_2m6": {
+    "valueLabels": {
+      "1": "Acindar Pymes SGR",
+      "2": "Aval Federal SGR",
+      "3": "Banco Ciudad",
+      "4": "Banco Comafi",
+      "5": "Banco de C&#243;rdoba",
+      "6": "Banco de Entre R&#237;os",
+      "7": "Banco de la Naci&#243;n /Naci&#243;n/BNA",
+      "8": "Banco de La Pampa",
+      "9": "Banco de Santa Fe",
+      "10": "Banco Frances",
+      "11": "Banco Hipotecario",
+      "12": "Banco Macro/Macro",
+      "13": "Banco Mendoza",
+      "14": "Banco Patagonia",
+      "15": "Banco Provincia /BAPRO",
+      "16": "Banco Supervielle",
+      "17": "BBV",
+      "18": "BBVA",
+      "19": "BICE",
+      "20": "Brubank",
+      "21": "Citibank/Citi",
+      "22": "Credicoop",
+      "23": "Galicia",
+      "24": "Garantizar SGR",
+      "25": "HSBC",
+      "26": "ICBC",
+      "27": "JP Morgan",
+      "28": "Mercado Pago",
+      "29": "Naranja X",
+      "30": "Reba (Rebanking)",
+      "31": "Santander",
+      "32": "SGR Crecer",
+      "33": "Ual&#225;",
+      "88": "OTROS (anotar)",
+      "99": "Ninguna"
+    }
+  },
+  "be1_2m7": {
+    "valueLabels": {
+      "1": "Acindar Pymes SGR",
+      "2": "Aval Federal SGR",
+      "3": "Banco Ciudad",
+      "4": "Banco Comafi",
+      "5": "Banco de C&#243;rdoba",
+      "6": "Banco de Entre R&#237;os",
+      "7": "Banco de la Naci&#243;n /Naci&#243;n/BNA",
+      "8": "Banco de La Pampa",
+      "9": "Banco de Santa Fe",
+      "10": "Banco Frances",
+      "11": "Banco Hipotecario",
+      "12": "Banco Macro/Macro",
+      "13": "Banco Mendoza",
+      "14": "Banco Patagonia",
+      "15": "Banco Provincia /BAPRO",
+      "16": "Banco Supervielle",
+      "17": "BBV",
+      "18": "BBVA",
+      "19": "BICE",
+      "20": "Brubank",
+      "21": "Citibank/Citi",
+      "22": "Credicoop",
+      "23": "Galicia",
+      "24": "Garantizar SGR",
+      "25": "HSBC",
+      "26": "ICBC",
+      "27": "JP Morgan",
+      "28": "Mercado Pago",
+      "29": "Naranja X",
+      "30": "Reba (Rebanking)",
+      "31": "Santander",
+      "32": "SGR Crecer",
+      "33": "Ual&#225;",
+      "88": "OTROS (anotar)",
+      "99": "Ninguna"
+    }
+  },
+  "be1_2m8": {
+    "valueLabels": {
+      "1": "Acindar Pymes SGR",
+      "2": "Aval Federal SGR",
+      "3": "Banco Ciudad",
+      "4": "Banco Comafi",
+      "5": "Banco de C&#243;rdoba",
+      "6": "Banco de Entre R&#237;os",
+      "7": "Banco de la Naci&#243;n /Naci&#243;n/BNA",
+      "8": "Banco de La Pampa",
+      "9": "Banco de Santa Fe",
+      "10": "Banco Frances",
+      "11": "Banco Hipotecario",
+      "12": "Banco Macro/Macro",
+      "13": "Banco Mendoza",
+      "14": "Banco Patagonia",
+      "15": "Banco Provincia /BAPRO",
+      "16": "Banco Supervielle",
+      "17": "BBV",
+      "18": "BBVA",
+      "19": "BICE",
+      "20": "Brubank",
+      "21": "Citibank/Citi",
+      "22": "Credicoop",
+      "23": "Galicia",
+      "24": "Garantizar SGR",
+      "25": "HSBC",
+      "26": "ICBC",
+      "27": "JP Morgan",
+      "28": "Mercado Pago",
+      "29": "Naranja X",
+      "30": "Reba (Rebanking)",
+      "31": "Santander",
+      "32": "SGR Crecer",
+      "33": "Ual&#225;",
+      "88": "OTROS (anotar)",
+      "99": "Ninguna"
+    }
+  },
+  "be2_1": {
+    "valueLabels": {
+      "1": "Es el banco principal de mi empresa (de los bancos que tengo",
+      "2": "Es el banco secundario (de los bancos con los que trabaja mi",
+      "3": "Mi empresa fue cliente de este banco en el pasado",
+      "4": "He o&#237;do hablar mucho, pero mi empresa nunca ha trabajad",
+      "5": "He o&#237;do hablar algo, pero mi empresa nunca ha trabajado",
+      "6": "No hab&#237;a o&#237;do hablar nada de este banco hasta hoy"
+    }
+  },
+  "be2_2": {
+    "valueLabels": {
+      "1": "Es el banco principal de mi empresa (de los bancos que tengo",
+      "2": "Es el banco secundario (de los bancos con los que trabaja mi",
+      "3": "Mi empresa fue cliente de este banco en el pasado",
+      "4": "He o&#237;do hablar mucho, pero mi empresa nunca ha trabajad",
+      "5": "He o&#237;do hablar algo, pero mi empresa nunca ha trabajado",
+      "6": "No hab&#237;a o&#237;do hablar nada de este banco hasta hoy"
+    }
+  },
+  "be2_3": {
+    "valueLabels": {
+      "1": "Es el banco principal de mi empresa (de los bancos que tengo",
+      "2": "Es el banco secundario (de los bancos con los que trabaja mi",
+      "3": "Mi empresa fue cliente de este banco en el pasado",
+      "4": "He o&#237;do hablar mucho, pero mi empresa nunca ha trabajad",
+      "5": "He o&#237;do hablar algo, pero mi empresa nunca ha trabajado",
+      "6": "No hab&#237;a o&#237;do hablar nada de este banco hasta hoy"
+    }
+  },
+  "be101": {
+    "valueLabels": {
+      "1": "Mi primera opci&#243;n",
+      "2": "La considerar&#237;a seriamente",
+      "3": "Quiz&#225;s la considerar&#237;a",
+      "4": "No Considerar&#237;a",
+      "5": "Ns/NC"
+    }
+  },
+  "be102": {
+    "valueLabels": {
+      "1": "Mi primera opci&#243;n",
+      "2": "La considerar&#237;a seriamente",
+      "3": "Quiz&#225;s la considerar&#237;a",
+      "4": "No Considerar&#237;a",
+      "5": "Ns/NC"
+    }
+  },
+  "be103": {
+    "valueLabels": {
+      "1": "Mi primera opci&#243;n",
+      "2": "La considerar&#237;a seriamente",
+      "3": "Quiz&#225;s la considerar&#237;a",
+      "4": "No Considerar&#237;a",
+      "5": "Ns/NC"
+    }
+  },
+  "be111": {
+    "valueLabels": {
+      "1": "1 No la soporto",
+      "2": "2",
+      "3": "3",
+      "4": "4 Neutral",
+      "5": "5",
+      "6": "6",
+      "7": "7 Me encanta"
+    }
+  },
+  "be112": {
+    "valueLabels": {
+      "1": "1 No la soporto",
+      "2": "2",
+      "3": "3",
+      "4": "4 Neutral",
+      "5": "5",
+      "6": "6",
+      "7": "7 Me encanta"
+    }
+  },
+  "be113": {
+    "valueLabels": {
+      "1": "1 No la soporto",
+      "2": "2",
+      "3": "3",
+      "4": "4 Neutral",
+      "5": "5",
+      "6": "6",
+      "7": "7 Me encanta"
+    }
+  },
+  "be121": {
+    "valueLabels": {
+      "1": "1 Exactamente igual",
+      "2": "2",
+      "3": "3",
+      "4": "4",
+      "5": "5",
+      "6": "6",
+      "7": "7 Muy diferente"
+    }
+  },
+  "be122": {
+    "valueLabels": {
+      "1": "1 Exactamente igual",
+      "2": "2",
+      "3": "3",
+      "4": "4",
+      "5": "5",
+      "6": "6",
+      "7": "7 Muy diferente"
+    }
+  },
+  "be123": {
+    "valueLabels": {
+      "1": "1 Exactamente igual",
+      "2": "2",
+      "3": "3",
+      "4": "4",
+      "5": "5",
+      "6": "6",
+      "7": "7 Muy diferente"
+    }
+  },
+  "be131": {
+    "valueLabels": {
+      "1": "1 No satisface tus necesidades en absoluto",
+      "2": "2",
+      "3": "3",
+      "4": "4",
+      "5": "5",
+      "6": "6",
+      "7": "7 Satisface totalmente tus necesidades"
+    }
+  },
+  "be132": {
+    "valueLabels": {
+      "1": "1 No satisface tus necesidades en absoluto",
+      "2": "2",
+      "3": "3",
+      "4": "4",
+      "5": "5",
+      "6": "6",
+      "7": "7 Satisface totalmente tus necesidades"
+    }
+  },
+  "be133": {
+    "valueLabels": {
+      "1": "1 No satisface tus necesidades en absoluto",
+      "2": "2",
+      "3": "3",
+      "4": "4",
+      "5": "5",
+      "6": "6",
+      "7": "7 Satisface totalmente tus necesidades"
+    }
+  },
+  "be141": {
+    "valueLabels": {
+      "1": "1 Sigue a las demás",
+      "2": "2",
+      "3": "3",
+      "4": "4",
+      "5": "5",
+      "6": "6",
+      "7": "7 Marca las tendencias"
+    }
+  },
+  "be142": {
+    "valueLabels": {
+      "1": "1 Sigue a las demás",
+      "2": "2",
+      "3": "3",
+      "4": "4",
+      "5": "5",
+      "6": "6",
+      "7": "7 Marca las tendencias"
+    }
+  },
+  "be143": {
+    "valueLabels": {
+      "1": "1 Sigue a las demás",
+      "2": "2",
+      "3": "3",
+      "4": "4",
+      "5": "5",
+      "6": "6",
+      "7": "7 Marca las tendencias"
+    }
+  },
+  "be151m1": {
+    "valueLabels": {
+      "1": "BBVA",
+      "2": "SANTANDER",
+      "3": "GALICIA",
+      "4": "Ninguna de estas respuestas/ ns (NO LEER)"
+    }
+  },
+  "be151m2": {
+    "valueLabels": {
+      "1": "BBVA",
+      "2": "SANTANDER",
+      "3": "GALICIA",
+      "4": "Ninguna de estas respuestas/ ns (NO LEER)"
+    }
+  },
+  "be151m3": {
+    "valueLabels": {
+      "1": "BBVA",
+      "2": "SANTANDER",
+      "3": "GALICIA",
+      "4": "Ninguna de estas respuestas/ ns (NO LEER)"
+    }
+  },
+  "be152m1": {
+    "valueLabels": {
+      "1": "BBVA",
+      "2": "SANTANDER",
+      "3": "GALICIA",
+      "4": "Ninguna de estas respuestas/ ns (NO LEER)"
+    }
+  },
+  "be152m2": {
+    "valueLabels": {
+      "1": "BBVA",
+      "2": "SANTANDER",
+      "3": "GALICIA",
+      "4": "Ninguna de estas respuestas/ ns (NO LEER)"
+    }
+  },
+  "be152m3": {
+    "valueLabels": {
+      "1": "BBVA",
+      "2": "SANTANDER",
+      "3": "GALICIA",
+      "4": "Ninguna de estas respuestas/ ns (NO LEER)"
+    }
+  },
+  "be153m1": {
+    "valueLabels": {
+      "1": "BBVA",
+      "2": "SANTANDER",
+      "3": "GALICIA",
+      "4": "Ninguna de estas respuestas/ ns (NO LEER)"
+    }
+  },
+  "be153m2": {
+    "valueLabels": {
+      "1": "BBVA",
+      "2": "SANTANDER",
+      "3": "GALICIA",
+      "4": "Ninguna de estas respuestas/ ns (NO LEER)"
+    }
+  },
+  "be153m3": {
+    "valueLabels": {
+      "1": "BBVA",
+      "2": "SANTANDER",
+      "3": "GALICIA",
+      "4": "Ninguna de estas respuestas/ ns (NO LEER)"
+    }
+  },
+  "be154m1": {
+    "valueLabels": {
+      "1": "BBVA",
+      "2": "SANTANDER",
+      "3": "GALICIA",
+      "4": "Ninguna de estas respuestas/ ns (NO LEER)"
+    }
+  },
+  "be154m2": {
+    "valueLabels": {
+      "1": "BBVA",
+      "2": "SANTANDER",
+      "3": "GALICIA",
+      "4": "Ninguna de estas respuestas/ ns (NO LEER)"
+    }
+  },
+  "be154m3": {
+    "valueLabels": {
+      "1": "BBVA",
+      "2": "SANTANDER",
+      "3": "GALICIA",
+      "4": "Ninguna de estas respuestas/ ns (NO LEER)"
+    }
+  },
+  "be155m1": {
+    "valueLabels": {
+      "1": "BBVA",
+      "2": "SANTANDER",
+      "3": "GALICIA",
+      "4": "Ninguna de estas respuestas/ ns (NO LEER)"
+    }
+  },
+  "be155m2": {
+    "valueLabels": {
+      "1": "BBVA",
+      "2": "SANTANDER",
+      "3": "GALICIA",
+      "4": "Ninguna de estas respuestas/ ns (NO LEER)"
+    }
+  },
+  "be155m3": {
+    "valueLabels": {
+      "1": "BBVA",
+      "2": "SANTANDER",
+      "3": "GALICIA",
+      "4": "Ninguna de estas respuestas/ ns (NO LEER)"
+    }
+  },
+  "be156m1": {
+    "valueLabels": {
+      "1": "BBVA",
+      "2": "SANTANDER",
+      "3": "GALICIA",
+      "4": "Ninguna de estas respuestas/ ns (NO LEER)"
+    }
+  },
+  "be156m2": {
+    "valueLabels": {
+      "1": "BBVA",
+      "2": "SANTANDER",
+      "3": "GALICIA",
+      "4": "Ninguna de estas respuestas/ ns (NO LEER)"
+    }
+  },
+  "be156m3": {
+    "valueLabels": {
+      "1": "BBVA",
+      "2": "SANTANDER",
+      "3": "GALICIA",
+      "4": "Ninguna de estas respuestas/ ns (NO LEER)"
+    }
+  },
+  "be157m1": {
+    "valueLabels": {
+      "1": "BBVA",
+      "2": "SANTANDER",
+      "3": "GALICIA",
+      "4": "Ninguna de estas respuestas/ ns (NO LEER)"
+    }
+  },
+  "be157m2": {
+    "valueLabels": {
+      "1": "BBVA",
+      "2": "SANTANDER",
+      "3": "GALICIA",
+      "4": "Ninguna de estas respuestas/ ns (NO LEER)"
+    }
+  },
+  "be157m3": {
+    "valueLabels": {
+      "1": "BBVA",
+      "2": "SANTANDER",
+      "3": "GALICIA",
+      "4": "Ninguna de estas respuestas/ ns (NO LEER)"
+    }
+  },
+  "be158m1": {
+    "valueLabels": {
+      "1": "BBVA",
+      "2": "SANTANDER",
+      "3": "GALICIA",
+      "4": "Ninguna de estas respuestas/ ns (NO LEER)"
+    }
+  },
+  "be158m2": {
+    "valueLabels": {
+      "1": "BBVA",
+      "2": "SANTANDER",
+      "3": "GALICIA",
+      "4": "Ninguna de estas respuestas/ ns (NO LEER)"
+    }
+  },
+  "be158m3": {
+    "valueLabels": {
+      "1": "BBVA",
+      "2": "SANTANDER",
+      "3": "GALICIA",
+      "4": "Ninguna de estas respuestas/ ns (NO LEER)"
+    }
+  },
+  "ah1_1": {
+    "valueLabels": {
+      "1": "Totalmente en desacuerdo",
+      "2": "Bastante en desacuerdo",
+      "3": "Ni de acuerdo ni en desacuerdo",
+      "4": "Bastante de acuerdo",
+      "5": "Totalmente de acuerdo"
+    }
+  },
+  "ah1_2": {
+    "valueLabels": {
+      "1": "Totalmente en desacuerdo",
+      "2": "Bastante en desacuerdo",
+      "3": "Ni de acuerdo ni en desacuerdo",
+      "4": "Bastante de acuerdo",
+      "5": "Totalmente de acuerdo"
+    }
+  },
+  "ah1b3": {
+    "valueLabels": {
+      "1": "Totalmente en desacuerdo",
+      "2": "Bastante en desacuerdo",
+      "3": "Ni de acuerdo ni en desacuerdo",
+      "4": "Bastante de acuerdo",
+      "5": "Totalmente de acuerdo"
+    }
+  },
+  "ah1b4": {
+    "valueLabels": {
+      "1": "Totalmente en desacuerdo",
+      "2": "Bastante en desacuerdo",
+      "3": "Ni de acuerdo ni en desacuerdo",
+      "4": "Bastante de acuerdo",
+      "5": "Totalmente de acuerdo"
+    }
+  },
+  "ah1b5": {
+    "valueLabels": {
+      "1": "Totalmente en desacuerdo",
+      "2": "Bastante en desacuerdo",
+      "3": "Ni de acuerdo ni en desacuerdo",
+      "4": "Bastante de acuerdo",
+      "5": "Totalmente de acuerdo"
+    }
+  }
+}

@@ -1,5 +1,598 @@
 [
   {
+    "id": "0938f752",
+    "status": "completed",
+    "added": [],
+    "updated": [],
+    "conflicts": [],
+    "discovered": 23,
+    "blockers": [],
+    "mergeIssues": [],
+    "steps": 46,
+    "rowsWalked": 2,
+    "discoveredNames": [
+      "IDINT",
+      "INT01",
+      "PRVCY",
+      "Q_REC",
+      "SCR1",
+      "SCR2",
+      "SCR3",
+      "SCR4",
+      "SCR5",
+      "REGSH",
+      "BE1_1",
+      "BE1_2",
+      "BE2_2",
+      "BE102",
+      "BE112",
+      "BE122",
+      "BE132",
+      "BE142",
+      "BE151",
+      "AH1_2",
+      "AH1B4",
+      "INT99",
+      "ANMER"
+    ],
+    "trailCsv": "explore-trail-0938f752.csv",
+    "trailJson": "explore-trail-0938f752.json",
+    "createdAt": "2026-06-26T14:16:59.445Z"
+  },
+  {
+    "id": "4ecfa231",
+    "status": "completed",
+    "added": [],
+    "updated": [],
+    "conflicts": [],
+    "discovered": 23,
+    "blockers": [],
+    "mergeIssues": [],
+    "steps": 115,
+    "rowsWalked": 5,
+    "discoveredNames": [
+      "IDINT",
+      "INT01",
+      "PRVCY",
+      "Q_REC",
+      "SCR1",
+      "SCR2",
+      "SCR3",
+      "SCR4",
+      "SCR5",
+      "REGSH",
+      "BE1_1",
+      "BE1_2",
+      "BE2_2",
+      "BE102",
+      "BE112",
+      "BE122",
+      "BE132",
+      "BE142",
+      "BE151",
+      "AH1_2",
+      "AH1B4",
+      "INT99",
+      "ANMER"
+    ],
+    "trailCsv": "explore-trail-4ecfa231.csv",
+    "trailJson": "explore-trail-4ecfa231.json",
+    "createdAt": "2026-06-26T13:14:37.925Z"
+  },
+  {
+    "id": "66027997",
+    "status": "completed",
+    "added": [],
+    "updated": [],
+    "conflicts": [],
+    "discovered": 23,
+    "blockers": [],
+    "mergeIssues": [],
+    "steps": 23,
+    "rowsWalked": 5,
+    "discoveredNames": [
+      "IDINT",
+      "INT01",
+      "PRVCY",
+      "Q_REC",
+      "SCR1",
+      "SCR2",
+      "SCR3",
+      "SCR4",
+      "SCR5",
+      "REGSH",
+      "BE1_1",
+      "BE1_2",
+      "BE2_2",
+      "BE102",
+      "BE112",
+      "BE122",
+      "BE132",
+      "BE142",
+      "BE151",
+      "AH1_2",
+      "AH1B4",
+      "INT99",
+      "ANMER"
+    ],
+    "trailCsv": "explore-trail-66027997.csv",
+    "trailJson": "explore-trail-66027997.json",
+    "createdAt": "2026-06-26T13:04:39.882Z"
+  },
+  {
+    "id": "3c3dc2c9",
+    "status": "completed",
+    "added": [],
+    "updated": [],
+    "conflicts": [],
+    "discovered": 21,
+    "blockers": [],
+    "mergeIssues": [],
+    "steps": 21,
+    "rowsWalked": 1,
+    "discoveredNames": [
+      "IDINT",
+      "INT01",
+      "PRVCY",
+      "Q_REC",
+      "SCR1",
+      "SCR2",
+      "SCR3",
+      "SCR4",
+      "SCR5",
+      "REGSH",
+      "BE1_1",
+      "BE1_2",
+      "BE2_2",
+      "BE102",
+      "BE112",
+      "BE122",
+      "BE132",
+      "BE142",
+      "BE151",
+      "AH1_2",
+      "AH1B4"
+    ],
+    "trailCsv": "explore-trail-3c3dc2c9.csv",
+    "trailJson": "explore-trail-3c3dc2c9.json",
+    "createdAt": "2026-06-26T13:00:48.407Z"
+  },
+  {
+    "id": "54e23439",
+    "status": "completed",
+    "added": [],
+    "updated": [
+      "SCR1",
+      "SCR2",
+      "SCR3",
+      "SCR4",
+      "SCR5",
+      "BE1_1",
+      "BE1_2",
+      "BE2_2",
+      "BE2_3",
+      "BE2_1",
+      "BE102",
+      "BE103",
+      "BE101"
+    ],
+    "conflicts": [],
+    "discovered": 21,
+    "blockers": [],
+    "mergeIssues": [],
+    "steps": 21,
+    "rowsWalked": 1,
+    "discoveredNames": [
+      "IDINT",
+      "INT01",
+      "PRVCY",
+      "Q_REC",
+      "SCR1",
+      "SCR2",
+      "SCR3",
+      "SCR4",
+      "SCR5",
+      "REGSH",
+      "BE1_1",
+      "BE1_2",
+      "BE2_2",
+      "BE102",
+      "BE112",
+      "BE122",
+      "BE132",
+      "BE142",
+      "BE151",
+      "AH1_2",
+      "AH1B4"
+    ],
+    "trailCsv": "explore-trail-54e23439.csv",
+    "trailJson": "explore-trail-54e23439.json",
+    "createdAt": "2026-06-26T12:55:20.998Z"
+  },
+  {
+    "id": "7731ab31-beca-475a-be71-dce58677ef35",
+    "status": "completed",
+    "added": [],
+    "updated": [
+      "BE2_2",
+      "BE102",
+      "BE112",
+      "BE122",
+      "BE132",
+      "BE142",
+      "BE151",
+      "AH1_2",
+      "AH1B4"
+    ],
+    "conflicts": [],
+    "discovered": 21,
+    "blockers": [],
+    "mergeIssues": [],
+    "steps": 21,
+    "discoveredNames": [
+      "IDINT",
+      "INT01",
+      "PRVCY",
+      "Q_REC",
+      "SCR1",
+      "SCR2",
+      "SCR3",
+      "SCR4",
+      "SCR5",
+      "REGSH",
+      "BE1_1",
+      "BE1_2",
+      "BE2_2",
+      "BE102",
+      "BE112",
+      "BE122",
+      "BE132",
+      "BE142",
+      "BE151",
+      "AH1_2",
+      "AH1B4"
+    ],
+    "createdAt": "2026-06-26T10:57:23.884Z"
+  },
+  {
+    "id": "a9586d92-01d2-49a2-94df-a9209c7ff8eb",
+    "status": "completed",
+    "added": [],
+    "updated": [
+      "SCR1",
+      "SCR2",
+      "SCR3",
+      "SCR4",
+      "SCR5",
+      "BE1_1",
+      "BE1_2",
+      "BE2_2",
+      "BE2_2",
+      "BE2_3",
+      "BE2_1",
+      "BE102",
+      "BE102",
+      "BE103",
+      "BE101",
+      "BE112",
+      "BE122",
+      "BE132",
+      "BE142",
+      "BE151",
+      "AH1_2",
+      "AH1B4"
+    ],
+    "conflicts": [
+      {
+        "name": "BE2_2",
+        "field": "Type",
+        "existing": "Grid",
+        "incoming": "Single"
+      },
+      {
+        "name": "BE102",
+        "field": "Type",
+        "existing": "Grid",
+        "incoming": "Single"
+      },
+      {
+        "name": "BE112",
+        "field": "Type",
+        "existing": "Grid",
+        "incoming": "Single"
+      },
+      {
+        "name": "BE122",
+        "field": "Type",
+        "existing": "Grid",
+        "incoming": "Single"
+      },
+      {
+        "name": "BE132",
+        "field": "Type",
+        "existing": "Grid",
+        "incoming": "Single"
+      },
+      {
+        "name": "BE142",
+        "field": "Type",
+        "existing": "Grid",
+        "incoming": "Single"
+      },
+      {
+        "name": "BE151",
+        "field": "Type",
+        "existing": "Grid",
+        "incoming": "Multi"
+      },
+      {
+        "name": "AH1_2",
+        "field": "Type",
+        "existing": "Grid",
+        "incoming": "Single"
+      },
+      {
+        "name": "AH1B4",
+        "field": "Type",
+        "existing": "Grid",
+        "incoming": "Single"
+      }
+    ],
+    "discovered": 21,
+    "blockers": [],
+    "mergeIssues": [
+      {
+        "severity": "warn",
+        "question": "BE2_2",
+        "message": "Type conflict: Grid vs Single"
+      },
+      {
+        "severity": "warn",
+        "question": "BE102",
+        "message": "Type conflict: Grid vs Single"
+      },
+      {
+        "severity": "warn",
+        "question": "BE112",
+        "message": "Type conflict: Grid vs Single"
+      },
+      {
+        "severity": "warn",
+        "question": "BE122",
+        "message": "Type conflict: Grid vs Single"
+      },
+      {
+        "severity": "warn",
+        "question": "BE132",
+        "message": "Type conflict: Grid vs Single"
+      },
+      {
+        "severity": "warn",
+        "question": "BE142",
+        "message": "Type conflict: Grid vs Single"
+      },
+      {
+        "severity": "warn",
+        "question": "BE151",
+        "message": "Type conflict: Grid vs Multi"
+      },
+      {
+        "severity": "warn",
+        "question": "AH1_2",
+        "message": "Type conflict: Grid vs Single"
+      },
+      {
+        "severity": "warn",
+        "question": "AH1B4",
+        "message": "Type conflict: Grid vs Single"
+      }
+    ],
+    "steps": 21,
+    "discoveredNames": [
+      "IDINT",
+      "INT01",
+      "PRVCY",
+      "Q_REC",
+      "SCR1",
+      "SCR2",
+      "SCR3",
+      "SCR4",
+      "SCR5",
+      "REGSH",
+      "BE1_1",
+      "BE1_2",
+      "BE2_2",
+      "BE102",
+      "BE112",
+      "BE122",
+      "BE132",
+      "BE142",
+      "BE151",
+      "AH1_2",
+      "AH1B4"
+    ],
+    "createdAt": "2026-06-26T10:07:08.451Z"
+  },
+  {
+    "id": "202b6572-1635-428e-92e8-e7c9f3e89e9d",
+    "status": "partial",
+    "added": [
+      "INT99",
+      "ANMER"
+    ],
+    "updated": [],
+    "conflicts": [],
+    "discovered": 23,
+    "blockers": [
+      {
+        "question": "?",
+        "type": "unknown",
+        "reason": "Question did not finish loading in time. Check explore-cache screenshot — NV may need longer load or the page structure changed.",
+        "screenshot": "explore-blocked-unclassified-22.png"
+      }
+    ],
+    "steps": 22,
+    "discoveredNames": [
+      "IDINT",
+      "INT01",
+      "PRVCY",
+      "Q_REC",
+      "SCR1",
+      "SCR2",
+      "SCR3",
+      "SCR4",
+      "SCR5",
+      "REGSH",
+      "BE1_1",
+      "BE1_2",
+      "BE2_2",
+      "BE102",
+      "BE112",
+      "BE122",
+      "BE132",
+      "BE142",
+      "BE151",
+      "AH1_2",
+      "AH1B4",
+      "INT99",
+      "ANMER"
+    ],
+    "createdAt": "2026-06-26T09:50:48.431Z"
+  },
+  {
+    "id": "8da1cce1-877b-476b-b3a7-5d3989cd55c1",
+    "status": "partial",
+    "added": [
+      "BE155"
+    ],
+    "updated": [
+      "BE151"
+    ],
+    "conflicts": [],
+    "discovered": 19,
+    "blockers": [
+      {
+        "question": "BE151",
+        "type": "Grid",
+        "reason": "Could not advance past \"BE151\" — answer was applied but the page did not move. Add an explore override or check for a validation error on screen.",
+        "screenshot": "explore-blocked-stuck-BE151.png"
+      }
+    ],
+    "steps": 18,
+    "discoveredNames": [
+      "IDINT",
+      "INT01",
+      "PRVCY",
+      "Q_REC",
+      "SCR1",
+      "SCR2",
+      "SCR3",
+      "SCR4",
+      "SCR5",
+      "REGSH",
+      "BE1_1",
+      "BE1_2",
+      "BE2_2",
+      "BE102",
+      "BE112",
+      "BE122",
+      "BE132",
+      "BE142",
+      "BE151"
+    ],
+    "createdAt": "2026-06-26T09:43:41.182Z"
+  },
+  {
+    "id": "c8701890-10e7-4779-b94e-4bc99423c7be",
+    "status": "partial",
+    "added": [],
+    "updated": [
+      "BE2_2",
+      "BE2_3",
+      "BE2_1",
+      "BE102",
+      "BE103",
+      "BE101",
+      "BE151"
+    ],
+    "conflicts": [],
+    "discovered": 19,
+    "blockers": [
+      {
+        "question": "BE151",
+        "type": "Multi",
+        "reason": "Could not advance past \"BE151\" — answer was applied but the page did not move. Add an explore override or check for a validation error on screen.",
+        "screenshot": "explore-blocked-stuck-BE151.png"
+      }
+    ],
+    "steps": 18,
+    "discoveredNames": [
+      "IDINT",
+      "INT01",
+      "PRVCY",
+      "Q_REC",
+      "SCR1",
+      "SCR2",
+      "SCR3",
+      "SCR4",
+      "SCR5",
+      "REGSH",
+      "BE1_1",
+      "BE1_2",
+      "BE2_2",
+      "BE102",
+      "BE112",
+      "BE122",
+      "BE132",
+      "BE142",
+      "BE151"
+    ],
+    "createdAt": "2026-06-26T09:33:59.391Z"
+  },
+  {
+    "id": "76d4bb7b-da52-4b78-bc8e-4b846ff738b4",
+    "status": "partial",
+    "added": [
+      "REGSH"
+    ],
+    "updated": [
+      "SCR2",
+      "SCR3",
+      "SCR4",
+      "SCR5",
+      "BE1_1",
+      "BE1_2",
+      "BE2_2"
+    ],
+    "conflicts": [],
+    "discovered": 13,
+    "blockers": [
+      {
+        "question": "BE2_2",
+        "type": "Single",
+        "reason": "Could not advance past \"BE2_2\" — answer was applied but the page did not move. Add an explore override or check for a validation error on screen.",
+        "screenshot": "explore-blocked-stuck-BE2_2.png"
+      }
+    ],
+    "steps": 12,
+    "discoveredNames": [
+      "IDINT",
+      "INT01",
+      "PRVCY",
+      "Q_REC",
+      "SCR1",
+      "SCR2",
+      "SCR3",
+      "SCR4",
+      "SCR5",
+      "REGSH",
+      "BE1_1",
+      "BE1_2",
+      "BE2_2"
+    ],
+    "createdAt": "2026-06-26T09:26:27.464Z"
+  },
+  {
     "id": "80bcde16-74f5-454c-9de0-e17b9b9e5056",
     "status": "partial",
     "added": [],

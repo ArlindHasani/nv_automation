@@ -8,6 +8,7 @@ import {
 export interface WaitForQuestionOptions {
   timeoutMs?: number;
   log?: (message: string) => void;
+  shouldAbort?: () => boolean;
 }
 
 /** True when NV has rendered the question form (not just the nav chrome). */
@@ -55,6 +56,11 @@ export async function waitForNvQuestionReady(
   log?.("Waiting for question to load…");
 
   while (Date.now() - start < timeoutMs) {
+    if (options.shouldAbort?.()) {
+      log?.("Explore stopped — aborting wait");
+      return null;
+    }
+
     const surfaceReady = await hasNvAnswerSurface(page);
     if (surfaceReady) {
       const label = await extractNvQuestionLabel(page);
@@ -95,11 +101,17 @@ export async function waitForNvQuestionChange(
   log?.("Waiting for next question…");
 
   while (Date.now() - start < timeoutMs) {
+    if (options.shouldAbort?.()) {
+      log?.("Explore stopped — aborting wait");
+      return null;
+    }
+
     const label = await extractNvQuestionLabel(page);
     if (label && label !== prev) {
       return waitForNvQuestionReady(page, {
         timeoutMs: Math.max(5000, timeoutMs - (Date.now() - start)),
         log,
+        shouldAbort: options.shouldAbort,
       });
     }
 
@@ -108,7 +120,11 @@ export async function waitForNvQuestionChange(
 
   const label = await extractNvQuestionLabel(page);
   if (label && label !== prev) {
-    return waitForNvQuestionReady(page, { timeoutMs: 5000, log });
+    return waitForNvQuestionReady(page, {
+      timeoutMs: 5000,
+      log,
+      shouldAbort: options.shouldAbort,
+    });
   }
 
   return null;

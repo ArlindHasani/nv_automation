@@ -4,6 +4,7 @@ const TYPE_WEIGHTS: Record<QuestionType, number> = {
   Open: 4,
   Scale: 3,
   Multi: 2.5,
+  Grid: 2,
   Single: 1,
 };
 

@@ -7,9 +7,13 @@ import {
   type SavVariablesMeta,
 } from "./mapping.js";
 import { fillDefinitionGapsFromData } from "./fill-gaps.js";
+import { migrateExploreDefaultsToDefinition } from "./explore-overrides.js";
+import { mergeSplitWeights } from "./split.js";
+import { buildProjectWorkflow } from "./workflow.js";
 import {
   type Definition,
   DefinitionSchema,
+  DEFAULT_SAV_FIELD_MAP,
   type InterviewData,
   InterviewDataSchema,
   type ProjectConfig,
@@ -18,18 +22,25 @@ import {
 } from "./schemas.js";
 import { getProjectPaths, getProjectsRoot } from "./paths.js";
 
-const DEFAULT_SAV_MAP: SavFieldMap = {
-  station: "nomp",
-  password: "password",
-  id: "ws",
-  project: "quest",
-  group: "s_ini",
+function normalizeSavFieldMap(map: SavFieldMap | undefined): SavFieldMap {
+  if (!map) return { ...DEFAULT_SAV_FIELD_MAP };
+  return {
+    station: map.station || DEFAULT_SAV_FIELD_MAP.station,
+    password: map.password || DEFAULT_SAV_FIELD_MAP.password,
+    id: map.id || DEFAULT_SAV_FIELD_MAP.id,
+    project: map.project || DEFAULT_SAV_FIELD_MAP.project,
+  };
+}
+
+type MetaFile = ProjectMeta & {
+  nvLoginUrl?: string;
+  exploreDefaults?: Record<string, string>;
+  savFieldMap?: SavFieldMap & { group?: string };
 };
 
 export interface ProjectMeta {
   slug: string;
   name: string;
-  nvLoginUrl: string;
   liveLink: string;
   testLink: string;
   mode: string;
@@ -37,8 +48,9 @@ export interface ProjectMeta {
   loiJitterPercent: number;
   maxWorkers: number;
   savFieldMap: SavFieldMap;
-  exploreDefaults: Record<string, string>;
   exploreSeedRowIndex: number;
+  exploreRowCount: number;
+  exploreEndQuestions: string[];
   activeDatasetId: string | null;
   createdAt: string;
   updatedAt: string;
@@ -70,8 +82,12 @@ export interface ExploreRun {
   conflicts: unknown[];
   discovered: number;
   blockers?: ExploreBlocker[];
+  mergeIssues?: Array<{ severity: string; question: string; message: string }>;
   steps?: number;
+  rowsWalked?: number;
   discoveredNames?: string[];
+  trailCsv?: string;
+  trailJson?: string;
   createdAt: string;
 }
 
@@ -91,8 +107,9 @@ export interface CreateProjectInput {
   loiJitterPercent?: number;
   maxWorkers?: number;
   savFieldMap?: SavFieldMap;
-  exploreDefaults?: Record<string, string>;
   exploreSeedRowIndex?: number;
+  exploreRowCount?: number;
+  exploreEndQuestions?: string[];
 }
 
 export interface UpdateProjectInput {
@@ -105,8 +122,9 @@ export interface UpdateProjectInput {
   loiJitterPercent?: number;
   maxWorkers?: number;
   savFieldMap?: SavFieldMap;
-  exploreDefaults?: Record<string, string>;
   exploreSeedRowIndex?: number;
+  exploreRowCount?: number;
+  exploreEndQuestions?: string[];
 }
 
 function slugify(name: string): string {
@@ -138,34 +156,118 @@ function metaPath(slug: string): string {
   return path.join(getProjectPaths(slug).dir, "meta.json");
 }
 
+const DEFAULT_EXPLORE_END_QUESTIONS = ["ANMER"];
+
+function normalizeExploreEndQuestions(value: string[] | undefined): string[] {
+  if (!value || value.length === 0) return [...DEFAULT_EXPLORE_END_QUESTIONS];
+  return value.map((q) => q.trim()).filter(Boolean);
+}
+
 function projectToConfig(meta: ProjectMeta): ProjectConfig {
-  const liveLink = meta.liveLink || meta.nvLoginUrl;
+  const liveLink = meta.liveLink;
   return ProjectConfigSchema.parse({
     name: meta.name,
-    nvLoginUrl: liveLink,
     liveLink,
     testLink: meta.testLink,
-    mode: meta.mode,
+    mode: "Freestyle",
     loi: {
       targetMinutes: meta.loiTargetMinutes,
       jitterPercent: meta.loiJitterPercent,
     },
     workers: { maxConcurrent: meta.maxWorkers },
     savFieldMap: meta.savFieldMap,
-    exploreDefaults: meta.exploreDefaults ?? {},
     exploreSeedRowIndex: meta.exploreSeedRowIndex ?? 0,
+    exploreRowCount: meta.exploreRowCount ?? 1,
+    exploreEndQuestions: normalizeExploreEndQuestions(meta.exploreEndQuestions),
   });
+}
+
+async function migrateLegacyExploreDefaults(
+  slug: string,
+  exploreDefaults: Record<string, string> | undefined,
+): Promise<void> {
+  if (!exploreDefaults || Object.keys(exploreDefaults).length === 0) return;
+  const paths = getProjectPaths(slug);
+  let definition: Definition;
+  try {
+    definition = DefinitionSchema.parse(
+      JSON.parse(await fs.readFile(paths.definitionJson, "utf-8")),
+    );
+  } catch {
+    return;
+  }
+  if (!migrateExploreDefaultsToDefinition(definition, exploreDefaults)) return;
+  await fs.writeFile(paths.definitionJson, JSON.stringify(definition, null, 2));
+}
+
+function normalizeMetaFromFile(raw: MetaFile): ProjectMeta {
+  const liveLink = raw.liveLink || raw.nvLoginUrl || "";
+  return {
+    slug: raw.slug,
+    name: raw.name,
+    liveLink,
+    testLink: raw.testLink ?? "",
+    mode: raw.mode ?? "Freestyle",
+    loiTargetMinutes: raw.loiTargetMinutes ?? 12,
+    loiJitterPercent: raw.loiJitterPercent ?? 15,
+    maxWorkers: raw.maxWorkers ?? 2,
+    savFieldMap: normalizeSavFieldMap(raw.savFieldMap),
+    exploreSeedRowIndex: raw.exploreSeedRowIndex ?? 0,
+    exploreRowCount: raw.exploreRowCount ?? 1,
+    exploreEndQuestions: normalizeExploreEndQuestions(raw.exploreEndQuestions),
+    activeDatasetId: raw.activeDatasetId ?? null,
+    createdAt: raw.createdAt,
+    updatedAt: raw.updatedAt,
+  };
+}
+
+async function loadExploreSettingsFromProjectJson(slug: string): Promise<{
+  exploreRowCount?: number;
+  exploreEndQuestions?: string[];
+}> {
+  try {
+    const config = ProjectConfigSchema.parse(
+      JSON.parse(
+        await fs.readFile(getProjectPaths(slug).projectJson, "utf-8"),
+      ),
+    );
+    return {
+      exploreRowCount: config.exploreRowCount,
+      exploreEndQuestions: config.exploreEndQuestions,
+    };
+  } catch {
+    return {};
+  }
 }
 
 async function readMeta(slug: string): Promise<ProjectMeta | null> {
   try {
-    const raw = await fs.readFile(metaPath(slug), "utf-8");
-    const meta = JSON.parse(raw) as ProjectMeta;
-    if (!meta.exploreDefaults) {
-      meta.exploreDefaults = {};
+    const raw = JSON.parse(await fs.readFile(metaPath(slug), "utf-8")) as MetaFile;
+    await migrateLegacyExploreDefaults(slug, raw.exploreDefaults);
+
+    const missingExploreSettings =
+      raw.exploreRowCount === undefined || raw.exploreEndQuestions === undefined;
+    if (missingExploreSettings) {
+      const fromProject = await loadExploreSettingsFromProjectJson(slug);
+      if (raw.exploreRowCount === undefined && fromProject.exploreRowCount !== undefined) {
+        raw.exploreRowCount = fromProject.exploreRowCount;
+      }
+      if (
+        raw.exploreEndQuestions === undefined &&
+        fromProject.exploreEndQuestions !== undefined
+      ) {
+        raw.exploreEndQuestions = fromProject.exploreEndQuestions;
+      }
     }
-    if (meta.exploreSeedRowIndex === undefined) {
-      meta.exploreSeedRowIndex = 0;
+
+    const meta = normalizeMetaFromFile(raw);
+    const legacyFields =
+      raw.exploreDefaults !== undefined ||
+      raw.nvLoginUrl !== undefined ||
+      raw.savFieldMap?.group !== undefined ||
+      missingExploreSettings;
+    if (legacyFields) {
+      await writeMeta(slug, meta);
     }
     return meta;
   } catch {
@@ -187,28 +289,31 @@ async function ensureProjectInitialized(slug: string): Promise<ProjectMeta> {
   if (!meta) {
     const now = new Date().toISOString();
     let config: ProjectConfig;
+    let rawProject: { exploreDefaults?: Record<string, string> };
     try {
-      config = ProjectConfigSchema.parse(
-        JSON.parse(await fs.readFile(paths.projectJson, "utf-8")),
-      );
+      rawProject = JSON.parse(
+        await fs.readFile(paths.projectJson, "utf-8"),
+      ) as { exploreDefaults?: Record<string, string> };
+      config = ProjectConfigSchema.parse(rawProject);
     } catch {
       throw new Error(`Project not found: ${slug}`);
     }
 
-    const liveLink = config.liveLink || config.nvLoginUrl;
+    const liveLink = config.liveLink || config.nvLoginUrl || "";
+    await migrateLegacyExploreDefaults(slug, rawProject.exploreDefaults);
     meta = {
       slug,
       name: config.name,
-      nvLoginUrl: liveLink,
       liveLink,
       testLink: config.testLink ?? "",
       mode: config.mode,
       loiTargetMinutes: config.loi.targetMinutes,
       loiJitterPercent: config.loi.jitterPercent,
       maxWorkers: config.workers.maxConcurrent,
-      savFieldMap: config.savFieldMap,
-      exploreDefaults: config.exploreDefaults ?? {},
+      savFieldMap: normalizeSavFieldMap(config.savFieldMap),
       exploreSeedRowIndex: config.exploreSeedRowIndex ?? 0,
+      exploreRowCount: config.exploreRowCount ?? 1,
+      exploreEndQuestions: normalizeExploreEndQuestions(config.exploreEndQuestions),
       activeDatasetId: null,
       createdAt: now,
       updatedAt: now,
@@ -287,6 +392,14 @@ async function writeManifest(slug: string, manifest: DatasetsManifest): Promise<
 /** Write project.json + Data.json from meta + active dataset (for Playwright workers) */
 async function writeProjectSnapshots(slug: string, meta: ProjectMeta): Promise<string> {
   const paths = getProjectPaths(slug);
+  try {
+    const projectRaw = JSON.parse(
+      await fs.readFile(paths.projectJson, "utf-8"),
+    ) as { exploreDefaults?: Record<string, string> };
+    await migrateLegacyExploreDefaults(slug, projectRaw.exploreDefaults);
+  } catch {
+    // project.json may not exist yet
+  }
   const config = projectToConfig(meta);
 
   let definition: Definition;
@@ -371,16 +484,16 @@ export async function createProject(input: CreateProjectInput): Promise<ProjectM
   const meta: ProjectMeta = {
     slug,
     name: input.name,
-    nvLoginUrl: liveLink,
     liveLink,
     testLink: input.testLink ?? "",
-    mode: input.mode ?? "Cloning",
+    mode: input.mode ?? "Freestyle",
     loiTargetMinutes: input.loiTargetMinutes ?? 12,
     loiJitterPercent: input.loiJitterPercent ?? 15,
     maxWorkers: input.maxWorkers ?? 2,
-    savFieldMap: input.savFieldMap ?? DEFAULT_SAV_MAP,
-    exploreDefaults: input.exploreDefaults ?? {},
+    savFieldMap: normalizeSavFieldMap(input.savFieldMap ?? DEFAULT_SAV_FIELD_MAP),
     exploreSeedRowIndex: input.exploreSeedRowIndex ?? 0,
+    exploreRowCount: input.exploreRowCount ?? 1,
+    exploreEndQuestions: normalizeExploreEndQuestions(input.exploreEndQuestions),
     activeDatasetId: null,
     createdAt: now,
     updatedAt: now,
@@ -416,21 +529,23 @@ export async function updateProject(
   const meta = await getProject(slug);
   if (!meta) return null;
 
-  const liveLink = input.liveLink ?? input.nvLoginUrl ?? meta.liveLink ?? meta.nvLoginUrl;
+  const liveLink = input.liveLink ?? input.nvLoginUrl ?? meta.liveLink;
   const updated: ProjectMeta = {
     ...meta,
     name: input.name ?? meta.name,
-    nvLoginUrl: liveLink,
     liveLink,
     testLink: input.testLink ?? meta.testLink,
-    mode: input.mode ?? meta.mode,
+    mode: "Freestyle",
     loiTargetMinutes: input.loiTargetMinutes ?? meta.loiTargetMinutes,
     loiJitterPercent: input.loiJitterPercent ?? meta.loiJitterPercent,
     maxWorkers: input.maxWorkers ?? meta.maxWorkers,
-    savFieldMap: input.savFieldMap ?? meta.savFieldMap,
-    exploreDefaults: input.exploreDefaults ?? meta.exploreDefaults ?? {},
+    savFieldMap: normalizeSavFieldMap(input.savFieldMap ?? meta.savFieldMap),
     exploreSeedRowIndex:
       input.exploreSeedRowIndex ?? meta.exploreSeedRowIndex ?? 0,
+    exploreRowCount: input.exploreRowCount ?? meta.exploreRowCount ?? 1,
+    exploreEndQuestions: normalizeExploreEndQuestions(
+      input.exploreEndQuestions ?? meta.exploreEndQuestions,
+    ),
     updatedAt: new Date().toISOString(),
   };
 
@@ -463,6 +578,48 @@ export async function saveDefinition(
     meta.updatedAt = new Date().toISOString();
     await writeMeta(slug, meta);
   }
+}
+
+export interface DefinitionQuestionPatch {
+  Name: string;
+  ExploreOverride?: string | null;
+  Method?: "Maintain" | "Split";
+  Split?: Record<string, number>;
+}
+
+export async function patchDefinitionQuestions(
+  slug: string,
+  updates: DefinitionQuestionPatch[],
+): Promise<Definition> {
+  const definition = await getDefinition(slug);
+  const byName = new Map(
+    definition.Questions.map((q) => [q.Name.toUpperCase(), q]),
+  );
+
+  for (const update of updates) {
+    const q = byName.get(update.Name.toUpperCase());
+    if (!q) continue;
+    if (update.ExploreOverride !== undefined) {
+      if (update.ExploreOverride === "" || update.ExploreOverride === null) {
+        delete q.ExploreOverride;
+      } else {
+        q.ExploreOverride = update.ExploreOverride;
+        q.Source = "manual";
+      }
+    }
+    if (update.Method !== undefined) {
+      q.Method = update.Method;
+      q.Source = "manual";
+    }
+    if (update.Split !== undefined) {
+      q.Split = mergeSplitWeights(q.Split, update.Split);
+      q.Source = "manual";
+    }
+  }
+
+  await saveDefinition(slug, definition);
+  await syncProjectFiles(slug);
+  return definition;
 }
 
 export async function listDatasets(slug: string): Promise<DatasetMeta[]> {
@@ -618,6 +775,68 @@ export async function setActiveDataset(
   return true;
 }
 
+async function unlinkIfExists(filePath: string): Promise<void> {
+  try {
+    await fs.unlink(filePath);
+  } catch {
+    // already removed or missing
+  }
+}
+
+export async function deleteDataset(
+  slug: string,
+  datasetId: string,
+): Promise<boolean> {
+  await ensureProjectInitialized(slug);
+  const manifest = await readManifest(slug);
+  const dataset = manifest.datasets.find((d) => d.id === datasetId);
+  if (!dataset) return false;
+
+  const dir = datasetsDir(slug);
+  await unlinkIfExists(path.join(dir, dataset.file));
+  if (dataset.savFile) {
+    await unlinkIfExists(path.join(dir, dataset.savFile));
+  }
+  if (dataset.variablesFile) {
+    await unlinkIfExists(path.join(dir, dataset.variablesFile));
+  }
+
+  const wasActive = manifest.activeId === datasetId;
+  manifest.datasets = manifest.datasets.filter((d) => d.id !== datasetId);
+
+  if (wasActive) {
+    const next = manifest.datasets[0] ?? null;
+    manifest.activeId = next?.id ?? null;
+    manifest.datasets = manifest.datasets.map((d) => ({
+      ...d,
+      isActive: next ? d.id === next.id : false,
+    }));
+  }
+
+  await writeManifest(slug, manifest);
+
+  const meta = await readMeta(slug);
+  if (meta) {
+    meta.activeDatasetId = manifest.activeId;
+    meta.updatedAt = new Date().toISOString();
+    await writeMeta(slug, meta);
+  }
+
+  await syncProjectFiles(slug);
+  return true;
+}
+
+export async function deleteProject(slug: string): Promise<boolean> {
+  const dir = getProjectPaths(slug).dir;
+  try {
+    await fs.access(dir);
+  } catch {
+    return false;
+  }
+  await fs.rm(dir, { recursive: true, force: true });
+  return true;
+}
+
 export async function listExploreRuns(slug: string, limit = 10): Promise<ExploreRun[]> {
   await ensureProjectInitialized(slug);
   try {
@@ -633,20 +852,36 @@ export async function listExploreRuns(slug: string, limit = 10): Promise<Explore
 export async function recordExploreRun(
   slug: string,
   result: {
+    id?: string;
     status: string;
     added: string[];
     updated: string[];
     conflicts: unknown[];
     discovered: number;
     blockers?: ExploreBlocker[];
+    mergeIssues?: ExploreRun["mergeIssues"];
     steps?: number;
+    rowsWalked?: number;
     discoveredNames?: string[];
+    trailCsv?: string;
+    trailJson?: string;
   },
 ): Promise<ExploreRun> {
   await ensureProjectInitialized(slug);
   const run: ExploreRun = {
-    id: randomUUID(),
-    ...result,
+    id: result.id ?? randomUUID(),
+    status: result.status,
+    added: result.added,
+    updated: result.updated,
+    conflicts: result.conflicts,
+    discovered: result.discovered,
+    blockers: result.blockers,
+    mergeIssues: result.mergeIssues,
+    steps: result.steps,
+    rowsWalked: result.rowsWalked,
+    discoveredNames: result.discoveredNames,
+    trailCsv: result.trailCsv,
+    trailJson: result.trailJson,
     createdAt: new Date().toISOString(),
   };
 
@@ -666,20 +901,33 @@ export async function getProjectBundle(slug: string) {
   if (!project) return null;
 
   const definition = await getDefinition(slug);
+  const config = projectToConfig(project);
   const datasets = await listDatasets(slug);
   const activeDataset = await getActiveDataset(slug);
   const data = await loadActiveData(slug);
   const coverage = buildCoverageReport(data, definition, project.savFieldMap);
   const exploreRuns = await listExploreRuns(slug);
+  const workflow = buildProjectWorkflow({
+    config,
+    definition,
+    activeDataset,
+    dataRowCount: data.length,
+    coverage,
+    exploreRuns,
+  });
 
   return {
-    project,
-    config: projectToConfig(project),
+    project: {
+      ...project,
+      nvLoginUrl: project.liveLink,
+    },
+    config,
     definition,
     datasets,
     activeDataset,
     data,
     coverage,
     exploreRuns,
+    workflow,
   };
 }

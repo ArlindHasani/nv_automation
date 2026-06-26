@@ -56,7 +56,7 @@ export async function parseSavFile(savPath: string): Promise<InterviewData> {
   return bundle.rows;
 }
 
-/** @deprecated Prefer parseSavBundle + DB importDataset */
+/** @deprecated Prefer project-store importDataset (multi-dataset flow) */
 export async function importSavFile(
   projectId: string,
   savPath: string,

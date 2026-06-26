@@ -13,7 +13,10 @@ function defaultSplit(codes: string[]): Record<string, number> {
   return Object.fromEntries(nonEmpty.map((c) => [c, 0.0]));
 }
 
-function discoveredToQuestion(d: DiscoveredQuestion): Question {
+function discoveredToQuestion(
+  d: DiscoveredQuestion,
+  extra: Partial<Question> = {},
+): Question {
   return {
     Name: d.name.toUpperCase(),
     Method: "Maintain",
@@ -27,6 +30,8 @@ function discoveredToQuestion(d: DiscoveredQuestion): Question {
     Values: null,
     AVG: null,
     Labels: d.labels,
+    Source: "explore",
+    ...extra,
   };
 }
 
@@ -74,6 +79,10 @@ function applyDiscovery(current: Question, d: DiscoveredQuestion): boolean {
     }
   }
 
+  if (current.Source !== "manual") {
+    current.Source = "explore";
+  }
+
   return changed;
 }
 
@@ -98,40 +107,28 @@ export function mergeDefinition(
   const conflicts: MergeResult["conflicts"] = [];
 
   for (const d of discovered) {
-    const name = d.name.toUpperCase();
-    const current = byName.get(name);
-
-    if (!current) {
-      byName.set(name, discoveredToQuestion(d));
-      added.push(name);
-      continue;
-    }
-
-    const incomingCodes = d.codes.filter((c) => c !== "");
-    const typeConflict =
-      current.Type !== d.type &&
-      d.type !== "Open" &&
-      incomingCodes.length > 0 &&
-      current.Type !== "Open" &&
-      !(current.Type === "Single" && d.type === "Multi") &&
-      Object.keys(current.Split).filter((k) => k !== "").length > 0;
-
-    if (typeConflict) {
-      conflicts.push({
-        name,
-        field: "Type",
-        existing: current.Type,
-        incoming: d.type,
-      });
-      if (applyDiscovery(current, d)) {
-        updated.push(name);
+    if (d.type === "Grid" && d.statements && d.statements.length > 0) {
+      const expansions = d.statements.map((stmt) => ({
+        name: stmt.name,
+        type: d.gridMulti ? ("Multi" as const) : ("Single" as const),
+        codes: d.codes,
+        labels: d.labels,
+      }));
+      for (const item of expansions) {
+        mergeOneDiscovery(
+          byName,
+          item,
+          added,
+          updated,
+          conflicts,
+          d.name,
+          d.gridMulti,
+        );
       }
       continue;
     }
 
-    if (applyDiscovery(current, d)) {
-      updated.push(name);
-    }
+    mergeOneDiscovery(byName, d, added, updated, conflicts);
   }
 
   const definition: Definition = {
@@ -140,4 +137,85 @@ export function mergeDefinition(
   };
 
   return { definition, added, updated, conflicts };
+}
+
+function mergeOneDiscovery(
+  byName: Map<string, Question>,
+  d: DiscoveredQuestion,
+  added: string[],
+  updated: string[],
+  conflicts: MergeResult["conflicts"],
+  gridScreen?: string,
+  gridMulti?: boolean,
+): void {
+  const name = d.name.toUpperCase();
+  const current = byName.get(name);
+
+  if (!current) {
+    byName.set(
+      name,
+      discoveredToQuestion(d, {
+        ...(gridScreen
+          ? {
+              GridScreen: gridScreen.toUpperCase(),
+              GridMulti: gridMulti,
+            }
+          : {}),
+      }),
+    );
+    added.push(name);
+    return;
+  }
+
+  if (gridScreen) {
+    if (current.GridScreen !== gridScreen.toUpperCase()) {
+      current.GridScreen = gridScreen.toUpperCase();
+    }
+    if (gridMulti !== undefined && current.GridMulti !== gridMulti) {
+      current.GridMulti = gridMulti;
+    }
+  }
+
+  const incomingCodes = d.codes.filter((c) => c !== "");
+  const isGridStatementResolution =
+    current.Type === "Grid" && (d.type === "Single" || d.type === "Multi");
+
+  const typeConflict =
+    !isGridStatementResolution &&
+    current.Type !== d.type &&
+    d.type !== "Open" &&
+    incomingCodes.length > 0 &&
+    current.Type !== "Open" &&
+    !(current.Type === "Single" && d.type === "Multi") &&
+    Object.keys(current.Split).filter((k) => k !== "").length > 0;
+
+  if (typeConflict) {
+    conflicts.push({
+      name,
+      field: "Type",
+      existing: current.Type,
+      incoming: d.type,
+    });
+    if (isGridStatementResolution || applyDiscovery(current, d)) {
+      if (isGridStatementResolution) {
+        current.Type = d.type;
+      }
+      updated.push(name);
+    }
+    return;
+  }
+
+  if (isGridStatementResolution) {
+    current.Type = d.type;
+    if (applyDiscovery(current, d)) {
+      updated.push(name);
+    } else {
+      updated.push(name);
+    }
+    return;
+  }
+
+  if (applyDiscovery(current, d)) {
+    updated.push(name);
+  }
 }

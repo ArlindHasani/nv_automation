@@ -99,25 +99,48 @@ export class NvInterviewRunner {
         }
 
         const qName = current.name;
-        writeLog(`Got question: ${qName}`);
+        writeLog(`Got question: ${qName}${current.type === "Grid" ? " (grid)" : ""}`);
+
+        if (current.type === "Grid" && current.gridStatements?.length) {
+          for (const stmt of current.gridStatements) {
+            if (!findQuestion(definition, stmt.name)) {
+              const err = `Question ${stmt.name} not defined in Definition.json`;
+              writeLog(`ERROR: ${err}`);
+              await page.screenshot({
+                path: path.join(outputDir, `undefined-${stmt.name}.png`),
+                fullPage: true,
+              });
+              await fs.writeFile(logFile, logLines.join("\n"));
+              return {
+                success: false,
+                questionsAnswered,
+                lastQuestion: qName,
+                error: err,
+                logFile,
+              };
+            }
+          }
+        } else {
+          const qDef = findQuestion(definition, qName);
+          if (!qDef) {
+            const err = `Question ${qName} not defined in Definition.json`;
+            writeLog(`ERROR: ${err}`);
+            await page.screenshot({
+              path: path.join(outputDir, `undefined-${qName}.png`),
+              fullPage: true,
+            });
+            await fs.writeFile(logFile, logLines.join("\n"));
+            return {
+              success: false,
+              questionsAnswered,
+              lastQuestion: qName,
+              error: err,
+              logFile,
+            };
+          }
+        }
 
         const qDef = findQuestion(definition, qName);
-        if (!qDef) {
-          const err = `Question ${qName} not defined in Definition.json`;
-          writeLog(`ERROR: ${err}`);
-          await page.screenshot({
-            path: path.join(outputDir, `undefined-${qName}.png`),
-            fullPage: true,
-          });
-          await fs.writeFile(logFile, logLines.join("\n"));
-          return {
-            success: false,
-            questionsAnswered,
-            lastQuestion: qName,
-            error: err,
-            logFile,
-          };
-        }
 
         const remaining = definition.Questions.filter(
           (q) => !lastQuestion || q.Name >= qName,
@@ -125,16 +148,44 @@ export class NvInterviewRunner {
         const schedule = buildLoiSchedule({
           targetMinutes: config.loi.targetMinutes,
           jitterPercent: config.loi.jitterPercent,
-          remainingQuestions: remaining.length ? remaining : [qDef],
+          remainingQuestions: remaining.length ? remaining : qDef ? [qDef] : [],
         });
         const stepDelay =
           schedule.find((s) => s.questionName === qName)?.delayMs ?? 3000;
         await delay(stepDelay);
 
-        const resolved = resolveAnswerForQuestion(definition, qName, dataRow);
+        let resolved;
+        if (current.type === "Grid" && current.gridStatements?.length) {
+          const statementAnswers: Record<string, string[]> = {};
+          const warnings: string[] = [];
+          for (const stmt of current.gridStatements) {
+            const part = resolveAnswerForQuestion(definition, stmt.name, dataRow);
+            warnings.push(...part.warnings);
+            if (part.codes.length > 0) {
+              statementAnswers[stmt.name] = part.codes;
+              writeLog(
+                `${stmt.name}:${part.codes.join("+")} = (from ${part.source})`,
+              );
+            }
+          }
+          resolved = {
+            codes: [],
+            statementAnswers,
+            source: "data" as const,
+            warnings,
+          };
+        } else {
+          resolved = resolveAnswerForQuestion(definition, qName, dataRow);
+        }
         for (const w of resolved.warnings) writeLog(w);
 
-        if (resolved.codes.length > 0) {
+        if (resolved.statementAnswers) {
+          writeLog(
+            `Answering grid: ${Object.entries(resolved.statementAnswers)
+              .map(([name, codes]) => `${name}=${codes.join("+")}`)
+              .join(", ")}`,
+          );
+        } else if (resolved.codes.length > 0) {
           for (const code of resolved.codes) {
             writeLog(`${qName}:${code} = (from ${resolved.source})`);
           }
@@ -143,7 +194,9 @@ export class NvInterviewRunner {
           writeLog(`Answering open: ${resolved.openText}`);
         }
 
-        writeLog(`Answering: ${resolved.codes.join(",") || resolved.openText || ""}`);
+        if (!resolved.statementAnswers) {
+          writeLog(`Answering: ${resolved.codes.join(",") || resolved.openText || ""}`);
+        }
 
         await interview.applyAnswer(resolved);
         await interview.clickNext();

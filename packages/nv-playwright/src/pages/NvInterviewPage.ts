@@ -2,6 +2,7 @@ import type { Page } from "playwright";
 import type { ResolvedAnswer } from "@nv/core";
 import { NV_SELECTORS } from "../selectors.js";
 import {
+  applyNvGridMultiAnswers,
   selectCheckboxOption,
   selectRadioOption,
 } from "../nv-input-actions.js";
@@ -79,6 +80,27 @@ export class NvInterviewPage {
     if (!current) return;
 
     switch (current.type) {
+      case "Grid": {
+        const answers = answer.statementAnswers;
+        if (!answers) break;
+        if (current.gridMulti) {
+          await applyNvGridMultiAnswers(this.page, answers, current.codes);
+        } else {
+          for (const [questionName, codes] of Object.entries(answers)) {
+            const code = codes[0];
+            if (code) {
+              await selectRadioOption(
+                this.page,
+                questionName,
+                code,
+                current.codes,
+              );
+            }
+          }
+        }
+        break;
+      }
+
       case "Multi":
         for (const code of answer.codes) {
           await selectCheckboxOption(

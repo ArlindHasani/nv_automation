@@ -10,6 +10,7 @@ import {
   type DataRow,
   type Definition,
 } from "@nv/core";
+import { normalizeGridStatementCodes } from "./nv-input-actions.js";
 
 export type ExploreAnswerSource =
   | "override"
@@ -21,12 +22,12 @@ export type ExploreAnswerSource =
 export interface ExploreResolvedAnswer {
   codes: string[];
   openText?: string;
+  statementAnswers?: Record<string, string[]>;
   source: ExploreAnswerSource;
   warnings: string[];
 }
 
 export interface ExploreAnswerContext {
-  overrides?: Record<string, string>;
   seedRow?: DataRow;
   definition?: Definition;
 }
@@ -99,21 +100,86 @@ export function resolveExploreAnswer(
   classified: ClassifiedQuestion,
   context: ExploreAnswerContext = {},
 ): ExploreResolvedAnswer {
-  const overrides = context.overrides ?? {};
-  const key = classified.name.toUpperCase();
-  const override = overrides[key] ?? overrides[classified.name];
+  if (
+    classified.type === "Grid" &&
+    classified.gridStatements &&
+    classified.gridStatements.length > 0
+  ) {
+    const statementAnswers: Record<string, string[]> = {};
+    const warnings: string[] = [];
+    let source: ExploreAnswerSource = "dataset";
+    let anyAnswer = false;
 
-  if (override !== undefined && override !== "") {
+    for (const stmt of classified.gridStatements) {
+      if (classified.gridMulti) {
+        const columns = context.seedRow
+          ? Object.keys(context.seedRow)
+          : [];
+        const codes = context.seedRow
+          ? collectMentionCodesFromRow(
+              stmt.name,
+              context.seedRow,
+              columns,
+            )
+          : [];
+        const normalized = normalizeGridStatementCodes(
+          codes,
+          classified.codes,
+        );
+        if (normalized.length > 0) {
+          statementAnswers[stmt.name] = normalized;
+          anyAnswer = true;
+        } else if (classified.codes.length > 0) {
+          const fallback = classified.codes.includes("4")
+            ? "4"
+            : classified.codes[0];
+          statementAnswers[stmt.name] = [fallback];
+          warnings.push(
+            `No dataset mentions for '${stmt.name}' — using code ${fallback}`,
+          );
+          anyAnswer = true;
+        }
+        continue;
+      }
+
+      const sub = resolveExploreAnswer(
+        { ...classified, name: stmt.name, type: "Single", gridMulti: false },
+        context,
+      );
+      warnings.push(...sub.warnings);
+      const code = sub.codes[0];
+      if (code) {
+        statementAnswers[stmt.name] = [code];
+        anyAnswer = true;
+        if (sub.source !== "dataset" && sub.source !== "override") {
+          source = sub.source;
+        }
+      } else if (sub.source === "override" || sub.source === "dataset") {
+        source = sub.source;
+      }
+    }
+
+    if (anyAnswer) {
+      return { codes: [], statementAnswers, source, warnings };
+    }
+  }
+
+  const defQuestion = context.definition
+    ? findQuestion(context.definition, classified.name)
+    : undefined;
+  const questionOverride = defQuestion?.ExploreOverride?.trim();
+
+  if (questionOverride) {
     if (classified.type === "Open") {
       return {
         codes: [],
-        openText: override,
+        openText: questionOverride,
         source: "override",
         warnings: [],
       };
     }
     return {
-      codes: [override],
+      codes: questionOverride.split(/[,+]/).map((c) => c.trim()).filter(Boolean),
       source: "override",
       warnings: [],
     };
@@ -123,9 +189,7 @@ export function resolveExploreAnswer(
     const fromRow = resolveRowAnswerForClassified(classified, context.seedRow);
     if (fromRow) return fromRow;
 
-    const question = context.definition
-      ? findQuestion(context.definition, classified.name)
-      : undefined;
+    const question = defQuestion;
     if (question) {
       const fromDef = resolveAnswer(question, context.seedRow);
       if (fromDef.source === "data") {
@@ -179,12 +243,23 @@ export function resolveExploreAnswer(
 
 export function formatDiscoveredOptions(classified: ClassifiedQuestion): string {
   const codes = classified.codes.filter((c) => c !== "");
-  if (codes.length === 0) return "(no coded options on page)";
+  const codeText =
+    codes.length === 0
+      ? "(no coded options on page)"
+      : codes
+          .map((code) => {
+            const label = classified.labels[code];
+            return label && label !== code ? `${code} (${label})` : code;
+          })
+          .join(", ");
 
-  return codes
-    .map((code) => {
-      const label = classified.labels[code];
-      return label && label !== code ? `${code} (${label})` : code;
-    })
-    .join(", ");
+  if (classified.gridStatements && classified.gridStatements.length > 0) {
+    const rows = classified.gridStatements
+      .map((s) => `${s.name}=${s.rowLabel || s.name}`)
+      .join(", ");
+    const mode = classified.gridMulti ? "multi" : "single";
+    return `${codeText} | statements (${mode}): ${rows}`;
+  }
+
+  return codeText;
 }

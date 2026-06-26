@@ -5,9 +5,17 @@ export const QuestionTypeSchema = z.enum([
   "Multi",
   "Open",
   "Scale",
+  "Grid",
 ]);
 
 export const QuestionMethodSchema = z.enum(["Maintain", "Split"]);
+
+export const QuestionSourceSchema = z.enum(["sav", "explore", "manual"]);
+
+export const GridStatementSchema = z.object({
+  name: z.string(),
+  rowLabel: z.string(),
+});
 
 export const QuestionSchema = z.object({
   Name: z.string(),
@@ -22,6 +30,16 @@ export const QuestionSchema = z.object({
   Values: z.unknown().nullable().optional(),
   AVG: z.number().nullable().optional(),
   Labels: z.record(z.string(), z.string()).optional(),
+  /** Where this question entry was last populated from. */
+  Source: QuestionSourceSchema.optional(),
+  /** NV table grid — checkbox vs radio matrix. */
+  GridMulti: z.boolean().optional(),
+  /** Parent QLABEL when this row is a grid statement (BE151 → BE152). */
+  GridScreen: z.string().optional(),
+  /** Statement rows on a grid screen (stored on parent Grid question). */
+  Statements: z.array(GridStatementSchema).optional(),
+  /** Per-question explore answer override (test link only). */
+  ExploreOverride: z.string().nullable().optional(),
 });
 
 export const DefinitionSchema = z.object({
@@ -36,17 +54,27 @@ export const SavFieldMapSchema = z.object({
   password: z.string(),
   id: z.string(),
   project: z.string(),
-  group: z.string().optional(),
 });
 
 export type SavFieldMap = z.infer<typeof SavFieldMapSchema>;
 
+/** SAV column names filled into the NV live login form (one row per interview). */
+export const DEFAULT_SAV_FIELD_MAP: SavFieldMap = {
+  station: "ws",
+  password: "password",
+  id: "s_ini",
+  project: "project",
+};
+
+/** Blank until configured in Setup; otherwise must be a valid URL. */
+export const OptionalUrlSchema = z.union([z.literal(""), z.string().url()]);
+
 export const ProjectConfigSchema = z.object({
   name: z.string(),
-  nvLoginUrl: z.string().url(),
-  liveLink: z.string().default(""),
-  testLink: z.string().default(""),
-  mode: z.enum(["Cloning", "Freestyle"]).default("Cloning"),
+  nvLoginUrl: OptionalUrlSchema.default(""),
+  liveLink: OptionalUrlSchema.default(""),
+  testLink: OptionalUrlSchema.default(""),
+  mode: z.literal("Freestyle").default("Freestyle"),
   loi: z
     .object({
       targetMinutes: z.number().positive(),
@@ -58,11 +86,13 @@ export const ProjectConfigSchema = z.object({
       maxConcurrent: z.number().int().positive().default(2),
     })
     .default({ maxConcurrent: 2 }),
-  savFieldMap: SavFieldMapSchema,
-  /** Test-link overrides while exploring (e.g. IDINT → 0001). Dataset row fills the rest. */
-  exploreDefaults: z.record(z.string(), z.string()).default({}),
+  savFieldMap: SavFieldMapSchema.default({ ...DEFAULT_SAV_FIELD_MAP }),
   /** Row index in the active dataset used as the guided explore answer profile. */
   exploreSeedRowIndex: z.number().int().min(0).default(0),
+  /** How many dataset rows to walk during explore (1 = single guided pass, then stop at interview end). */
+  exploreRowCount: z.number().int().min(1).default(1),
+  /** Question names that mark interview end during explore (default includes ANMER). */
+  exploreEndQuestions: z.array(z.string()).default(["ANMER"]),
 });
 
 export const DataRowSchema = z.record(z.string(), z.unknown());
@@ -71,6 +101,8 @@ export const InterviewDataSchema = z.array(DataRowSchema);
 
 export type QuestionType = z.infer<typeof QuestionTypeSchema>;
 export type QuestionMethod = z.infer<typeof QuestionMethodSchema>;
+export type QuestionSource = z.infer<typeof QuestionSourceSchema>;
+export type GridStatement = z.infer<typeof GridStatementSchema>;
 export type Question = z.infer<typeof QuestionSchema>;
 export type Definition = z.infer<typeof DefinitionSchema>;
 export type ProjectConfig = z.infer<typeof ProjectConfigSchema>;
@@ -82,6 +114,17 @@ export const DiscoveredQuestionSchema = z.object({
   type: QuestionTypeSchema,
   codes: z.array(z.string()),
   labels: z.record(z.string(), z.string()).optional(),
+  /** NV table grid — one screen, multiple statement rows (QUESTLIST). */
+  statements: z
+    .array(
+      z.object({
+        name: z.string(),
+        rowLabel: z.string(),
+      }),
+    )
+    .optional(),
+  /** Checkbox grid — each statement row is Multi on the NV form. */
+  gridMulti: z.boolean().optional(),
 });
 
 export type DiscoveredQuestion = z.infer<typeof DiscoveredQuestionSchema>;

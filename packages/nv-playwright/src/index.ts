@@ -4,5 +4,7 @@ export * from "./discovery.js";
 export * from "./pages/NvLoginPage.js";
 export * from "./pages/NvInterviewPage.js";
 export * from "./wait-for-question.js";
+export * from "./interview-end.js";
 export * from "./NvExploreRunner.js";
+export * from "./explore-trail-export.js";
 export * from "./NvInterviewRunner.js";

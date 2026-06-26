@@ -29,7 +29,6 @@ export function credentialsFromDataRow(
     password: get("password"),
     id: get("id"),
     project: get("project"),
-    group: map.group ? get("group") : undefined,
     mode: config.mode,
   };
 }

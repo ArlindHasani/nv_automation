@@ -15,6 +15,11 @@ export async function findFirstVisible(
   return null;
 }
 
+export interface GridStatement {
+  name: string;
+  rowLabel: string;
+}
+
 export interface ClassifiedQuestion {
   name: string;
   type: QuestionType;
@@ -26,6 +31,10 @@ export interface ClassifiedQuestion {
   tileSelect?: boolean;
   /** Radio/checkbox with data-autosubmit — selecting submits the form. */
   autoSubmit?: boolean;
+  /** NV table grid — multiple statement rows on one screen (QUESTLIST). */
+  gridStatements?: GridStatement[];
+  /** Each statement row allows multiple selections (table checkboxes). */
+  gridMulti?: boolean;
 }
 
 /** NV Rev2 exposes the current question code in a hidden QLABEL field. */
@@ -44,6 +53,107 @@ export async function extractNvQuestionLabel(page: Page): Promise<string | null>
   }
 
   return null;
+}
+
+/** NV table#example with multiple statement rows (QUESTLIST) — radio or checkbox per cell. */
+async function collectTableGridQuestion(
+  page: Page,
+): Promise<ClassifiedQuestion | null> {
+  const result = await page.evaluate(() => {
+    const table = document.querySelector("table#example");
+    if (!table) return null;
+
+    const questListRaw =
+      (
+        document.querySelector('input[name="QUESTLIST"]') as HTMLInputElement | null
+      )?.value?.trim() ?? "";
+    const questList = questListRaw
+      .split(";")
+      .map((part) => part.trim().toUpperCase())
+      .filter(Boolean);
+
+    const rows = Array.from(table.querySelectorAll("tbody tr"));
+    if (rows.length === 0) return null;
+
+    const headerCells = Array.from(table.querySelectorAll("thead th"));
+    const statements: Array<{
+      name: string;
+      rowLabel: string;
+      codes: string[];
+    }> = [];
+    const labels: Record<string, string> = {};
+    let gridMulti = false;
+
+    for (const row of rows) {
+      const cells = Array.from(row.querySelectorAll("td"));
+      if (cells.length === 0) continue;
+
+      const rowLabel = cells[0]?.textContent?.trim() ?? "";
+      const inputs = Array.from(
+        row.querySelectorAll(
+          'input[type="radio"], input[type="RADIO"], input[type="checkbox"], input[type="CHECKBOX"]',
+        ),
+      ) as HTMLInputElement[];
+      if (inputs.length === 0) continue;
+
+      const rawName = inputs[0].name?.trim() ?? "";
+      const baseName = rawName.includes(":")
+        ? rawName.split(":")[0].toUpperCase()
+        : rawName.toUpperCase();
+      if (!baseName) continue;
+
+      if (inputs[0].type.toLowerCase() === "checkbox") {
+        gridMulti = true;
+      }
+
+      const codes: string[] = [];
+      for (let i = 0; i < inputs.length; i++) {
+        const input = inputs[i];
+        const value = input.value;
+        if (!codes.includes(value)) codes.push(value);
+        if (!labels[value] && headerCells[i + 1]) {
+          const header = headerCells[i + 1]?.textContent?.trim();
+          if (header) labels[value] = header;
+        }
+      }
+
+      statements.push({ name: baseName, rowLabel, codes });
+    }
+
+    if (statements.length === 0) return null;
+
+    const statementNames = new Set(statements.map((s) => s.name));
+    const isGrid =
+      statements.length > 1 &&
+      (statementNames.size > 1 || questList.length > 1);
+    if (!isGrid) return null;
+
+    const qlabel =
+      (
+        document.querySelector('input[name="QLABEL"]') as HTMLInputElement | null
+      )?.value?.trim().toUpperCase() ??
+      questList[0] ??
+      statements[0].name;
+
+    const codes = statements[0]?.codes ?? [];
+    const gridStatements = statements.map((s) => ({
+      name: s.name,
+      rowLabel: s.rowLabel,
+    }));
+
+    return { name: qlabel, codes, labels, gridStatements, gridMulti };
+  });
+
+  if (!result) return null;
+
+  return {
+    name: result.name,
+    type: "Grid",
+    codes: result.codes,
+    labels: result.labels,
+    gridStatements: result.gridStatements,
+    gridMulti: result.gridMulti,
+  };
 }
 
 async function extractQuestionName(page: Page): Promise<string | null> {
@@ -405,6 +515,7 @@ async function collectNvFormQuestion(page: Page): Promise<ClassifiedQuestion | n
   if (!nvLabel) return null;
 
   const checks = [
+    collectTableGridQuestion,
     collectTileCodes,
     collectCheckboxCodes,
     collectRadioCodes,
@@ -431,6 +542,7 @@ export async function classifyCurrentQuestion(
   if (nvForm) return nvForm;
 
   const checks = [
+    collectTableGridQuestion,
     collectTileCodes,
     collectCheckboxCodes,
     collectRadioCodes,
@@ -453,5 +565,10 @@ export function toDiscoveredQuestion(c: ClassifiedQuestion): DiscoveredQuestion 
     type: c.type,
     codes: c.codes,
     labels: Object.keys(c.labels).length ? c.labels : undefined,
+    statements:
+      c.gridStatements && c.gridStatements.length > 0
+        ? c.gridStatements
+        : undefined,
+    gridMulti: c.gridMulti,
   };
 }

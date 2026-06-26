@@ -1,10 +1,10 @@
 {
-  "slug": "kantar-es-power-brand-pymes-bbva-b2b-wave-1-bran",
-  "name": "Kantar ES, Power brand Pymes BBVA B2B wave 1 (Brand AR)",
+  "slug": "brand-ar",
+  "name": "Brand AR",
   "liveLink": "https://nv25.ffind.com/nv_rev2/login.php",
   "testLink": "https://nv25.ffind.com/nv_rev2/test.php?token=wIK0ca8Oe9",
   "mode": "Freestyle",
-  "loiTargetMinutes": 12,
+  "loiTargetMinutes": 15,
   "loiJitterPercent": 15,
   "maxWorkers": 2,
   "savFieldMap": {
@@ -14,11 +14,11 @@
     "project": "project"
   },
   "exploreSeedRowIndex": 0,
-  "exploreRowCount": 2,
+  "exploreRowCount": 1,
   "exploreEndQuestions": [
     "ANMER"
   ],
-  "activeDatasetId": "9c8d3e52",
-  "createdAt": "2026-06-25T11:57:14.543Z",
-  "updatedAt": "2026-06-26T14:16:59.443Z"
+  "activeDatasetId": "47cfb062",
+  "createdAt": "2026-06-26T12:24:14.203Z",
+  "updatedAt": "2026-06-26T12:32:58.764Z"
 }

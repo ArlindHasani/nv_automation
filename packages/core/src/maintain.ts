@@ -10,6 +10,8 @@ import type { DataRow, Definition, Question } from "./schemas.js";
 export interface ResolvedAnswer {
   codes: string[];
   openText?: string;
+  /** Per-row answers on NV table grid screens (QUESTLIST). */
+  statementAnswers?: Record<string, string[]>;
   source: "data" | "fallback" | "split";
   warnings: string[];
 }
@@ -145,6 +147,7 @@ export function resolveAnswer(
     case "Open":
       return resolveMaintainOpen(question, row, columns);
     case "Scale":
+    case "Grid":
     case "Single":
     default:
       return resolveMaintainSingle(question, row, columns, options);

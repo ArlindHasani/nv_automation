@@ -1,0 +1,81 @@
+[
+  {
+    "id": "1932a472-0501-45cc-9651-4ae81f0f19de",
+    "status": "completed",
+    "added": [
+      "INT01",
+      "PRVCY",
+      "Q_REC",
+      "REGSH",
+      "BE155"
+    ],
+    "updated": [
+      "SCR1",
+      "SCR2",
+      "SCR3",
+      "SCR4",
+      "SCR5",
+      "BE1_1",
+      "BE1_2",
+      "BE2_2",
+      "BE2_3",
+      "BE2_1",
+      "BE102",
+      "BE103",
+      "BE101"
+    ],
+    "conflicts": [],
+    "discovered": 21,
+    "blockers": [],
+    "mergeIssues": [],
+    "steps": 21,
+    "discoveredNames": [
+      "IDINT",
+      "INT01",
+      "PRVCY",
+      "Q_REC",
+      "SCR1",
+      "SCR2",
+      "SCR3",
+      "SCR4",
+      "SCR5",
+      "REGSH",
+      "BE1_1",
+      "BE1_2",
+      "BE2_2",
+      "BE102",
+      "BE112",
+      "BE122",
+      "BE132",
+      "BE142",
+      "BE151",
+      "AH1_2",
+      "AH1B4"
+    ],
+    "createdAt": "2026-06-26T12:32:58.768Z"
+  },
+  {
+    "id": "86823594-5b80-49d9-ab13-4d73e3948101",
+    "status": "partial",
+    "added": [
+      "IDINT"
+    ],
+    "updated": [],
+    "conflicts": [],
+    "discovered": 1,
+    "blockers": [
+      {
+        "question": "IDINT",
+        "type": "Open",
+        "reason": "Could not advance past \"IDINT\" — answer was applied but the page did not move. Add an explore override or check for a validation error on screen.",
+        "screenshot": "explore-blocked-stuck-IDINT.png"
+      }
+    ],
+    "mergeIssues": [],
+    "steps": 0,
+    "discoveredNames": [
+      "IDINT"
+    ],
+    "createdAt": "2026-06-26T12:26:58.702Z"
+  }
+]

@@ -53,6 +53,7 @@ function buildQuestionFromSav(
     Values: null,
     AVG: null,
     Labels: labels,
+    Source: "sav",
   };
 }
 
@@ -98,6 +99,10 @@ function applySavQuestion(target: Question, inferred: Question): void {
 
   if (inferred.Labels) {
     target.Labels = { ...(target.Labels ?? {}), ...inferred.Labels };
+  }
+
+  if (target.Source !== "manual" && target.Source !== "explore") {
+    target.Source = "sav";
   }
 }
 

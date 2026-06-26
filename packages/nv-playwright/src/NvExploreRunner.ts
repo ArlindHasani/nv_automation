@@ -1,10 +1,13 @@
 import fs from "node:fs/promises";
 import { chromium } from "playwright";
 import {
+  exploreOverridesFromDefinition,
   type DataRow,
   type Definition,
   formatQuestionCodes,
   mergeDefinition,
+  validateDiscoveryForMerge,
+  validateMergedDefinition,
   type ProjectConfig,
 } from "@nv/core";
 import { NvInterviewPage } from "./pages/NvInterviewPage.js";
@@ -23,9 +26,15 @@ import {
   waitForNvQuestionChange,
   waitForNvQuestionReady,
 } from "./wait-for-question.js";
+import {
+  isInterviewCompletePage,
+  isInterviewEndQuestion,
+} from "./interview-end.js";
+import { writeExploreTrailArtifacts, formatStatementAnswersForTrail } from "./explore-trail-export.js";
 
 /** Long NV radio lists never auto-advance reliably — always use Next. */
 function expectsAutoAdvance(classified: ClassifiedQuestion): boolean {
+  if (classified.type === "Grid") return false;
   if (classified.tileSelect) return true;
   if (!classified.autoSubmit) return false;
   if (classified.type === "Single" && classified.codes.length > 6) return false;
@@ -46,22 +55,73 @@ export interface ExploreBlocker {
 
 export interface ExploreTrailStep {
   step: number;
+  rowPass: number;
+  datasetRowIndex: number;
   question: string;
   type: string;
   options: string;
   answer: string;
   answerSource: string;
+  warnings?: string;
   screenshot?: string;
+}
+
+export interface DatasetRowPass {
+  index: number;
+  row: DataRow;
 }
 
 export interface ExploreOptions {
   config: ProjectConfig;
   definition: Definition;
   outputDir: string;
+  /** @deprecated Use datasetRows */
   seedRow?: DataRow;
+  /** Dataset rows to walk (one test-link pass each). */
+  datasetRows?: DatasetRowPass[];
+  runId?: string;
   headless?: boolean;
   maxSteps?: number;
   log?: ExploreLogFn;
+  /** Extra question names that end a guided explore walk (in addition to ANMER). */
+  exploreEndQuestions?: string[];
+  /** SAV questions missing from definition — used for post-merge validation. */
+  coverageGaps?: string[];
+  /** When set, loop exits early with partial results. */
+  signal?: AbortSignal;
+}
+
+function isAborted(signal?: AbortSignal): boolean {
+  return signal?.aborted ?? false;
+}
+
+interface ExploreStepContext {
+  question: string;
+  type: string;
+  answer?: string;
+  answerSource?: string;
+  warnings: string[];
+  phase: "loading" | "answering" | "waiting_advance" | "stuck";
+}
+
+function describeManualStopReason(ctx: ExploreStepContext): string {
+  const parts = [`Stopped by user at ${ctx.question} (${ctx.type}).`];
+  if (ctx.answer !== undefined) {
+    parts.push(`Last answer: "${ctx.answer}" (${ctx.answerSource ?? "unknown"}).`);
+  }
+  if (ctx.warnings.length > 0) {
+    parts.push(ctx.warnings.join(" "));
+  }
+  if (ctx.phase === "loading") {
+    parts.push("Was waiting for a question to load.");
+  } else if (ctx.phase === "waiting_advance") {
+    parts.push("Was waiting for the page to advance after answering.");
+  } else if (ctx.phase === "stuck") {
+    parts.push(
+      "Page did not advance — still on the same question after answer + Next.",
+    );
+  }
+  return parts.join(" ");
 }
 
 export interface ExploreResult {
@@ -70,11 +130,15 @@ export interface ExploreResult {
   added: string[];
   updated: string[];
   conflicts: ReturnType<typeof mergeDefinition>["conflicts"];
+  mergeIssues: ReturnType<typeof validateMergedDefinition>;
   status: "completed" | "partial";
   blockers: ExploreBlocker[];
   steps: number;
+  rowsWalked: number;
   discoveredNames: string[];
   trail: ExploreTrailStep[];
+  trailJson: string;
+  trailCsv: string;
 }
 
 export class NvExploreRunner {
@@ -87,9 +151,21 @@ export class NvExploreRunner {
       headless = true,
       maxSteps = 200,
       log = console.log,
+      exploreEndQuestions = config.exploreEndQuestions ?? [],
+      coverageGaps = [],
+      signal,
+      runId: runIdInput,
+      datasetRows: datasetRowsInput,
     } = options;
 
-    const overrides = config.exploreDefaults ?? {};
+    const runId = runIdInput ?? `run-${Date.now()}`;
+    const datasetRows =
+      datasetRowsInput ??
+      (seedRow
+        ? [{ index: config.exploreSeedRowIndex ?? 0, row: seedRow }]
+        : []);
+
+    const overrides = exploreOverridesFromDefinition(definition);
     const blockers: ExploreBlocker[] = [];
     const discoveredList: ReturnType<typeof toDiscoveredQuestion>[] = [];
     const trail: ExploreTrailStep[] = [];
@@ -107,33 +183,116 @@ export class NvExploreRunner {
       throw new Error("Set a test link in project settings before exploring");
     }
 
-    log(`Opened test link: ${config.testLink}`, "info");
-    if (seedRow) {
-      log(
-        `Guided explore: using dataset row ${config.exploreSeedRowIndex ?? 0}`,
-        "info",
+    if (datasetRows.length === 0) {
+      await browser.close();
+      throw new Error(
+        "Guided explore requires an uploaded dataset — import a SAV and activate it before exploring",
       );
     }
+
     if (Object.keys(overrides).length > 0) {
       log(`Explore overrides: ${JSON.stringify(overrides)}`, "info");
     }
 
-    await login.goto(config.testLink);
-
     let steps = 0;
+    let rowsWalked = 0;
     let stuckCount = 0;
     let status: ExploreResult["status"] = "completed";
 
     const waitLog = (message: string) => log(`  ${message}`, "info");
+    const shouldAbort = () => isAborted(signal);
+    let stepContext: ExploreStepContext = {
+      question: "?",
+      type: "unknown",
+      warnings: [],
+      phase: "loading",
+    };
+
+    const finishUserStop = async (): Promise<void> => {
+      const lastTrail = trail.at(-1);
+      if (lastTrail && stepContext.question === "?") {
+        stepContext = {
+          question: lastTrail.question,
+          type: lastTrail.type,
+          answer: lastTrail.answer,
+          answerSource: lastTrail.answerSource,
+          warnings: stepContext.warnings,
+          phase: stepContext.phase,
+        };
+      }
+      log("Explore stopped by user", "warn");
+      const reason = describeManualStopReason(stepContext);
+      log(`  ${reason}`, "warn");
+      status = "partial";
+      const safeName = stepContext.question.replace(/[^a-zA-Z0-9_-]+/g, "_");
+      const screenshot = `explore-stopped-${safeName}.png`;
+      try {
+        await page.screenshot({ path: `${outputDir}/${screenshot}`, fullPage: true });
+      } catch {
+        // page may already be closing
+      }
+      blockers.push({
+        question: stepContext.question,
+        type: "stopped",
+        reason,
+        screenshot,
+      });
+    };
 
     try {
-      while (steps < maxSteps) {
+      rowLoop: for (let passIdx = 0; passIdx < datasetRows.length; passIdx++) {
+        const { index: datasetRowIndex, row: currentSeedRow } =
+          datasetRows[passIdx]!;
+        const rowPass = passIdx + 1;
+
+        if (passIdx === 0) {
+          log(`Opened test link: ${config.testLink}`, "info");
+        }
+        log(
+          `Guided explore pass ${rowPass}/${datasetRows.length}: dataset row ${datasetRowIndex}`,
+          "info",
+        );
+        if (passIdx === 0) {
+          await login.goto(config.testLink);
+        } else {
+          await login.goto(config.testLink);
+          stuckCount = 0;
+        }
+        rowsWalked++;
+        let passCompleted = false;
+        let passSteps = 0;
+
+      while (passSteps < maxSteps) {
+        if (shouldAbort()) {
+          await finishUserStop();
+          break;
+        }
+
         const stepNum = steps + 1;
+        stepContext = {
+          question: trail.at(-1)?.question ?? "?",
+          type: trail.at(-1)?.type ?? "unknown",
+          warnings: [],
+          phase: "loading",
+        };
         const classified = await waitForNvQuestionReady(page, {
           timeoutMs: 45_000,
           log: waitLog,
+          shouldAbort,
         });
+        if (shouldAbort()) {
+          await finishUserStop();
+          break;
+        }
         if (!classified) {
+          if (passSteps > 0 && (await isInterviewCompletePage(page))) {
+            log(
+              `Interview completion page detected — pass ${rowPass} complete`,
+              "success",
+            );
+            passCompleted = true;
+            break;
+          }
           const screenshot = `explore-blocked-unclassified-${steps}.png`;
           await page.screenshot({ path: `${outputDir}/${screenshot}`, fullPage: true });
           blockers.push({
@@ -198,22 +357,41 @@ export class NvExploreRunner {
         }
 
         const prevName = classified.name;
+        stepContext = {
+          question: classified.name,
+          type: classified.type,
+          warnings: [],
+          phase: "answering",
+        };
         const answer = resolveExploreAnswer(classified, {
-          overrides,
-          seedRow,
+          seedRow: currentSeedRow,
           definition,
         });
         for (const w of answer.warnings) log(`  ${w}`, "warn");
+        stepContext.warnings = [...answer.warnings];
+
         let answerText = answer.openText;
-        if (answerText === undefined || answerText === "") {
+        if (answer.statementAnswers && Object.keys(answer.statementAnswers).length > 0) {
+          answerText = formatStatementAnswersForTrail(answer.statementAnswers);
+        } else if (answerText === undefined || answerText === "") {
           answerText = answer.codes.length > 0 ? answer.codes.join(",") : "(empty)";
         }
         log(
           `  Answering ${prevName} → "${answerText}" (${answer.source})`,
           "info",
         );
+        stepContext.answer = answerText;
+        stepContext.answerSource = answer.source;
 
-        if (answer.codes.length === 0 && !answer.openText && answer.warnings.length > 0) {
+        const hasGridAnswers =
+          answer.statementAnswers &&
+          Object.keys(answer.statementAnswers).length > 0;
+        if (
+          answer.codes.length === 0 &&
+          !answer.openText &&
+          !hasGridAnswers &&
+          answer.warnings.length > 0
+        ) {
           const screenshot = `explore-blocked-no-answer-${classified.name}.png`;
           await page.screenshot({ path: `${outputDir}/${screenshot}`, fullPage: true });
           blockers.push({
@@ -231,6 +409,7 @@ export class NvExploreRunner {
           await interview.applyAnswer({
             codes: answer.codes,
             openText: answer.openText,
+            statementAnswers: answer.statementAnswers,
             source: answer.source === "dataset" ? "data" : "fallback",
             warnings: answer.warnings,
           });
@@ -251,11 +430,14 @@ export class NvExploreRunner {
 
         trail.push({
           step: stepNum,
+          rowPass,
+          datasetRowIndex,
           question: classified.name,
           type: classified.type,
           options: optionsText,
           answer: answerText,
           answerSource: answer.source,
+          warnings: answer.warnings.length > 0 ? answer.warnings.join("; ") : undefined,
           screenshot: `explore-${classified.name}.png`,
         });
 
@@ -277,12 +459,21 @@ export class NvExploreRunner {
           await next.click();
         }
 
+        stepContext.phase = "waiting_advance";
+
         let after = await waitForNvQuestionChange(page, prevName, {
           timeoutMs: classified.tileSelect ? 15_000 : autoAdvance ? 6_000 : 30_000,
           log: waitLog,
+          shouldAbort,
         });
 
+        if (shouldAbort()) {
+          await finishUserStop();
+          break;
+        }
+
         if (sameQuestion(after) && next) {
+          stepContext.phase = "stuck";
           log(
             classified.autoSubmit && autoAdvance
               ? "  data-autosubmit did not advance — clicking Next…"
@@ -293,15 +484,44 @@ export class NvExploreRunner {
           after = await waitForNvQuestionChange(page, prevName, {
             timeoutMs: 20_000,
             log: waitLog,
+            shouldAbort,
           });
         }
 
+        if (shouldAbort()) {
+          await finishUserStop();
+          break;
+        }
+
         if (sameQuestion(after)) {
-          stuckCount++;
+          const endQuestions = exploreEndQuestions;
+          if (isInterviewEndQuestion(prevName, endQuestions)) {
+            log(
+              `  End of interview at ${prevName} — pass ${rowPass} complete`,
+              "success",
+            );
+            passCompleted = true;
+            passSteps++;
+            steps++;
+            break;
+          }
+
+          if (await isInterviewCompletePage(page)) {
+            log(
+              `  Interview completion page detected — pass ${rowPass} complete`,
+              "success",
+            );
+            passCompleted = true;
+            passSteps++;
+            steps++;
+            break;
+          }
+
           log(
-            `  Stuck on ${prevName} after answer + Next (${stuckCount}/2)`,
+            `  Stuck on ${prevName} after answer + Next (${stuckCount + 1}/2)`,
             "error",
           );
+          stuckCount++;
           if (stuckCount >= 2) {
             const screenshot = `explore-blocked-stuck-${prevName}.png`;
             await page.screenshot({ path: `${outputDir}/${screenshot}`, fullPage: true });
@@ -324,13 +544,45 @@ export class NvExploreRunner {
           log("  Next page loaded but question not detected yet", "warn");
         }
         stuckCount = 0;
+        passSteps++;
         steps++;
+      }
+
+        if (shouldAbort()) break rowLoop;
+        if (status === "partial") break rowLoop;
+        if (!passCompleted) break rowLoop;
+        if (passIdx < datasetRows.length - 1) {
+          log(
+            `Pass ${rowPass} finished — opening test link for next dataset row`,
+            "info",
+          );
+          continue rowLoop;
+        }
       }
     } finally {
       await browser.close();
     }
 
     const merged = mergeDefinition(definition, discoveredList);
+    const discoveryIssues = validateDiscoveryForMerge(discoveredList);
+    for (const issue of discoveryIssues) {
+      log(
+        `  Merge check [${issue.severity}] ${issue.question}: ${issue.message}`,
+        issue.severity === "error" ? "error" : "warn",
+      );
+    }
+
+    const mergeIssues = validateMergedDefinition({
+      mergeResult: merged,
+      discoveryIssues,
+      questionsInDataNotInDefinition: coverageGaps,
+    });
+    for (const issue of mergeIssues.filter((i) => i.severity === "warn")) {
+      if (!discoveryIssues.includes(issue)) {
+        log(`  Review [${issue.severity}] ${issue.question}: ${issue.message}`, "warn");
+      }
+    }
+
     log(
       `Merging into Definition.json — ${discoveredList.length} discovered, +${merged.added.length} new, ~${merged.updated.length} updated`,
       "info",
@@ -358,11 +610,13 @@ export class NvExploreRunner {
       }
     }
 
-    await fs.writeFile(
-      `${outputDir}/explore-trail.json`,
-      JSON.stringify(trail, null, 2),
+    const { trailJson, trailCsv } = await writeExploreTrailArtifacts(
+      outputDir,
+      runId,
+      trail,
     );
-    log(`Explore trail → explore-cache/explore-trail.json`, "info");
+    log(`Explore trail CSV → explore-cache/${trailCsv}`, "info");
+    log(`Explore trail JSON → explore-cache/${trailJson}`, "info");
 
     if (blockers.length > 0) {
       log(
@@ -370,7 +624,10 @@ export class NvExploreRunner {
         "warn",
       );
     } else {
-      log(`Explore completed — ${steps} step(s) walked`, "success");
+      log(
+        `Explore completed — ${steps} step(s) across ${rowsWalked} row pass(es) of ${datasetRows.length}`,
+        "success",
+      );
     }
 
     return {
@@ -379,11 +636,15 @@ export class NvExploreRunner {
       added: merged.added,
       updated: merged.updated,
       conflicts: merged.conflicts,
+      mergeIssues,
       status,
       blockers,
       steps,
+      rowsWalked,
       discoveredNames: discoveredList.map((d) => d.name),
       trail,
+      trailJson,
+      trailCsv,
     };
   }
 }

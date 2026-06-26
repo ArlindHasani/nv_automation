@@ -6,7 +6,7 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "npm run build --workspace=@nv/core && npm run dev --workspace=@nv/web",
+    "dev": "npm run build --workspace=@nv/core && npm run build --workspace=@nv/playwright && npm run dev --workspace=@nv/web",
     "playwright:install": "node scripts/playwright-install.mjs",
     "build": "npm run build --workspaces --if-present",
     "import-sav": "tsx scripts/import-sav.ts",
