@@ -2,21 +2,18 @@ import type { ClassifiedQuestion } from "./question-classifier.js";
 import {
   collectMentionCodesFromRow,
   findQuestion,
-  formatCodeForQuestion,
-  getDataValue,
-  getOtherTextColumnForQuestion,
-  getValueColumnForQuestion,
-  resolveAnswer,
+  isQuestionInDataset,
+  resolveQuestionAnswer,
   type DataRow,
   type Definition,
+  type PolicyResolvedAnswer,
 } from "@nv/core";
 import { normalizeGridStatementCodes } from "./nv-input-actions.js";
 
 export type ExploreAnswerSource =
-  | "override"
+  | "fixed"
   | "dataset"
-  | "definition"
-  | "discovered"
+  | "split"
   | "fallback";
 
 export interface ExploreResolvedAnswer {
@@ -24,76 +21,64 @@ export interface ExploreResolvedAnswer {
   openText?: string;
   statementAnswers?: Record<string, string[]>;
   source: ExploreAnswerSource;
+  policy: PolicyResolvedAnswer["policy"];
+  configured: boolean;
   warnings: string[];
 }
 
 export interface ExploreAnswerContext {
   seedRow?: DataRow;
   definition?: Definition;
+  questionsInDefinitionNotInData?: string[];
+  datasetRowIndex?: number;
+  mode?: "explore" | "live";
 }
 
-function isPresent(value: unknown): boolean {
-  if (value === null || value === undefined) return false;
-  if (typeof value === "string" && value.trim() === "") return false;
-  return true;
+function mapSource(source: PolicyResolvedAnswer["source"]): ExploreAnswerSource {
+  if (source === "fixed") return "fixed";
+  if (source === "data") return "dataset";
+  if (source === "split") return "split";
+  return "fallback";
 }
 
-/** Resolve an answer from a SAV row using the live question type (no Definition entry required). */
-export function resolveRowAnswerForClassified(
+function toExploreAnswer(result: PolicyResolvedAnswer): ExploreResolvedAnswer {
+  return {
+    codes: result.codes,
+    openText: result.openText,
+    statementAnswers: result.statementAnswers,
+    source: mapSource(result.source),
+    policy: result.policy,
+    configured: result.configured,
+    warnings: result.warnings,
+  };
+}
+
+function resolveForClassified(
   classified: ClassifiedQuestion,
-  row: DataRow,
-): ExploreResolvedAnswer | null {
-  const columns = Object.keys(row);
-  const name = classified.name.toUpperCase();
+  context: ExploreAnswerContext,
+): ExploreResolvedAnswer {
+  const question = context.definition
+    ? findQuestion(context.definition, classified.name)
+    : undefined;
+  const inDataset = context.questionsInDefinitionNotInData
+    ? isQuestionInDataset(
+        classified.name,
+        context.questionsInDefinitionNotInData,
+      )
+    : true;
+  const deterministicSeed = `${context.datasetRowIndex ?? 0}:${classified.name}`;
 
-  if (classified.type === "Open") {
-    const openCol =
-      getOtherTextColumnForQuestion(name, columns) ??
-      `o_${name.toLowerCase()}`;
-    const raw = getDataValue(row, openCol);
-    if (typeof raw === "string" && raw.length > 0) {
-      return { codes: [], openText: raw, source: "dataset", warnings: [] };
-    }
-    if (isPresent(raw)) {
-      return {
-        codes: [],
-        openText: String(raw),
-        source: "dataset",
-        warnings: [],
-      };
-    }
-    return null;
-  }
-
-  if (classified.type === "Multi") {
-    const codes = collectMentionCodesFromRow(name, row, columns);
-    if (codes.length > 0) {
-      return { codes, source: "dataset", warnings: [] };
-    }
-    return null;
-  }
-
-  const valueCol =
-    getValueColumnForQuestion(name, columns) ?? name.toLowerCase();
-  const raw = getDataValue(row, valueCol);
-  if (isPresent(raw)) {
-    return {
-      codes: [String(raw)],
-      source: "dataset",
-      warnings: [],
-    };
-  }
-  return null;
-}
-
-function firstDefinitionCode(
-  definition: Definition,
-  questionName: string,
-): string | null {
-  const question = findQuestion(definition, questionName);
-  if (!question) return null;
-  const codes = Object.keys(question.Split).filter((k) => k !== "");
-  return codes[0] ?? null;
+  return toExploreAnswer(
+    resolveQuestionAnswer({
+      question,
+      questionName: classified.name,
+      questionType: classified.type,
+      row: context.seedRow,
+      inDataset,
+      mode: context.mode ?? "explore",
+      deterministicSeed,
+    }),
+  );
 }
 
 export function resolveExploreAnswer(
@@ -108,7 +93,8 @@ export function resolveExploreAnswer(
     const statementAnswers: Record<string, string[]> = {};
     const warnings: string[] = [];
     let source: ExploreAnswerSource = "dataset";
-    let anyAnswer = false;
+    let policy: PolicyResolvedAnswer["policy"] = "maintain";
+    let configured = true;
 
     for (const stmt of classified.gridStatements) {
       if (classified.gridMulti) {
@@ -116,129 +102,92 @@ export function resolveExploreAnswer(
           ? Object.keys(context.seedRow)
           : [];
         const codes = context.seedRow
-          ? collectMentionCodesFromRow(
-              stmt.name,
-              context.seedRow,
-              columns,
+          ? normalizeGridStatementCodes(
+              collectMentionCodesFromRow(
+                stmt.name,
+                context.seedRow,
+                columns,
+              ),
+              classified.codes,
             )
           : [];
-        const normalized = normalizeGridStatementCodes(
-          codes,
-          classified.codes,
+
+        if (codes.length > 0) {
+          statementAnswers[stmt.name] = codes;
+          continue;
+        }
+
+        const sub = resolveForClassified(
+          {
+            ...classified,
+            name: stmt.name,
+            type: "Multi",
+            gridMulti: false,
+          },
+          context,
         );
-        if (normalized.length > 0) {
-          statementAnswers[stmt.name] = normalized;
-          anyAnswer = true;
-        } else if (classified.codes.length > 0) {
-          const fallback = classified.codes.includes("4")
-            ? "4"
-            : classified.codes[0];
-          statementAnswers[stmt.name] = [fallback];
-          warnings.push(
-            `No dataset mentions for '${stmt.name}' — using code ${fallback}`,
-          );
-          anyAnswer = true;
+        warnings.push(...sub.warnings);
+        if (!sub.configured) {
+          configured = false;
+          policy = "unconfigured";
+          source = "fallback";
+          continue;
+        }
+        if (sub.codes.length > 0) {
+          statementAnswers[stmt.name] = sub.codes;
+          if (sub.source !== "dataset") {
+            source = sub.source;
+            policy = sub.policy;
+          }
         }
         continue;
       }
 
-      const sub = resolveExploreAnswer(
+      const sub = resolveForClassified(
         { ...classified, name: stmt.name, type: "Single", gridMulti: false },
         context,
       );
       warnings.push(...sub.warnings);
+      if (!sub.configured) {
+        configured = false;
+        policy = "unconfigured";
+        source = "fallback";
+        continue;
+      }
       const code = sub.codes[0];
       if (code) {
         statementAnswers[stmt.name] = [code];
-        anyAnswer = true;
-        if (sub.source !== "dataset" && sub.source !== "override") {
+        if (sub.source !== "dataset") {
           source = sub.source;
+          policy = sub.policy;
         }
-      } else if (sub.source === "override" || sub.source === "dataset") {
-        source = sub.source;
       }
     }
 
-    if (anyAnswer) {
-      return { codes: [], statementAnswers, source, warnings };
-    }
-  }
-
-  const defQuestion = context.definition
-    ? findQuestion(context.definition, classified.name)
-    : undefined;
-  const questionOverride = defQuestion?.ExploreOverride?.trim();
-
-  if (questionOverride) {
-    if (classified.type === "Open") {
+    if (Object.keys(statementAnswers).length > 0) {
       return {
         codes: [],
-        openText: questionOverride,
-        source: "override",
-        warnings: [],
+        statementAnswers,
+        source,
+        policy,
+        configured,
+        warnings,
       };
     }
-    return {
-      codes: questionOverride.split(/[,+]/).map((c) => c.trim()).filter(Boolean),
-      source: "override",
-      warnings: [],
-    };
-  }
 
-  if (context.seedRow) {
-    const fromRow = resolveRowAnswerForClassified(classified, context.seedRow);
-    if (fromRow) return fromRow;
-
-    const question = defQuestion;
-    if (question) {
-      const fromDef = resolveAnswer(question, context.seedRow);
-      if (fromDef.source === "data") {
-        return { ...fromDef, source: "dataset" };
-      }
-    }
-  }
-
-  if (context.definition) {
-    const code = firstDefinitionCode(context.definition, classified.name);
-    if (code) {
-      const question = findQuestion(context.definition, classified.name)!;
-      return {
-        codes: [formatCodeForQuestion(question, code)],
-        source: "definition",
-        warnings: [],
-      };
-    }
-  }
-
-  if (classified.type === "Open") {
     return {
       codes: [],
-      openText: "test",
       source: "fallback",
+      policy: "unconfigured",
+      configured: false,
       warnings: [
-        `No override or dataset value for open question '${classified.name}' — using "test"`,
+        ...warnings,
+        `No configured answers for grid '${classified.name}'`,
       ],
     };
   }
 
-  const visibleCodes = classified.codes.filter((c) => c !== "");
-  if (visibleCodes.length > 0) {
-    return {
-      codes: [visibleCodes[0]],
-      source: "discovered",
-      warnings: [
-        `No override or dataset value for '${classified.name}' — using first visible code`,
-      ],
-    };
-  }
-
-  return {
-    codes: [],
-    source: "fallback",
-    warnings: [
-      `No answer source for '${classified.name}' — add an explore override or import a dataset`,
-    ],
-  };
+  return resolveForClassified(classified, context);
 }
 
 export function formatDiscoveredOptions(classified: ClassifiedQuestion): string {

@@ -17,8 +17,8 @@
     "id": "s_ini",
     "project": "project"
   },
-  "exploreSeedRowIndex": 0,
-  "exploreRowCount": 2,
+  "exploreSeedRowIndex": 1,
+  "exploreRowCount": 1,
   "exploreEndQuestions": [
     "ANMER"
   ]

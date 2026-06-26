@@ -1,3 +1,5 @@
+import "server-only";
+
 export * from "./project-store.js";
 export * from "./distribution.js";
 export * from "./fill-gaps.js";
@@ -8,6 +10,7 @@ export * from "./maintain.js";
 export * from "./merge.js";
 export * from "./merge-validate.js";
 export * from "./question-display.js";
+export * from "./answer-policy.js";
 export * from "./explore-overrides.js";
 export * from "./explore-preflight.js";
 export * from "./split.js";

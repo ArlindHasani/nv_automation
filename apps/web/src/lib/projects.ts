@@ -1,3 +1,5 @@
+import "server-only";
+
 import {
   createProject,
   deleteDataset as deleteProjectDataset,

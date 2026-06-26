@@ -167,6 +167,8 @@ export async function POST(
           headless: true,
           exploreEndQuestions: bundle.config.exploreEndQuestions,
           coverageGaps: bundle.coverage.questionsInDataNotInDefinition,
+          questionsInDefinitionNotInData:
+            bundle.coverage.questionsInDefinitionNotInData,
           signal: session.signal,
           log: (message) => log(message),
         });
@@ -183,6 +185,7 @@ export async function POST(
           discovered: result.discovered,
           blockers: result.blockers,
           mergeIssues: result.mergeIssues,
+          configurationGaps: result.configurationGaps,
           steps: result.steps,
           rowsWalked: result.rowsWalked,
           discoveredNames: result.discoveredNames,

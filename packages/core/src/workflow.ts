@@ -83,7 +83,7 @@ export function buildProjectWorkflow(input: {
     {
       id: "preflight",
       label: "Pre-flight",
-      description: "Test link, seed row, and explore answers for non-SAV questions",
+      description: "Test link, seed row, and answer policy for non-SAV questions",
       section: "setup",
       status: !hasDataset
         ? "pending"
@@ -118,7 +118,7 @@ export function buildProjectWorkflow(input: {
     {
       id: "review",
       label: "Review definition",
-      description: "Maintain answers from dataset; Split only for explore-only questions",
+      description: "Review answer policy; Split or fixed values for questions not in dataset",
       section: "definition",
       status: !hasDefinition
         ? "pending"

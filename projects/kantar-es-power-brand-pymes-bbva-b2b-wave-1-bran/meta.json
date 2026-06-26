@@ -13,12 +13,12 @@
     "id": "s_ini",
     "project": "project"
   },
-  "exploreSeedRowIndex": 0,
-  "exploreRowCount": 2,
+  "exploreSeedRowIndex": 1,
+  "exploreRowCount": 1,
   "exploreEndQuestions": [
     "ANMER"
   ],
-  "activeDatasetId": "9c8d3e52",
-  "createdAt": "2026-06-25T11:57:14.543Z",
-  "updatedAt": "2026-06-26T14:16:59.443Z"
+  "activeDatasetId": null,
+  "createdAt": "2026-06-26T14:48:29.009Z",
+  "updatedAt": "2026-06-26T15:12:07.323Z"
 }

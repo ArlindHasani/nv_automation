@@ -2,82 +2,17 @@
   "Name": "Kantar ES, Power brand Pymes BBVA B2B wave 1 (Brand AR)",
   "Questions": [
     {
-      "Name": "IDINT",
-      "Method": "Maintain",
-      "Type": "Open",
-      "Answer": null,
-      "Split": {
-        "": 0
-      },
-      "Filters": null,
-      "CopyQuestion": null,
-      "Min": 0,
-      "Max": 0,
-      "Values": null,
-      "AVG": null,
-      "Source": "manual",
-      "ExploreOverride": "0001"
-    },
-    {
-      "Name": "INT01",
-      "Method": "Split",
-      "Type": "Single",
-      "Answer": null,
-      "Split": {
-        "OK": 100,
-        "OL": 0,
-        "T1": 0,
-        "V1": 0,
-        "Z1": 0,
-        "Z2": 0,
-        "Z3": 0,
-        "L1": 0,
-        "L2": 0,
-        "N1": 0,
-        "B1": 0,
-        "A4": 0,
-        "F1": 0,
-        "S1": 0,
-        "BL": 0
-      },
-      "Filters": null,
-      "CopyQuestion": null,
-      "Min": 0,
-      "Max": 0,
-      "Values": null,
-      "AVG": null,
-      "Labels": {
-        "OK": "OK",
-        "OL": "OL",
-        "T1": "T1",
-        "V1": "V1",
-        "Z1": "Z1",
-        "Z2": "Z2",
-        "Z3": "Z3",
-        "L1": "L1",
-        "L2": "L2",
-        "N1": "N1",
-        "B1": "B1",
-        "A4": "A4",
-        "F1": "F1",
-        "S1": "S1",
-        "BL": "BL"
-      },
-      "Source": "manual",
-      "ExploreOverride": "OK"
-    },
-    {
       "Name": "SCR1",
       "Method": "Maintain",
       "Type": "Multi",
       "Answer": null,
       "Split": {
-        "1": 16.67,
-        "2": 16.67,
-        "3": 16.67,
-        "4": 16.67,
-        "5": 16.67,
-        "9": 16.65
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "9": 0
       },
       "Filters": null,
       "CopyQuestion": null,
@@ -93,7 +28,7 @@
         "5": "5 - Entidades financieras / bancos / cajas de ahorro",
         "9": "9 - NINGUNO DE ESTOS SECTORES"
       },
-      "Source": "manual"
+      "Source": "explore"
     },
     {
       "Name": "SCR2",
@@ -101,9 +36,9 @@
       "Type": "Single",
       "Answer": null,
       "Split": {
-        "1": 25,
-        "2": 25,
-        "9": 50
+        "1": 0,
+        "2": 0,
+        "9": 0
       },
       "Filters": null,
       "CopyQuestion": null,
@@ -116,7 +51,7 @@
         "2": "2 - NO",
         "9": "9 - NS/NC"
       },
-      "Source": "manual"
+      "Source": "explore"
     },
     {
       "Name": "SCR3",
@@ -124,12 +59,12 @@
       "Type": "Single",
       "Answer": null,
       "Split": {
-        "1": 16.67,
-        "2": 16.67,
-        "3": 16.67,
-        "4": 16.67,
-        "5": 16.67,
-        "6": 16.65
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0
       },
       "Filters": null,
       "CopyQuestion": null,
@@ -145,7 +80,7 @@
         "5": "5 - Instituciones (Colegios, Instituciones de Salud, Congregaciones religiosas, Municipalidades, Cámaras por ejemplo de Comercio, Minería)",
         "6": "6 - Otros sectores"
       },
-      "Source": "manual"
+      "Source": "explore"
     },
     {
       "Name": "SCR4",
@@ -364,7 +299,6 @@
         "06": 0,
         "07": 0,
         "08": 0,
-        "": 0,
         "09": 0
       },
       "Filters": null,
@@ -382,7 +316,7 @@
         "15": "15 - Banco Provincia /BAPRO",
         "16": "16 - Banco Supervielle",
         "17": "17 - BBV",
-        "18": "BBVA",
+        "18": "18 - BBVA",
         "19": "19 - BICE",
         "20": "20 - Brubank",
         "21": "21 - Citibank/Citi",
@@ -472,21 +406,7 @@
       },
       "Source": "explore",
       "GridMulti": false,
-      "GridScreen": "BE2_2",
-      "Statements": [
-        {
-          "name": "BE2_2",
-          "rowLabel": "SANTANDER"
-        },
-        {
-          "name": "BE2_3",
-          "rowLabel": "GALICIA"
-        },
-        {
-          "name": "BE2_1",
-          "rowLabel": "BBVA"
-        }
-      ]
+      "GridScreen": "BE2_2"
     },
     {
       "Name": "BE2_3",
@@ -575,21 +495,7 @@
       },
       "Source": "explore",
       "GridMulti": false,
-      "GridScreen": "BE102",
-      "Statements": [
-        {
-          "name": "BE102",
-          "rowLabel": "SANTANDER"
-        },
-        {
-          "name": "BE103",
-          "rowLabel": "GALICIA"
-        },
-        {
-          "name": "BE101",
-          "rowLabel": "BBVA"
-        }
-      ]
+      "GridScreen": "BE102"
     },
     {
       "Name": "BE103",
@@ -684,21 +590,7 @@
       },
       "Source": "explore",
       "GridMulti": false,
-      "GridScreen": "BE112",
-      "Statements": [
-        {
-          "name": "BE112",
-          "rowLabel": "SANTANDER"
-        },
-        {
-          "name": "BE113",
-          "rowLabel": "GALICIA"
-        },
-        {
-          "name": "BE111",
-          "rowLabel": "BBVA"
-        }
-      ]
+      "GridScreen": "BE112"
     },
     {
       "Name": "BE113",
@@ -797,21 +689,7 @@
       },
       "Source": "explore",
       "GridMulti": false,
-      "GridScreen": "BE122",
-      "Statements": [
-        {
-          "name": "BE122",
-          "rowLabel": "SANTANDER"
-        },
-        {
-          "name": "BE123",
-          "rowLabel": "GALICIA"
-        },
-        {
-          "name": "BE121",
-          "rowLabel": "BBVA"
-        }
-      ]
+      "GridScreen": "BE122"
     },
     {
       "Name": "BE123",
@@ -910,21 +788,7 @@
       },
       "Source": "explore",
       "GridMulti": false,
-      "GridScreen": "BE132",
-      "Statements": [
-        {
-          "name": "BE132",
-          "rowLabel": "SANTANDER"
-        },
-        {
-          "name": "BE133",
-          "rowLabel": "GALICIA"
-        },
-        {
-          "name": "BE131",
-          "rowLabel": "BBVA"
-        }
-      ]
+      "GridScreen": "BE132"
     },
     {
       "Name": "BE133",
@@ -1023,21 +887,7 @@
       },
       "Source": "explore",
       "GridMulti": false,
-      "GridScreen": "BE142",
-      "Statements": [
-        {
-          "name": "BE142",
-          "rowLabel": "SANTANDER"
-        },
-        {
-          "name": "BE143",
-          "rowLabel": "GALICIA"
-        },
-        {
-          "name": "BE141",
-          "rowLabel": "BBVA"
-        }
-      ]
+      "GridScreen": "BE142"
     },
     {
       "Name": "BE143",
@@ -1097,41 +947,7 @@
       },
       "Source": "explore",
       "GridMulti": true,
-      "GridScreen": "BE151",
-      "Statements": [
-        {
-          "name": "BE151",
-          "rowLabel": "Tiene buena relación calidad- precio"
-        },
-        {
-          "name": "BE156",
-          "rowLabel": "Conocen a sus clientes y se anticipan a sus necesidades"
-        },
-        {
-          "name": "BE154",
-          "rowLabel": "Canales digitales fáciles y ágiles"
-        },
-        {
-          "name": "BE158",
-          "rowLabel": "Me apoyan y me dan la confianza para conseguir los objetivos de mi empresa."
-        },
-        {
-          "name": "BE155",
-          "rowLabel": "Es un banco sólido y solvente"
-        },
-        {
-          "name": "BE157",
-          "rowLabel": "Ayudan a los negocios a tomar las mejores decisiones financieras"
-        },
-        {
-          "name": "BE152",
-          "rowLabel": "Es un banco experto en empresas"
-        },
-        {
-          "name": "BE153",
-          "rowLabel": "Ofrecen información, herramientas y experiencia para decidir con tranquilidad"
-        }
-      ]
+      "GridScreen": "BE151"
     },
     {
       "Name": "BE152",
@@ -1169,9 +985,7 @@
         "1": 0,
         "2": 0,
         "3": 0,
-        "4": 0,
-        "01": 0,
-        "02": 0
+        "4": 0
       },
       "Filters": null,
       "CopyQuestion": null,
@@ -1353,17 +1167,7 @@
       },
       "Source": "explore",
       "GridMulti": false,
-      "GridScreen": "AH1_2",
-      "Statements": [
-        {
-          "name": "AH1_2",
-          "rowLabel": "Contrataría el banco para su empresa de manera digital"
-        },
-        {
-          "name": "AH1_1",
-          "rowLabel": "Es importante que un banco para empresas esté presente en redes sociales"
-        }
-      ]
+      "GridScreen": "AH1_2"
     },
     {
       "Name": "AH1B3",
@@ -1421,21 +1225,7 @@
       },
       "Source": "explore",
       "GridMulti": false,
-      "GridScreen": "AH1B4",
-      "Statements": [
-        {
-          "name": "AH1B4",
-          "rowLabel": "Valoro más el respaldo que me da un sistema digital bancario frente a las nuevas fintech"
-        },
-        {
-          "name": "AH1B3",
-          "rowLabel": "En la web de BBVA es fácil encontrar información clara y útil para la gestión de mi empresa."
-        },
-        {
-          "name": "AH1B5",
-          "rowLabel": "Valoro que me ofrezcan productos individuales (para mi) más allá de los que mi empresa necesita"
-        }
-      ]
+      "GridScreen": "AH1B4"
     },
     {
       "Name": "AH1B5",
@@ -1467,12 +1257,77 @@
       "GridScreen": "AH1B4"
     },
     {
-      "Name": "PRVCY",
+      "Name": "IDINT",
       "Method": "Maintain",
+      "Type": "Open",
+      "Answer": null,
+      "Split": {
+        "": 0
+      },
+      "Filters": null,
+      "CopyQuestion": null,
+      "Min": 0,
+      "Max": 0,
+      "Values": null,
+      "AVG": null,
+      "Source": "manual",
+      "FixedAnswer": "0001"
+    },
+    {
+      "Name": "INT01",
+      "Method": "Split",
       "Type": "Single",
       "Answer": null,
       "Split": {
-        "1": 0,
+        "OK": 100,
+        "OL": 0,
+        "T1": 0,
+        "V1": 0,
+        "Z1": 0,
+        "Z2": 0,
+        "Z3": 0,
+        "L1": 0,
+        "L2": 0,
+        "N1": 0,
+        "B1": 0,
+        "A4": 0,
+        "F1": 0,
+        "S1": 0,
+        "BL": 0
+      },
+      "Filters": null,
+      "CopyQuestion": null,
+      "Min": 0,
+      "Max": 0,
+      "Values": null,
+      "AVG": null,
+      "Labels": {
+        "OK": "OK",
+        "OL": "OL",
+        "T1": "T1",
+        "V1": "V1",
+        "Z1": "Z1",
+        "Z2": "Z2",
+        "Z3": "Z3",
+        "L1": "L1",
+        "L2": "L2",
+        "N1": "N1",
+        "B1": "B1",
+        "A4": "A4",
+        "F1": "F1",
+        "S1": "S1",
+        "BL": "BL"
+      },
+      "Source": "manual",
+      "FixedAnswer": "OK"
+    },
+    {
+      "Name": "PRVCY",
+      "Method": "Split",
+      "Type": "Single",
+      "Answer": null,
+      "Split": {
+        "1": 100,
         "2": 0
       },
       "Filters": null,
@@ -1486,16 +1341,16 @@
         "2": "2 - Me niego"
       },
       "Source": "manual",
-      "ExploreOverride": "1"
+      "FixedAnswer": "1"
     },
     {
       "Name": "Q_REC",
-      "Method": "Maintain",
+      "Method": "Split",
       "Type": "Single",
       "Answer": null,
       "Split": {
-        "1": 0,
-        "2": 0
+        "1": 100,
+        "2": 100
       },
       "Filters": null,
       "CopyQuestion": null,
@@ -1508,15 +1363,15 @@
         "2": "2 - No acepto - continúa la entrevista sin grabar"
       },
       "Source": "manual",
-      "ExploreOverride": "2"
+      "FixedAnswer": "2"
     },
     {
       "Name": "REGSH",
-      "Method": "Maintain",
+      "Method": "Split",
       "Type": "Single",
       "Answer": null,
       "Split": {
-        "1": 0
+        "1": 100
       },
       "Filters": null,
       "CopyQuestion": null,
@@ -1528,16 +1383,16 @@
         "1": "1 - >>"
       },
       "Source": "manual",
-      "ExploreOverride": "1"
+      "FixedAnswer": "1"
     },
     {
       "Name": "BE155",
-      "Method": "Maintain",
+      "Method": "Split",
       "Type": "Multi",
       "Answer": null,
       "Split": {
-        "1": 0,
-        "2": 0,
+        "1": 100,
+        "2": 100,
         "3": 0,
         "4": 0
       },
@@ -1556,15 +1411,15 @@
       "Source": "manual",
       "GridMulti": true,
       "GridScreen": "BE151",
-      "ExploreOverride": "1"
+      "FixedAnswer": "2"
     },
     {
       "Name": "INT99",
-      "Method": "Maintain",
+      "Method": "Split",
       "Type": "Single",
       "Answer": null,
       "Split": {
-        "01": 0
+        "01": 100
       },
       "Filters": null,
       "CopyQuestion": null,
@@ -1576,15 +1431,15 @@
         "01": "01 - Continue to finish the interview"
       },
       "Source": "manual",
-      "ExploreOverride": "01"
+      "FixedAnswer": "01"
     },
     {
       "Name": "ANMER",
-      "Method": "Maintain",
+      "Method": "Split",
       "Type": "Single",
       "Answer": null,
       "Split": {
-        "01": 0,
+        "01": 100,
         "02": 0
       },
       "Filters": null,
@@ -1598,7 +1453,7 @@
         "02": "02 - Escriba Argumentos"
       },
       "Source": "manual",
-      "ExploreOverride": "01"
+      "FixedAnswer": "01"
     }
   ],
   "Coherencies": [],

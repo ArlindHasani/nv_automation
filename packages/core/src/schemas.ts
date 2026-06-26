@@ -38,7 +38,9 @@ export const QuestionSchema = z.object({
   GridScreen: z.string().optional(),
   /** Statement rows on a grid screen (stored on parent Grid question). */
   Statements: z.array(GridStatementSchema).optional(),
-  /** Per-question explore answer override (test link only). */
+  /** Fixed answer when not in dataset (open text or coded value). */
+  FixedAnswer: z.string().nullable().optional(),
+  /** @deprecated Use FixedAnswer — migrated on read. */
   ExploreOverride: z.string().nullable().optional(),
 });
 

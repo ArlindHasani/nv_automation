@@ -1,7 +1,8 @@
 import fs from "node:fs/promises";
 import { chromium } from "playwright";
 import {
-  exploreOverridesFromDefinition,
+  findPostExploreConfigurationGaps,
+  type ExploreBlocker,
   type DataRow,
   type Definition,
   formatQuestionCodes,
@@ -9,6 +10,7 @@ import {
   validateDiscoveryForMerge,
   validateMergedDefinition,
   type ProjectConfig,
+  type AnswerConfigurationGap,
 } from "@nv/core";
 import { NvInterviewPage } from "./pages/NvInterviewPage.js";
 import { NvLoginPage } from "./pages/NvLoginPage.js";
@@ -46,12 +48,7 @@ export type ExploreLogFn = (
   level?: "info" | "warn" | "error" | "success",
 ) => void;
 
-export interface ExploreBlocker {
-  question: string;
-  type: string;
-  reason: string;
-  screenshot?: string;
-}
+export type { ExploreBlocker };
 
 export interface ExploreTrailStep {
   step: number;
@@ -62,6 +59,8 @@ export interface ExploreTrailStep {
   options: string;
   answer: string;
   answerSource: string;
+  answerPolicy?: string;
+  configured?: boolean;
   warnings?: string;
   screenshot?: string;
 }
@@ -87,6 +86,8 @@ export interface ExploreOptions {
   exploreEndQuestions?: string[];
   /** SAV questions missing from definition — used for post-merge validation. */
   coverageGaps?: string[];
+  /** Definition questions missing from active dataset — answer policy input. */
+  questionsInDefinitionNotInData?: string[];
   /** When set, loop exits early with partial results. */
   signal?: AbortSignal;
 }
@@ -139,6 +140,7 @@ export interface ExploreResult {
   trail: ExploreTrailStep[];
   trailJson: string;
   trailCsv: string;
+  configurationGaps: AnswerConfigurationGap[];
 }
 
 export class NvExploreRunner {
@@ -153,6 +155,7 @@ export class NvExploreRunner {
       log = console.log,
       exploreEndQuestions = config.exploreEndQuestions ?? [],
       coverageGaps = [],
+      questionsInDefinitionNotInData = [],
       signal,
       runId: runIdInput,
       datasetRows: datasetRowsInput,
@@ -165,7 +168,6 @@ export class NvExploreRunner {
         ? [{ index: config.exploreSeedRowIndex ?? 0, row: seedRow }]
         : []);
 
-    const overrides = exploreOverridesFromDefinition(definition);
     const blockers: ExploreBlocker[] = [];
     const discoveredList: ReturnType<typeof toDiscoveredQuestion>[] = [];
     const trail: ExploreTrailStep[] = [];
@@ -188,10 +190,6 @@ export class NvExploreRunner {
       throw new Error(
         "Guided explore requires an uploaded dataset — import a SAV and activate it before exploring",
       );
-    }
-
-    if (Object.keys(overrides).length > 0) {
-      log(`Explore overrides: ${JSON.stringify(overrides)}`, "info");
     }
 
     let steps = 0;
@@ -366,6 +364,9 @@ export class NvExploreRunner {
         const answer = resolveExploreAnswer(classified, {
           seedRow: currentSeedRow,
           definition,
+          questionsInDefinitionNotInData,
+          datasetRowIndex: datasetRowIndex,
+          mode: "explore",
         });
         for (const w of answer.warnings) log(`  ${w}`, "warn");
         stepContext.warnings = [...answer.warnings];
@@ -377,7 +378,7 @@ export class NvExploreRunner {
           answerText = answer.codes.length > 0 ? answer.codes.join(",") : "(empty)";
         }
         log(
-          `  Answering ${prevName} → "${answerText}" (${answer.source})`,
+          `  Answering ${prevName} → "${answerText}" (${answer.source}, ${answer.policy})`,
           "info",
         );
         stepContext.answer = answerText;
@@ -387,20 +388,23 @@ export class NvExploreRunner {
           answer.statementAnswers &&
           Object.keys(answer.statementAnswers).length > 0;
         if (
-          answer.codes.length === 0 &&
-          !answer.openText &&
-          !hasGridAnswers &&
-          answer.warnings.length > 0
+          !answer.configured ||
+          answer.source === "fallback" ||
+          (answer.codes.length === 0 &&
+            !answer.openText &&
+            !hasGridAnswers)
         ) {
           const screenshot = `explore-blocked-no-answer-${classified.name}.png`;
           await page.screenshot({ path: `${outputDir}/${screenshot}`, fullPage: true });
           blockers.push({
             question: classified.name,
             type: classified.type,
-            reason: answer.warnings.join(" "),
+            reason:
+              answer.warnings.join(" ") ||
+              `Question '${classified.name}' is not in the active dataset — configure a fixed answer or Split weights in Definition`,
             screenshot,
           });
-          log(`Step ${stepNum}: no answer for ${classified.name}`, "error");
+          log(`Step ${stepNum}: no configured answer for ${classified.name}`, "error");
           status = "partial";
           break;
         }
@@ -410,7 +414,12 @@ export class NvExploreRunner {
             codes: answer.codes,
             openText: answer.openText,
             statementAnswers: answer.statementAnswers,
-            source: answer.source === "dataset" ? "data" : "fallback",
+            source:
+              answer.source === "dataset"
+                ? "data"
+                : answer.source === "split"
+                  ? "split"
+                  : "fallback",
             warnings: answer.warnings,
           });
         } catch (e) {
@@ -437,6 +446,8 @@ export class NvExploreRunner {
           options: optionsText,
           answer: answerText,
           answerSource: answer.source,
+          answerPolicy: answer.policy,
+          configured: answer.configured,
           warnings: answer.warnings.length > 0 ? answer.warnings.join("; ") : undefined,
           screenshot: `explore-${classified.name}.png`,
         });
@@ -528,7 +539,7 @@ export class NvExploreRunner {
             blockers.push({
               question: prevName,
               type: classified.type,
-              reason: `Could not advance past "${prevName}" — answer was applied but the page did not move. Add an explore override or check for a validation error on screen.`,
+              reason: `Could not advance past "${prevName}" — answer was applied but the page did not move. Configure a fixed answer or Split weights, or check for a validation error on screen.`,
               screenshot,
             });
             log(`Step ${stepNum}: blocked on ${prevName}`, "error");
@@ -610,6 +621,18 @@ export class NvExploreRunner {
       }
     }
 
+    const configurationGaps = findPostExploreConfigurationGaps(
+      merged.definition,
+      discoveredList.map((d) => d.name),
+      questionsInDefinitionNotInData,
+    );
+    for (const gap of configurationGaps) {
+      log(
+        `  Configuration gap [${gap.type}] ${gap.question}: ${gap.reason}`,
+        "warn",
+      );
+    }
+
     const { trailJson, trailCsv } = await writeExploreTrailArtifacts(
       outputDir,
       runId,
@@ -645,6 +668,7 @@ export class NvExploreRunner {
       trail,
       trailJson,
       trailCsv,
+      configurationGaps,
     };
   }
 }

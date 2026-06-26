@@ -108,18 +108,40 @@ function resolveMaintainOpen(
   return { codes: [], openText: "", source: "fallback", warnings };
 }
 
-function resolveSplit(question: Question): ResolvedAnswer {
+function seededUnit(seed: string): number {
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) {
+    h = (Math.imul(31, h) + seed.charCodeAt(i)) | 0;
+  }
+  return (Math.abs(h) % 10000) / 10000;
+}
+
+/** Pick a code from Split weights; optional seed makes explore passes reproducible. */
+export function resolveSplit(
+  question: Question,
+  seed?: string,
+): ResolvedAnswer {
   const entries = Object.entries(question.Split).filter(
     ([, weight]) => weight > 0,
   );
   if (entries.length === 0) {
     const codes = Object.keys(question.Split).filter((k) => k !== "");
-    const pick = codes[Math.floor(Math.random() * codes.length)] ?? "1";
-    return { codes: [pick], source: "split", warnings: [] };
+    if (codes.length === 0) {
+      return {
+        codes: [],
+        source: "fallback",
+        warnings: [`No split weights for '${question.Name}'.`],
+      };
+    }
+    const pick =
+      seed !== undefined
+        ? codes[Math.floor(seededUnit(seed) * codes.length)] ?? codes[0]
+        : codes[Math.floor(Math.random() * codes.length)] ?? codes[0];
+    return { codes: [pick!], source: "split", warnings: [] };
   }
 
   const total = entries.reduce((sum, [, w]) => sum + w, 0);
-  let r = Math.random() * total;
+  let r = (seed !== undefined ? seededUnit(seed) : Math.random()) * total;
   for (const [code, weight] of entries) {
     r -= weight;
     if (r <= 0) {
@@ -127,7 +149,7 @@ function resolveSplit(question: Question): ResolvedAnswer {
     }
   }
 
-  return { codes: [entries[0][0]], source: "split", warnings: [] };
+  return { codes: [entries[0]![0]], source: "split", warnings: [] };
 }
 
 export function resolveAnswer(

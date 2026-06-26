@@ -60,6 +60,7 @@ export interface ProjectBundle {
       GridMulti?: boolean;
       GridScreen?: string;
       Statements?: Array<{ name: string; rowLabel: string }>;
+      FixedAnswer?: string | null;
       ExploreOverride?: string | null;
     }>;
   };
@@ -94,6 +95,11 @@ export interface ProjectBundle {
       type: string;
       reason: string;
       screenshot?: string;
+    }>;
+    configurationGaps?: Array<{
+      question: string;
+      type: string;
+      reason: string;
     }>;
     rowsWalked?: number;
     discoveredNames?: string[];

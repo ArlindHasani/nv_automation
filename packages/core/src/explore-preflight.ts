@@ -1,5 +1,5 @@
 import type { Definition, ProjectConfig } from "./schemas.js";
-import { findExploreAnswerGaps } from "./explore-overrides.js";
+import { findAnswerConfigurationGaps } from "./answer-policy.js";
 
 export interface PreflightCheck {
   id: string;
@@ -11,7 +11,7 @@ export interface PreflightCheck {
 export interface ExplorePreflightResult {
   ready: boolean;
   checks: PreflightCheck[];
-  answerGaps: ReturnType<typeof findExploreAnswerGaps>;
+  answerGaps: ReturnType<typeof findAnswerConfigurationGaps>;
 }
 
 export function buildExplorePreflight(input: {
@@ -23,7 +23,7 @@ export function buildExplorePreflight(input: {
 }): ExplorePreflightResult {
   const checks: PreflightCheck[] = [];
   const seedIndex = input.config.exploreSeedRowIndex ?? 0;
-  const answerGaps = findExploreAnswerGaps(
+  const answerGaps = findAnswerConfigurationGaps(
     input.definition,
     input.questionsInDefinitionNotInData,
   );
@@ -56,12 +56,12 @@ export function buildExplorePreflight(input: {
 
   checks.push({
     id: "explore-answer-gaps",
-    label: "Explore answers for non-SAV questions",
+    label: "Answer policy configured for all known non-SAV questions",
     ok: answerGaps.length === 0,
     detail:
       answerGaps.length === 0
-        ? "Dataset-backed questions use the seed row; others have overrides or split"
-        : `${answerGaps.map((g) => g.question).join(", ")} — not in dataset, need Explore override in Definition (or Split weights for coded questions)`,
+        ? "Dataset-backed questions use the seed row; others have fixed answers or split weights"
+        : `${answerGaps.map((g) => g.question).join(", ")} — not in dataset, configure fixed answer or Split weights in Definition`,
   });
 
   return {

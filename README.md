@@ -39,6 +39,26 @@ npm run dev          # http://localhost:3000
 5. **Explore** — parse test link into `Definition.json`
 6. **Run** — start Playwright workers
 
+```bash
+npm run explore -- ACTIVE
+npm run discover -- ACTIVE
+```
+
+## Answer policy (explore + live runs)
+
+Each question in `Definition.json` has an answer policy:
+
+| Situation | Policy |
+|-----------|--------|
+| **In dataset** | `Maintain` — use each row's SAV value (explore uses the seed row) |
+| **In dataset** | `Split` — weighted random across codes (explore uses a deterministic seed per row) |
+| **Not in dataset · Open** | Fixed open text (`FixedAnswer`) — required |
+| **Not in dataset · Coded** | Fixed code **or** Split weights |
+
+Guided explore **blocks** when a question has no configured policy (no silent fallbacks). After explore, newly discovered questions missing configuration appear in Definition review.
+
+Legacy `ExploreOverride` fields are migrated to `FixedAnswer` on read.
+
 ## CLI
 
 ```bash

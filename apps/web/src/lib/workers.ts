@@ -1,3 +1,5 @@
+import "server-only";
+
 import { spawn } from "node:child_process";
 import path from "node:path";
 import { ensurePlaywrightBrowsersEnv, getPlaywrightBrowsersPath, getRepoRoot } from "@nv/core";

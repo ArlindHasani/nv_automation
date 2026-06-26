@@ -7,7 +7,7 @@ import {
   type SavVariablesMeta,
 } from "./mapping.js";
 import { fillDefinitionGapsFromData } from "./fill-gaps.js";
-import { migrateExploreDefaultsToDefinition } from "./explore-overrides.js";
+import { migrateExploreDefaultsToDefinition, migrateFixedAnswerFields } from "./answer-policy.js";
 import { mergeSplitWeights } from "./split.js";
 import { buildProjectWorkflow } from "./workflow.js";
 import {
@@ -83,6 +83,7 @@ export interface ExploreRun {
   discovered: number;
   blockers?: ExploreBlocker[];
   mergeIssues?: Array<{ severity: string; question: string; message: string }>;
+  configurationGaps?: Array<{ question: string; type: string; reason: string }>;
   steps?: number;
   rowsWalked?: number;
   discoveredNames?: string[];
@@ -558,9 +559,16 @@ export async function getDefinition(slug: string): Promise<Definition> {
   const paths = getProjectPaths(slug);
   await ensureProjectInitialized(slug);
   try {
-    return DefinitionSchema.parse(
+    const definition = DefinitionSchema.parse(
       JSON.parse(await fs.readFile(paths.definitionJson, "utf-8")),
     );
+    if (migrateFixedAnswerFields(definition)) {
+      await fs.writeFile(
+        paths.definitionJson,
+        JSON.stringify(definition, null, 2),
+      );
+    }
+    return definition;
   } catch {
     return { Name: "", Questions: [], Coherencies: [], Length: [0, 0] };
   }
@@ -582,6 +590,8 @@ export async function saveDefinition(
 
 export interface DefinitionQuestionPatch {
   Name: string;
+  FixedAnswer?: string | null;
+  /** @deprecated Use FixedAnswer */
   ExploreOverride?: string | null;
   Method?: "Maintain" | "Split";
   Split?: Record<string, number>;
@@ -599,11 +609,22 @@ export async function patchDefinitionQuestions(
   for (const update of updates) {
     const q = byName.get(update.Name.toUpperCase());
     if (!q) continue;
-    if (update.ExploreOverride !== undefined) {
-      if (update.ExploreOverride === "" || update.ExploreOverride === null) {
+    if (update.FixedAnswer !== undefined) {
+      if (update.FixedAnswer === "" || update.FixedAnswer === null) {
+        delete q.FixedAnswer;
         delete q.ExploreOverride;
       } else {
-        q.ExploreOverride = update.ExploreOverride;
+        q.FixedAnswer = update.FixedAnswer;
+        delete q.ExploreOverride;
+        q.Source = "manual";
+      }
+    } else if (update.ExploreOverride !== undefined) {
+      if (update.ExploreOverride === "" || update.ExploreOverride === null) {
+        delete q.FixedAnswer;
+        delete q.ExploreOverride;
+      } else {
+        q.FixedAnswer = update.ExploreOverride;
+        delete q.ExploreOverride;
         q.Source = "manual";
       }
     }
@@ -860,6 +881,7 @@ export async function recordExploreRun(
     discovered: number;
     blockers?: ExploreBlocker[];
     mergeIssues?: ExploreRun["mergeIssues"];
+    configurationGaps?: ExploreRun["configurationGaps"];
     steps?: number;
     rowsWalked?: number;
     discoveredNames?: string[];
@@ -877,6 +899,7 @@ export async function recordExploreRun(
     discovered: result.discovered,
     blockers: result.blockers,
     mergeIssues: result.mergeIssues,
+    configurationGaps: result.configurationGaps,
     steps: result.steps,
     rowsWalked: result.rowsWalked,
     discoveredNames: result.discoveredNames,

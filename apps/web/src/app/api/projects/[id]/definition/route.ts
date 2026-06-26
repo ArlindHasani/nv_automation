@@ -10,6 +10,7 @@ export async function PATCH(
     const body = await req.json();
     const updates = body.updates as Array<{
       Name: string;
+      FixedAnswer?: string | null;
       ExploreOverride?: string | null;
       Method?: "Maintain" | "Split";
       Split?: Record<string, number>;

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -27,9 +28,9 @@ interface DefinitionQuestion {
   GridMulti?: boolean;
   GridScreen?: string;
   Statements?: Array<{ name: string; rowLabel: string }>;
+  FixedAnswer?: string | null;
   ExploreOverride?: string | null;
 }
-
 
 function displayTypeLabel(q: DefinitionQuestion): string {
   if (q.Type === "Grid") {
@@ -41,12 +42,11 @@ function displayTypeLabel(q: DefinitionQuestion): string {
   return q.Type;
 }
 
-function sourceVariant(
-  source?: DefinitionQuestion["Source"],
-): "secondary" | "outline" | "default" {
-  if (source === "explore") return "default";
-  if (source === "manual") return "outline";
-  return "secondary";
+function sourceLabel(source: DefinitionQuestion["Source"]): string {
+  if (source === "sav") return "SAV";
+  if (source === "explore") return "Explore";
+  if (source === "manual") return "Manual";
+  return source ?? "";
 }
 
 function formatCodeEntries(
@@ -192,26 +192,29 @@ export function DefinitionQuestionTable({
                     </Badge>
                     {q.Source && (
                       <Badge
-                        variant={sourceVariant(q.Source)}
+                        variant={
+                          q.Source === "explore"
+                            ? "default"
+                            : q.Source === "manual"
+                              ? "outline"
+                              : "secondary"
+                        }
                         className={cn(
                           "h-5 text-[10px] font-normal",
                           q.Source === "explore" && "bg-primary/10 text-primary",
                         )}
                       >
-                        {q.Source === "sav"
-                          ? "SAV"
-                          : q.Source === "explore"
-                            ? "Explore"
-                            : "Manual"}
+                        {sourceLabel(q.Source)}
                       </Badge>
                     )}
                     {questionsInDataset &&
                       !questionsInDataset.has(q.Name.toUpperCase()) && (
                         <Badge
-                          variant="outline"
-                          className="h-5 border-amber-500/40 text-[10px] font-normal text-amber-800 dark:text-amber-300"
+                          variant="secondary"
+                          className="h-5 gap-1 border border-amber-500/20 bg-amber-500/10 px-1.5 text-[10px] font-normal text-amber-800 dark:text-amber-300"
                         >
-                          Not in SAV
+                          <AlertTriangle className="size-2.5 opacity-80" aria-hidden />
+                          Not in dataset
                         </Badge>
                       )}
                   </div>

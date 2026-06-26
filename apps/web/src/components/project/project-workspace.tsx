@@ -405,7 +405,7 @@ function SetupPanel() {
 
           <SetupConfigSection
             title="Guided explore"
-            description="How the test link walk uses your dataset. Per-question test answers (e.g. IDINT) are set as Explore override in Definition."
+            description="Guided explore walks the test link using dataset seed rows. Questions not in the dataset need a fixed answer or split weights in Definition."
           >
             <div className="space-y-2">
               <Label>Explore seed row</Label>
@@ -830,6 +830,11 @@ function DefinitionPanel() {
   );
   const exploreAnswerGaps =
     bundle!.workflow?.explorePreflight?.answerGaps ?? [];
+  const postExploreConfigGaps = (lastRun?.configurationGaps ?? []).map((g) => ({
+    severity: "warn" as const,
+    question: g.question,
+    message: g.reason,
+  }));
   const notInSavIssues = exploreAnswerGaps.map((g) => ({
     severity: "warn" as const,
     question: g.question,
@@ -861,8 +866,9 @@ function DefinitionPanel() {
           <CardTitle>Question definition</CardTitle>
           <CardDescription>
             {bundle!.definition.Questions.length} questions ·{" "}
-            <strong>Explore override</strong> for test-link gates (e.g. IDINT) ·{" "}
-            <strong>Maintain</strong> / <strong>Split</strong> for live interviews
+            <strong>Maintain</strong> uses dataset rows ·{" "}
+            <strong>Fixed</strong> or <strong>Split</strong> for questions not in
+            the active dataset
           </CardDescription>
           {bundle!.activeDataset && (
             <p className="line-clamp-2 text-xs leading-snug break-all text-muted-foreground">
@@ -892,8 +898,13 @@ function DefinitionPanel() {
           variant="destructive"
         />
         <ReviewItemsPanel
-          title="Not in dataset — set explore answer"
+          title="Not in dataset — configure answer policy"
           issues={notInSavIssues}
+          variant="destructive"
+        />
+        <ReviewItemsPanel
+          title="Discovered — needs configuration"
+          issues={postExploreConfigGaps}
           variant="destructive"
         />
         <ReviewItemsPanel
@@ -1072,7 +1083,7 @@ function ExplorePanel() {
           bundle!.activeDataset && (
             <p className="text-sm text-amber-700 dark:text-amber-400">
               Complete pre-flight checks in Setup before exploring — questions
-              not in the SAV need an Explore override or Split weights in
+              not in the dataset need a fixed answer or Split weights in
               Definition.
             </p>
           )}
