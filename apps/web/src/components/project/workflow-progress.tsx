@@ -11,6 +11,11 @@ import {
   Settings2,
   type LucideIcon,
 } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import type { ProjectSection } from "@/lib/types";
 
@@ -83,7 +88,36 @@ function StepNodeButton({
   onNavigate?: (section: ProjectSection) => void;
 }) {
   const style = STATUS_STYLES[step.status];
+  const detail = step.detail ?? step.description;
   const StepIcon = STEP_ICONS[step.id] ?? Database;
+
+  const node = (
+    <button
+      type="button"
+      onClick={() => onNavigate?.(step.section)}
+      className={cn(
+        "relative z-10 flex size-10 items-center justify-center rounded-full border-2 transition-transform hover:scale-105",
+        style.node,
+      )}
+    >
+      <StepIcon className="size-[18px]" strokeWidth={2.25} />
+      {step.status === "complete" && (
+        <span className="absolute -right-0.5 -bottom-0.5 flex size-4 items-center justify-center rounded-full bg-emerald-600 text-white ring-2 ring-background">
+          <Check className="size-2.5" strokeWidth={3} />
+        </span>
+      )}
+      {step.status === "warning" && (
+        <span className="absolute -right-0.5 -bottom-0.5 flex size-4 items-center justify-center rounded-full bg-amber-600 text-white ring-2 ring-background">
+          <AlertTriangle className="size-2.5" strokeWidth={2.5} />
+        </span>
+      )}
+      {step.status === "blocked" && (
+        <span className="absolute -right-0.5 -bottom-0.5 flex size-4 items-center justify-center rounded-full bg-destructive text-destructive-foreground ring-2 ring-background">
+          <Ban className="size-2.5" strokeWidth={2.5} />
+        </span>
+      )}
+    </button>
+  );
 
   return (
     <div className="relative flex size-10 shrink-0 items-center justify-center">
@@ -93,32 +127,25 @@ function StepNodeButton({
           aria-hidden
         />
       )}
-      <button
-        type="button"
-        onClick={() => onNavigate?.(step.section)}
-        title={`${index + 1}. ${step.label}`}
-        className={cn(
-          "relative z-10 flex size-10 items-center justify-center rounded-full border-2 transition-transform hover:scale-105",
-          style.node,
-        )}
-      >
-        <StepIcon className="size-[18px]" strokeWidth={2.25} />
-        {step.status === "complete" && (
-          <span className="absolute -right-0.5 -bottom-0.5 flex size-4 items-center justify-center rounded-full bg-emerald-600 text-white ring-2 ring-background">
-            <Check className="size-2.5" strokeWidth={3} />
-          </span>
-        )}
-        {step.status === "warning" && (
-          <span className="absolute -right-0.5 -bottom-0.5 flex size-4 items-center justify-center rounded-full bg-amber-600 text-white ring-2 ring-background">
-            <AlertTriangle className="size-2.5" strokeWidth={2.5} />
-          </span>
-        )}
-        {step.status === "blocked" && (
-          <span className="absolute -right-0.5 -bottom-0.5 flex size-4 items-center justify-center rounded-full bg-destructive text-destructive-foreground ring-2 ring-background">
-            <Ban className="size-2.5" strokeWidth={2.5} />
-          </span>
-        )}
-      </button>
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <span className="relative inline-flex size-10 items-center justify-center" />
+          }
+        >
+          {node}
+        </TooltipTrigger>
+        <TooltipContent
+          side="bottom"
+          className="max-w-xs gap-1.5 text-left text-xs text-background"
+        >
+          <p className="font-semibold text-background">{step.label}</p>
+          <p className="text-background/85">{step.description}</p>
+          {detail !== step.description ? (
+            <p className="text-background/75">{detail}</p>
+          ) : null}
+        </TooltipContent>
+      </Tooltip>
     </div>
   );
 }

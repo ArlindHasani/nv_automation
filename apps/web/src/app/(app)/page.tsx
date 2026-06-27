@@ -29,7 +29,7 @@ export default async function HomePage() {
       </PageHeader>
 
       <div className="space-y-8 p-8">
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid auto-rows-fr gap-4 sm:grid-cols-3">
           <StatCard label="Projects" value={projects.length} icon={FolderKanban} />
           <StatCard label="Total questions" value={totalQuestions} icon={ListTree} />
           <StatCard label="Active rows" value={totalRows} icon={Database} />

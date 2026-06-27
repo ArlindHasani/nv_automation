@@ -74,6 +74,8 @@ function draftFromWeights(
 
 interface SplitWeightsDialogProps {
   questionName: string;
+  questionType: string;
+  gridScreen?: string;
   codes: string[];
   labels?: Record<string, string>;
   weights: Record<string, number>;
@@ -85,6 +87,8 @@ interface SplitWeightsDialogProps {
 
 export function SplitWeightsDialog({
   questionName,
+  questionType,
+  gridScreen,
   codes,
   labels,
   weights,
@@ -97,7 +101,8 @@ export function SplitWeightsDialog({
   const [saving, setSaving] = useState(false);
 
   const total = Math.round(splitTotal(draft, codes) * 10) / 10;
-  const totalOk = Math.abs(total - 100) < 0.5;
+  const isMulti = questionType === "Multi";
+  const totalOk = isMulti ? total > 0 : Math.abs(total - 100) < 0.5;
 
   function distributeEvenly() {
     const next = equalSplitWeights(codes);
@@ -142,8 +147,11 @@ export function SplitWeightsDialog({
         <DialogHeader className="shrink-0 space-y-1 border-b px-6 py-4 pr-14">
           <DialogTitle className="font-mono text-sm">{questionName}</DialogTitle>
           <DialogDescription className="text-xs leading-relaxed">
-            Set the chance each code is picked per interview. Weights should sum
-            to 100%.
+            {isMulti
+              ? gridScreen
+                ? "Relative likelihood per column in this grid row. Total can exceed 100%. Set Min, Max, and AVG on this row in Definition."
+                : "Relative likelihood per mention. Total can exceed 100%. Set Min, Max, and AVG on the question in Definition."
+              : "Set the chance each code is picked per interview. Weights must sum to 100%."}
           </DialogDescription>
         </DialogHeader>
 
@@ -238,8 +246,13 @@ export function SplitWeightsDialog({
               >
                 {total}%
               </Badge>
-              {!totalOk && (
+              {!totalOk && !isMulti && (
                 <span className="text-xs text-muted-foreground">/ 100%</span>
+              )}
+              {isMulti && totalOk && total > 100 && (
+                <span className="text-xs text-muted-foreground">
+                  independent mentions
+                </span>
               )}
             </div>
             <span className="text-xs tabular-nums text-muted-foreground">
@@ -280,7 +293,7 @@ export function SplitWeightsDialog({
               type="button"
               size="sm"
               className="h-8 shrink-0 px-4"
-              disabled={disabled || saving || codes.length === 0}
+              disabled={disabled || saving || codes.length === 0 || !totalOk}
               onClick={() => void apply()}
             >
               Apply
@@ -295,15 +308,17 @@ export function SplitWeightsDialog({
 export function splitSummary(
   weights: Record<string, number>,
   codes: string[],
+  questionType = "Single",
 ): { total: number; totalOk: boolean; configured: number } {
   const total =
     Math.round(
       codes.reduce((sum, code) => sum + (weights[code] ?? 0), 0) * 10,
     ) / 10;
   const configured = codes.filter((c) => (weights[c] ?? 0) > 0).length;
+  const isMulti = questionType === "Multi";
   return {
     total,
-    totalOk: Math.abs(total - 100) < 0.5,
+    totalOk: isMulti ? total > 0 : Math.abs(total - 100) < 0.5,
     configured,
   };
 }

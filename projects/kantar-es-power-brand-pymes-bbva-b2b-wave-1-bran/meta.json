@@ -4,21 +4,32 @@
   "liveLink": "https://nv25.ffind.com/nv_rev2/login.php",
   "testLink": "https://nv25.ffind.com/nv_rev2/test.php?token=wIK0ca8Oe9",
   "mode": "Freestyle",
+  "nvProjectId": "V1DB2606.AR261071",
+  "nvGroup": "1",
+  "questField": "quest",
   "loiTargetMinutes": 12,
   "loiJitterPercent": 15,
-  "maxWorkers": 2,
   "savFieldMap": {
     "station": "ws",
     "password": "password",
     "id": "s_ini",
     "project": "project"
   },
-  "exploreSeedRowIndex": 1,
+  "exploreSeedRowIndex": 0,
   "exploreRowCount": 1,
   "exploreEndQuestions": [
     "ANMER"
   ],
-  "activeDatasetId": null,
+  "workerProfiles": [
+    {
+      "id": "caller-1",
+      "label": "Altin Ismajli",
+      "station": "63627",
+      "password": "FA8069CAympWU9eAbtGcbFkk2bv3OEetfnulx7W6",
+      "callerId": "3314"
+    }
+  ],
+  "activeDatasetId": "b108e646",
   "createdAt": "2026-06-26T14:48:29.009Z",
-  "updatedAt": "2026-06-26T15:12:07.323Z"
+  "updatedAt": "2026-06-27T15:23:03.878Z"
 }

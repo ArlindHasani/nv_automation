@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import {
   buildCoverageReport,
   DefinitionSchema,
+  ensurePlaywrightChromiumInstalled,
   getProjectPaths,
   InterviewDataSchema,
   ProjectConfigSchema,
@@ -9,6 +10,7 @@ import {
 import { NvExploreRunner } from "@nv/playwright";
 
 async function main() {
+  await ensurePlaywrightChromiumInstalled();
   const projectId = process.argv[2] ?? "ACTIVE";
   const paths = getProjectPaths(projectId);
 

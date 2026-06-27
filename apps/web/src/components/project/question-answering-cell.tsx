@@ -49,7 +49,11 @@ function isCodedPolicyConfigured(
 ): boolean {
   const fixed = getFixedAnswer(question);
   if (usesSplitDistribution(question, codes)) {
-    return codes.some((c) => (question.Split[c] ?? 0) > 0);
+    const splitOk = codes.some((c) => (question.Split[c] ?? 0) > 0);
+    if (needsMentionSplitBounds(question)) {
+      return splitOk && hasMentionBoundsConfigured(question);
+    }
+    return splitOk;
   }
   return fixed.length > 0;
 }
@@ -72,6 +76,20 @@ function usesSplitDistribution(
   const positive = codes.filter((c) => (question.Split[c] ?? 0) > 0);
   if (positive.length === 0) return false;
   if (positive.length === 1 && fixed && positive[0] === fixed) return false;
+  if (fixed) {
+    const fixedCodes = new Set(
+      fixed
+        .split(/[,+]/)
+        .map((code) => code.trim())
+        .filter(Boolean),
+    );
+    if (
+      positive.length === fixedCodes.size &&
+      positive.every((code) => fixedCodes.has(code))
+    ) {
+      return false;
+    }
+  }
   return true;
 }
 
@@ -83,6 +101,102 @@ interface DefinitionQuestion {
   Labels?: Record<string, string>;
   FixedAnswer?: string | null;
   ExploreOverride?: string | null;
+  Min?: number;
+  Max?: number;
+  AVG?: number | null;
+  GridScreen?: string;
+}
+
+function needsMentionSplitBounds(question: DefinitionQuestion): boolean {
+  return question.Type === "Multi" && question.Method === "Split";
+}
+
+function hasMentionBoundsConfigured(question: DefinitionQuestion): boolean {
+  const min = question.Min ?? 0;
+  const max = question.Max ?? 0;
+  const avg = question.AVG ?? 0;
+  return min > 0 && max > 0 && avg > 0 && min <= avg && avg <= max;
+}
+
+function MentionBoundsFields({
+  question,
+  disabled,
+  onSave,
+}: {
+  question: DefinitionQuestion;
+  disabled?: boolean;
+  onSave: (patch: QuestionAnsweringPatch) => Promise<boolean>;
+}) {
+  const configured = hasMentionBoundsConfigured(question);
+
+  async function saveField(
+    field: "Min" | "Max" | "AVG",
+    raw: string,
+    current: number,
+  ) {
+    const parsed = Number.parseInt(raw, 10);
+    const next = Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+    if (next === current) return;
+    await onSave({ [field]: next > 0 ? next : 0 });
+  }
+
+  return (
+    <div className="space-y-1.5 rounded-md border border-border/70 bg-background/60 p-2">
+      <div className="flex items-center justify-between gap-2">
+        <p className="text-[11px] font-medium text-foreground/90">
+          Mention count
+        </p>
+        {!configured ? (
+          <Badge
+            variant="outline"
+            className="h-4 border-amber-500/30 bg-amber-500/10 px-1 text-[9px] font-medium text-amber-700 dark:text-amber-300"
+          >
+            Required
+          </Badge>
+        ) : (
+          <Badge
+            variant="outline"
+            className="h-4 px-1 text-[9px] font-medium text-muted-foreground"
+          >
+            {question.Min}–{question.Max} (avg {question.AVG})
+          </Badge>
+        )}
+      </div>
+      <p className="text-[10px] leading-snug text-muted-foreground">
+        {question.GridScreen
+          ? "Min, max, and target average selections for this grid row (split across column codes)."
+          : "Min, max, and target average mentions per interview for split sampling."}
+      </p>
+      <div className="grid grid-cols-3 gap-1.5">
+        {(
+          [
+            ["Min", question.Min ?? 0],
+            ["Max", question.Max ?? 0],
+            ["AVG", question.AVG ?? 0],
+          ] as const
+        ).map(([field, value]) => (
+          <div key={field} className="space-y-0.5">
+            <label className="text-[10px] font-medium text-muted-foreground">
+              {field}
+            </label>
+            <Input
+              type="number"
+              min={1}
+              step={1}
+              className="h-7 px-2 text-xs tabular-nums"
+              defaultValue={value > 0 ? value : ""}
+              key={`${question.Name}-${field}-${value}`}
+              disabled={disabled}
+              placeholder="—"
+              onBlur={(e) => {
+                void saveField(field, e.target.value, value);
+              }}
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 export type QuestionAnsweringPatch = {
@@ -91,6 +205,9 @@ export type QuestionAnsweringPatch = {
   ExploreOverride?: string | null;
   Method?: "Maintain" | "Split";
   Split?: Record<string, number>;
+  Min?: number;
+  Max?: number;
+  AVG?: number | null;
 };
 
 function NotInDatasetShell({
@@ -194,8 +311,9 @@ function NotInDatasetCodedPolicy({
               disabled={disabled}
               onValueChange={(value) => {
                 if (!value) return;
-                const weights: Record<string, number> = {};
-                weights[value] = 100;
+                const weights = Object.fromEntries(
+                  codes.map((code) => [code, code === value ? 100 : 0]),
+                );
                 void onSave({
                   Method: "Split",
                   FixedAnswer: value,
@@ -257,6 +375,13 @@ function NotInDatasetCodedPolicy({
                 <SlidersHorizontalIcon className="size-3.5" />
                 Edit weights
               </Button>
+              {needsMentionSplitBounds(question) ? (
+                <MentionBoundsFields
+                  question={question}
+                  disabled={disabled}
+                  onSave={onSave}
+                />
+              ) : null}
             </>
           ) : (
             <>
@@ -274,6 +399,13 @@ function NotInDatasetCodedPolicy({
                 <SlidersHorizontalIcon className="size-3.5" />
                 Set up split weights
               </Button>
+              {needsMentionSplitBounds(question) ? (
+                <MentionBoundsFields
+                  question={question}
+                  disabled={disabled}
+                  onSave={onSave}
+                />
+              ) : null}
             </>
           )}
         </TabsContent>
@@ -283,6 +415,8 @@ function NotInDatasetCodedPolicy({
         <SplitWeightsDialog
           key={question.Name}
           questionName={question.Name}
+          questionType={question.Type}
+          gridScreen={question.GridScreen}
           codes={codes}
           labels={question.Labels}
           weights={question.Split}
@@ -322,7 +456,7 @@ export function QuestionAnsweringCell({
 }: QuestionAnsweringCellProps) {
   const [splitOpen, setSplitOpen] = useState(false);
   const codes = Object.keys(question.Split).filter((k) => k !== "");
-  const summary = splitSummary(question.Split, codes);
+  const summary = splitSummary(question.Split, codes, question.Type);
   const fixed = getFixedAnswer(question);
 
   if (!inDataset) {
@@ -432,6 +566,13 @@ export function QuestionAnsweringCell({
                 <SlidersHorizontalIcon className="size-3.5" />
                 Edit weights
               </Button>
+              {needsMentionSplitBounds(question) ? (
+                <MentionBoundsFields
+                  question={question}
+                  disabled={disabled}
+                  onSave={onSave}
+                />
+              ) : null}
             </>
           )}
         </TabsContent>
@@ -441,6 +582,8 @@ export function QuestionAnsweringCell({
         <SplitWeightsDialog
           key={question.Name}
           questionName={question.Name}
+          questionType={question.Type}
+          gridScreen={question.GridScreen}
           codes={codes}
           labels={question.Labels}
           weights={question.Split}

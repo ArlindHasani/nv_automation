@@ -1,41 +1,69 @@
 /**
- * NV Rev2 DOM selectors — refined via discovery script.
+ * NV Rev2 DOM selectors.
  * Fallback chain supports minor markup variations across projects.
  */
 export const NV_SELECTORS = {
   login: {
     station: [
+      "#inputWorkStation",
+      'input[name="extension"]',
       'input[name="station"]',
       'input[name="STATION"]',
       "#station",
       'input[placeholder*="Station" i]',
     ],
     password: [
+      "#inputPassword",
       'input[name="password"]',
       'input[name="PASSWORD"]',
       "#password",
       'input[type="password"]',
     ],
-    id: ['input[name="id"]', 'input[name="ID"]', "#id", 'input[name="ws"]'],
-    project: ['select[name="project"]', "#project", 'select[name="quest"]'],
-    group: ['select[name="group"]', "#group", 'select[name="s_ini"]'],
-    mode: ['select[name="mode"]', "#mode"],
+    id: [
+      "#inputID",
+      'input[name="uid"]',
+      'input[name="id"]',
+      'input[name="ID"]',
+      "#id",
+    ],
+    project: [
+      "#inputProject",
+      'select[name="prj"]',
+      'select[name="project"]',
+      "#project",
+    ],
+    group: [
+      "#inputGroup",
+      'select[name="grp"]',
+      'select[name="group"]',
+      "#group",
+    ],
+    mode: ["#inputMode", 'select[name="mode"]', "#mode"],
     submit: [
+      "#login",
       'input[type="submit"]',
       'button[type="submit"]',
-      "#login",
       'button:has-text("Login")',
     ],
   },
+  home: {
+    form: ["#start", 'form[action*="start.php"]'],
+    recRadio: ['input[name="nv_manual_type"][value="REC"]'],
+    questInput: ["#inputRecTel", 'input[name="nv_manual_selection"]'],
+    startCase: ["#startCase", 'button[name="nv_start_case"]'],
+    exit: ["#exit", 'button[value="quit"]', 'form[action*="end.php"] button'],
+    exitForm: ['form[action*="end.php"]'],
+    heading: [".form-signin-heading", "h2.form-signin-heading"],
+  },
   interview: {
     questionName: [
+      'input[name="QLABEL"]',
       'input[name="QUESTION"]',
       'input[name="question"]',
       "#question",
       "[data-question]",
       ".question-name",
       'input[type="hidden"][name*="quest" i]',
-      'input[name="QLABEL"]',
     ],
     nextButton: [
       "#gofwd",
@@ -62,6 +90,7 @@ export const NV_API_PATTERNS = [
   /start\.php/i,
   /logon\.php/i,
   /next\.php/i,
+  /end\.php/i,
 ];
 
 /** Scoped radio/checkbox selectors — never append [value] to a comma-separated list. */

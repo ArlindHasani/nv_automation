@@ -71,12 +71,36 @@ export const DEFAULT_SAV_FIELD_MAP: SavFieldMap = {
 /** Blank until configured in Setup; otherwise must be a valid URL. */
 export const OptionalUrlSchema = z.union([z.literal(""), z.string().url()]);
 
+export const WorkerProfileSchema = z.object({
+  id: z.string().min(1),
+  label: z.string().min(1),
+  station: z.string().min(1),
+  password: z.string().min(1),
+  callerId: z.string().min(1),
+  group: z.string().optional(),
+  rowStart: z.number().int().min(0).optional(),
+  rowEnd: z.number().int().min(0).optional(),
+});
+
+export type WorkerProfile = z.infer<typeof WorkerProfileSchema>;
+
+/** Normalize NOMP codes (SAV may use backslash; NV dropdown uses dot). */
+export function normalizeNvProjectId(value: string): string {
+  return value.trim().replace(/\\/g, ".");
+}
+
 export const ProjectConfigSchema = z.object({
   name: z.string(),
   nvLoginUrl: OptionalUrlSchema.default(""),
   liveLink: OptionalUrlSchema.default(""),
   testLink: OptionalUrlSchema.default(""),
   mode: z.literal("Freestyle").default("Freestyle"),
+  /** NOMP project code for login dropdown (e.g. V1DB2606.AR261071). */
+  nvProjectId: z.string().default(""),
+  /** Default NV group value (1 = CATI). */
+  nvGroup: z.string().default("1"),
+  /** SAV column holding the case / quest id for Start Case. */
+  questField: z.string().default("quest"),
   loi: z
     .object({
       targetMinutes: z.number().positive(),
@@ -95,6 +119,8 @@ export const ProjectConfigSchema = z.object({
   exploreRowCount: z.number().int().min(1).default(1),
   /** Question names that mark interview end during explore (default includes ANMER). */
   exploreEndQuestions: z.array(z.string()).default(["ANMER"]),
+  /** Per-caller login credentials for live interview workers. */
+  workerProfiles: z.array(WorkerProfileSchema).default([]),
 });
 
 export const DataRowSchema = z.record(z.string(), z.unknown());

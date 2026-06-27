@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import type { ExploreLogLevel } from "@/lib/explore-stream";
+import { useStickToBottomScroll } from "@/hooks/use-stick-to-bottom-scroll";
 
 export interface ExploreConsoleLine {
   id: string;
@@ -40,13 +40,7 @@ export function ExploreConsole({
   running: boolean;
   className?: string;
 }) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    el.scrollTop = el.scrollHeight;
-  }, [lines, running]);
+  const scrollRef = useStickToBottomScroll<HTMLDivElement>("explore", [lines]);
 
   return (
     <div

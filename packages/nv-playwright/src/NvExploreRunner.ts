@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import { chromium } from "playwright";
 import {
   findPostExploreConfigurationGaps,
+  getChromiumLaunchOptions,
   type ExploreBlocker,
   type DataRow,
   type Definition,
@@ -175,7 +176,7 @@ export class NvExploreRunner {
 
     await fs.mkdir(outputDir, { recursive: true });
 
-    const browser = await chromium.launch({ headless });
+    const browser = await chromium.launch(getChromiumLaunchOptions(headless));
     const page = await browser.newPage();
     const login = new NvLoginPage(page);
     const interview = new NvInterviewPage(page);
@@ -367,6 +368,7 @@ export class NvExploreRunner {
           questionsInDefinitionNotInData,
           datasetRowIndex: datasetRowIndex,
           mode: "explore",
+          splitSeedNonce: runId,
         });
         for (const w of answer.warnings) log(`  ${w}`, "warn");
         stepContext.warnings = [...answer.warnings];

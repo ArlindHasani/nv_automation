@@ -12,9 +12,12 @@ import type { ProjectBundle, ProjectSection } from "@/lib/types";
 interface WorkerState {
   id: string;
   projectId: string;
-  rowIndex: number;
+  workerProfileId: string;
+  workerProfileLabel: string;
   status: string;
   logs: string[];
+  startedAt?: string;
+  finishedAt?: string;
 }
 
 interface ProjectContextValue {
@@ -28,15 +31,6 @@ interface ProjectContextValue {
 }
 
 const ProjectContext = createContext<ProjectContextValue | null>(null);
-
-function hasActiveWorkers(workers: WorkerState[], projectId: string): boolean {
-  return workers.some(
-    (w) =>
-      w.projectId === projectId &&
-      w.status !== "completed" &&
-      w.status !== "failed",
-  );
-}
 
 async function fetchProjectData(projectId: string): Promise<{
   bundle: ProjectBundle | null;
@@ -99,9 +93,13 @@ export function ProjectProvider({
     };
   }, [projectId, section]);
 
-  // Worker status/logs only — not project config. Runs while interviews are active.
+  // Worker status/logs — poll on Run while any worker is active for this project.
   useEffect(() => {
-    if (section !== "run" || !hasActiveWorkers(workers, projectId)) return;
+    if (section !== "run") return;
+    const needsPoll = workers.some(
+      (w) => w.projectId === projectId && w.status === "running",
+    );
+    if (!needsPoll) return;
 
     const interval = setInterval(() => {
       void refreshWorkers();

@@ -1,6 +1,8 @@
 import type { Definition, ProjectConfig } from "./schemas.js";
 import type { ExplorePreflightResult } from "./explore-preflight.js";
 import { buildExplorePreflight } from "./explore-preflight.js";
+import type { LiveRunPreflightResult } from "./live-run-preflight.js";
+import { buildLiveRunPreflight } from "./live-run-preflight.js";
 
 export type WorkflowStepId =
   | "import"
@@ -29,6 +31,7 @@ export interface ProjectWorkflow {
   steps: WorkflowStep[];
   currentStep: WorkflowStepId;
   explorePreflight: ExplorePreflightResult;
+  liveRunPreflight: LiveRunPreflightResult;
 }
 
 export function buildProjectWorkflow(input: {
@@ -36,6 +39,7 @@ export function buildProjectWorkflow(input: {
   definition: Definition;
   activeDataset: { name: string; rowCount: number } | null;
   dataRowCount: number;
+  dataColumns?: string[];
   coverage: {
     questionsInDataNotInDefinition: string[];
     questionsInDefinitionNotInData: string[];
@@ -53,6 +57,15 @@ export function buildProjectWorkflow(input: {
     definition: input.definition,
     activeDataset: input.activeDataset,
     dataRowCount: input.dataRowCount,
+    questionsInDefinitionNotInData:
+      input.coverage.questionsInDefinitionNotInData,
+  });
+
+  const liveRunPreflight = buildLiveRunPreflight({
+    config: input.config,
+    definition: input.definition,
+    activeDataset: input.activeDataset,
+    dataColumns: input.dataColumns,
     questionsInDefinitionNotInData:
       input.coverage.questionsInDefinitionNotInData,
   });
@@ -137,13 +150,15 @@ export function buildProjectWorkflow(input: {
     {
       id: "run",
       label: "Run interviews",
-      description: "One worker per dataset row — Maintain uses row values",
+      description: "Live workers claim rows from the shared queue",
       section: "run",
-      status:
-        exploreComplete && gapCount === 0 && hasDefinition
-          ? "ready"
-          : "pending",
-      detail: "Use live link and workers",
+      status: liveRunPreflight.ready ? "ready" : hasDataset ? "warning" : "pending",
+      detail: liveRunPreflight.ready
+        ? "Start worker profiles from Run"
+        : liveRunPreflight.checks
+            .filter((c) => !c.ok)
+            .map((c) => c.label)
+            .join(", ") || "Configure live run",
     },
   ];
 
@@ -155,5 +170,5 @@ export function buildProjectWorkflow(input: {
         s.status === "ready",
     )?.id ?? "run";
 
-  return { steps, currentStep, explorePreflight };
+  return { steps, currentStep, explorePreflight, liveRunPreflight };
 }

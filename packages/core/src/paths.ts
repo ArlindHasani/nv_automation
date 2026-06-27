@@ -1,11 +1,30 @@
+import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-/** Monorepo root (packages/core/src -> ../../..) */
+function isRepoRoot(dir: string): boolean {
+  return (
+    fs.existsSync(path.join(dir, "pnpm-workspace.yaml")) &&
+    fs.existsSync(path.join(dir, "projects"))
+  );
+}
+
+/** Monorepo root — walks up from cwd so Next.js (apps/web) resolves correctly. */
 export function getRepoRoot(): string {
-  return path.resolve(__dirname, "..", "..", "..");
+  let dir = process.cwd();
+  while (true) {
+    if (isRepoRoot(dir)) return dir;
+    const parent = path.dirname(dir);
+    if (parent === dir) break;
+    dir = parent;
+  }
+
+  const fromModule = path.resolve(__dirname, "..", "..", "..");
+  if (isRepoRoot(fromModule)) return fromModule;
+
+  return fromModule;
 }
 
 export function getProjectsRoot(): string {
@@ -35,6 +54,8 @@ export function getProjectPaths(projectId: string) {
     dataJson: path.join(dir, "Data.json"),
     datasetsDir: path.join(dir, "datasets"),
     exploreRunsJson: path.join(dir, "explore-runs.json"),
+    interviewQueueJson: path.join(dir, "interview-queue.json"),
+    runCache: path.join(dir, "run-cache"),
     exploreCache: path.join(dir, "explore-cache"),
   };
 }

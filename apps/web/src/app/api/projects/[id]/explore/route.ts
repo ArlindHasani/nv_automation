@@ -1,20 +1,23 @@
 import { NextResponse } from "next/server";
 import { randomUUID } from "node:crypto";
-import { NvExploreRunner } from "@nv/playwright";
 import {
   loadProject,
   prepareForExecution,
   recordExploreRun,
   saveProjectDefinition,
 } from "@/lib/projects";
-import { buildExplorePreflight } from "@nv/core";
 import type { ExploreLogLevel, ExploreStreamEvent } from "@/lib/explore-stream";
 import {
   endExploreSession,
   startExploreSession,
   stopExploreSession,
 } from "@/lib/explore-session";
-import { ensurePlaywrightBrowsersEnv, getProjectPaths } from "@nv/core";
+import {
+  buildExplorePreflight,
+  ensurePlaywrightBrowsersEnv,
+  ensurePlaywrightChromiumInstalled,
+  getProjectPaths,
+} from "@nv/core";
 
 function inferLogLevel(message: string): ExploreLogLevel {
   if (message.includes("ERROR") || message.includes("stuck") || message.includes("blocked")) {
@@ -152,7 +155,9 @@ export async function POST(
           "info",
         );
 
+        await ensurePlaywrightChromiumInstalled((message) => log(message));
         ensurePlaywrightBrowsersEnv();
+        const { NvExploreRunner } = await import("@nv/playwright");
         const runner = new NvExploreRunner();
         const session = startExploreSession(id);
         const runId = randomUUID().slice(0, 8);

@@ -16,7 +16,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@nv/core": "*",
+    "@nv/core": "workspace:*",
     "playwright": "^1.52.0"
   },
   "devDependencies": {

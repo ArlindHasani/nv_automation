@@ -16,7 +16,7 @@ projects/
       manifest.json              # which dataset is active
       default.json               # interview rows
       {id}.sav                   # optional source SAV
-    explore-cache/               # screenshots from explore/discovery
+    explore-cache/               # screenshots and trail from explore
 ```
 
 The UI reads and writes these files directly. Playwright workers use the synced `project.json`, `Definition.json`, and `Data.json`.
@@ -25,9 +25,8 @@ The UI reads and writes these files directly. Playwright workers use the synced 
 
 ```bash
 npm install
-npm run playwright:install
-pip install pyreadstat
-npm run dev          # http://localhost:3000
+npm run dev          # installs Playwright Chromium on first run, then http://localhost:3000
+pip install pyreadstat   # for SAV import
 ```
 
 ## Workflow
@@ -37,11 +36,10 @@ npm run dev          # http://localhost:3000
 3. **Datasets** — upload `.sav` (stored in `projects/{slug}/datasets/`)
 4. **Definition** — review questions, fix gaps from data
 5. **Explore** — parse test link into `Definition.json`
-6. **Run** — start Playwright workers
+6. **Run** — configure caller profiles in Setup, then start live workers from the Run tab
 
 ```bash
 npm run explore -- ACTIVE
-npm run discover -- ACTIVE
 ```
 
 ## Answer policy (explore + live runs)

@@ -32,7 +32,6 @@ export async function POST(req: Request) {
       mode: "Freestyle",
       loiTargetMinutes: body.loiTargetMinutes,
       loiJitterPercent: body.loiJitterPercent,
-      maxWorkers: body.maxWorkers,
     });
     return NextResponse.json(project);
   } catch (e) {

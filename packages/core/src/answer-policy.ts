@@ -6,7 +6,11 @@ import {
   getValueColumnForQuestion,
 } from "./mapping.js";
 import { findQuestion, resolveAnswer, resolveSplit } from "./maintain.js";
-import { hasPositiveSplitWeights } from "./split.js";
+import {
+  hasPositiveSplitWeights,
+  normalizeSplitForFixedAnswer,
+  splitMatchesFixedAnswer,
+} from "./split.js";
 import type { DataRow, Definition, Question, QuestionType } from "./schemas.js";
 
 export interface AnswerConfigurationGap {
@@ -37,6 +41,8 @@ export interface ResolveQuestionAnswerInput {
   inDataset: boolean;
   mode: AnswerPolicyMode;
   deterministicSeed?: string;
+  /** Extra entropy for split sampling (explore run id, live interview id, etc.). */
+  splitSeedNonce?: string;
 }
 
 /** Read FixedAnswer, falling back to legacy ExploreOverride. */
@@ -287,15 +293,27 @@ function resolveFixedCoded(
   };
 }
 
+function buildSplitSeed(
+  questionName: string,
+  deterministicSeed?: string,
+  splitSeedNonce?: string,
+): string | undefined {
+  const parts = [deterministicSeed ?? questionName, splitSeedNonce].filter(
+    Boolean,
+  );
+  return parts.length > 0 ? parts.join(":") : undefined;
+}
+
 function resolveSplitPolicy(
   question: Question,
-  mode: AnswerPolicyMode,
   deterministicSeed?: string,
+  splitSeedNonce?: string,
 ): PolicyResolvedAnswer {
-  const seed =
-    mode === "explore" && deterministicSeed
-      ? deterministicSeed
-      : undefined;
+  const seed = buildSplitSeed(
+    question.Name,
+    deterministicSeed,
+    splitSeedNonce,
+  );
   const result = resolveSplit(question, seed);
   if (result.source === "fallback" || result.codes.length === 0) {
     return unconfigured(
@@ -317,6 +335,7 @@ export function resolveQuestionAnswer(
     inDataset,
     mode,
     deterministicSeed,
+    splitSeedNonce,
   } = input;
 
   const effectiveType = question?.Type ?? questionType;
@@ -366,8 +385,8 @@ export function resolveQuestionAnswer(
     ) {
       return resolveSplitPolicy(
         question,
-        mode,
         deterministicSeed ?? `${questionName}`,
+        splitSeedNonce,
       );
     }
 
@@ -383,8 +402,8 @@ export function resolveQuestionAnswer(
   ) {
     return resolveSplitPolicy(
       question,
-      mode,
       deterministicSeed ?? `${questionName}`,
+      splitSeedNonce,
     );
   }
 
@@ -414,6 +433,19 @@ export function migrateFixedAnswerFields(definition: Definition): boolean {
       q.FixedAnswer = legacy;
       changed = true;
     }
+  }
+  return changed;
+}
+
+/** Clear stale split weights left over when a fixed code was saved. */
+export function reconcileFixedAnswerSplits(definition: Definition): boolean {
+  let changed = false;
+  for (const q of definition.Questions) {
+    const fixed = getFixedAnswer(q);
+    if (!fixed) continue;
+    if (splitMatchesFixedAnswer(q.Split, fixed)) continue;
+    q.Split = normalizeSplitForFixedAnswer(q.Split, fixed);
+    changed = true;
   }
   return changed;
 }

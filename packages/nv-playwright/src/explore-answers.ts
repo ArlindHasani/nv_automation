@@ -32,6 +32,8 @@ export interface ExploreAnswerContext {
   questionsInDefinitionNotInData?: string[];
   datasetRowIndex?: number;
   mode?: "explore" | "live";
+  /** Varies split sampling between explore runs or live interviews. */
+  splitSeedNonce?: string;
 }
 
 function mapSource(source: PolicyResolvedAnswer["source"]): ExploreAnswerSource {
@@ -77,6 +79,7 @@ function resolveForClassified(
       inDataset,
       mode: context.mode ?? "explore",
       deterministicSeed,
+      splitSeedNonce: context.splitSeedNonce,
     }),
   );
 }
@@ -98,23 +101,28 @@ export function resolveExploreAnswer(
 
     for (const stmt of classified.gridStatements) {
       if (classified.gridMulti) {
-        const columns = context.seedRow
-          ? Object.keys(context.seedRow)
-          : [];
-        const codes = context.seedRow
-          ? normalizeGridStatementCodes(
-              collectMentionCodesFromRow(
-                stmt.name,
-                context.seedRow,
-                columns,
-              ),
-              classified.codes,
-            )
-          : [];
+        const stmtQuestion = context.definition
+          ? findQuestion(context.definition, stmt.name)
+          : undefined;
+        const useDatasetRow =
+          stmtQuestion?.Method !== "Split" && context.seedRow;
 
-        if (codes.length > 0) {
-          statementAnswers[stmt.name] = codes;
-          continue;
+        if (useDatasetRow) {
+          const columns = Object.keys(context.seedRow!);
+          const codes = normalizeGridStatementCodes(
+            collectMentionCodesFromRow(
+              stmt.name,
+              context.seedRow!,
+              columns,
+              stmtQuestion,
+            ),
+            classified.codes,
+          );
+
+          if (codes.length > 0) {
+            statementAnswers[stmt.name] = codes;
+            continue;
+          }
         }
 
         const sub = resolveForClassified(

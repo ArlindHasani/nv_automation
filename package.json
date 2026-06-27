@@ -6,18 +6,19 @@
     "packages/*"
   ],
   "scripts": {
-    "dev": "npm run build --workspace=@nv/core && npm run build --workspace=@nv/playwright && npm run dev --workspace=@nv/web",
+    "dev": "node scripts/ensure-playwright.mjs && npm run build --workspace=@nv/core && npm run build --workspace=@nv/playwright && npm run dev --workspace=@nv/web",
     "playwright:install": "node scripts/playwright-install.mjs",
     "build": "npm run build --workspaces --if-present",
     "import-sav": "tsx scripts/import-sav.ts",
     "explore": "tsx scripts/explore.ts",
-    "discover": "tsx scripts/discover.ts",
     "fix-gaps": "tsx scripts/fix-gaps.ts",
     "parity-test": "tsx scripts/parity-test.ts",
     "run-interview": "tsx workers/run-interview.ts",
+    "run-live-worker": "tsx workers/run-live-worker.ts",
     "typecheck": "npm run typecheck --workspaces --if-present"
   },
   "devDependencies": {
+    "@types/node": "^22.15.21",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3"
   },

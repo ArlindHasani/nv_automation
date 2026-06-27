@@ -4,12 +4,15 @@
   "liveLink": "https://nv25.ffind.com/nv_rev2/login.php",
   "testLink": "https://nv25.ffind.com/nv_rev2/test.php?token=wIK0ca8Oe9",
   "mode": "Freestyle",
+  "nvProjectId": "V1DB2606.AR261071",
+  "nvGroup": "1",
+  "questField": "quest",
   "loi": {
     "targetMinutes": 12,
     "jitterPercent": 15
   },
   "workers": {
-    "maxConcurrent": 2
+    "maxConcurrent": 1
   },
   "savFieldMap": {
     "station": "ws",
@@ -17,9 +20,18 @@
     "id": "s_ini",
     "project": "project"
   },
-  "exploreSeedRowIndex": 1,
+  "exploreSeedRowIndex": 0,
   "exploreRowCount": 1,
   "exploreEndQuestions": [
     "ANMER"
+  ],
+  "workerProfiles": [
+    {
+      "id": "caller-1",
+      "label": "Altin Ismajli",
+      "station": "63627",
+      "password": "FA8069CAympWU9eAbtGcbFkk2bv3OEetfnulx7W6",
+      "callerId": "3314"
+    }
   ]
 }

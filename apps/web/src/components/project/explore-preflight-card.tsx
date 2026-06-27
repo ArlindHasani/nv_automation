@@ -13,11 +13,13 @@ interface ExplorePreflightCardProps {
     }>;
   };
   defaultOpen?: boolean;
+  title?: string;
 }
 
 export function ExplorePreflightCard({
   preflight,
   defaultOpen,
+  title = "Pre-flight",
 }: ExplorePreflightCardProps) {
   const failed = preflight.checks.filter((c) => !c.ok);
   const open = defaultOpen ?? failed.length > 0;
@@ -34,7 +36,7 @@ export function ExplorePreflightCard({
           <XCircle className="size-4 shrink-0 text-amber-600" />
         )}
         <span className="flex-1 font-medium">
-          Pre-flight {preflight.ready ? "— ready" : "— action needed"}
+          {title} {preflight.ready ? "— ready" : "— action needed"}
         </span>
         <span className="text-xs text-muted-foreground">
           {preflight.checks.filter((c) => c.ok).length}/{preflight.checks.length}{" "}

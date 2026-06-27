@@ -27,11 +27,14 @@ export async function PATCH(
       mode: body.mode,
       loiTargetMinutes: body.loiTargetMinutes,
       loiJitterPercent: body.loiJitterPercent,
-      maxWorkers: body.maxWorkers,
       savFieldMap: body.savFieldMap,
       exploreSeedRowIndex: body.exploreSeedRowIndex,
       exploreRowCount: body.exploreRowCount,
       exploreEndQuestions: body.exploreEndQuestions,
+      nvProjectId: body.nvProjectId,
+      nvGroup: body.nvGroup,
+      questField: body.questField,
+      workerProfiles: body.workerProfiles,
     });
     if (!updated) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });

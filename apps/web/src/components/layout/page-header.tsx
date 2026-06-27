@@ -1,6 +1,15 @@
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 interface PageHeaderProps {
   title: string;
@@ -57,9 +66,9 @@ interface StatCardProps {
   label: string;
   value: string | number;
   subtitle?: string;
+  action?: { label: string; href: string };
   icon: LucideIcon;
   variant?: "default" | "warning";
-  /** metric = large number; text = clamped label (dataset names, etc.) */
   valueVariant?: "metric" | "text";
   className?: string;
 }
@@ -68,6 +77,7 @@ export function StatCard({
   label,
   value,
   subtitle,
+  action,
   icon: Icon,
   variant = "default",
   valueVariant = "metric",
@@ -79,16 +89,17 @@ export function StatCard({
     subtitle && subtitle.length > 40 ? subtitle : undefined;
 
   return (
-    <div
+    <Card
       className={cn(
-        "rounded-2xl border bg-card p-5 shadow-sm transition-shadow hover:shadow-md",
+        "flex h-full flex-col shadow-sm",
+        variant === "warning" && "border-l-4 border-l-destructive",
         className,
       )}
     >
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase md:text-sm md:normal-case md:tracking-normal">
+      <CardHeader className="flex shrink-0 flex-row items-start justify-between space-y-0 pb-2">
+        <CardDescription className="text-xs font-medium tracking-wide uppercase md:text-sm md:normal-case md:tracking-normal">
           {label}
-        </p>
+        </CardDescription>
         <div
           className={cn(
             "flex size-9 shrink-0 items-center justify-center rounded-xl md:size-10",
@@ -99,27 +110,56 @@ export function StatCard({
         >
           <Icon className="size-4 md:size-5" />
         </div>
-      </div>
-      <p
-        className={cn(
-          "mt-2.5 font-semibold tracking-tight",
-          valueVariant === "metric"
-            ? "text-3xl md:text-4xl"
-            : "line-clamp-2 text-sm leading-snug break-all md:text-base",
-          variant === "warning" && valueVariant === "metric" && "text-destructive",
-        )}
-        title={valueTitle}
-      >
-        {value}
-      </p>
-      {subtitle && (
-        <p
-          className="mt-1 line-clamp-2 text-xs leading-snug text-muted-foreground"
-          title={subtitleTitle}
+      </CardHeader>
+
+      <CardContent className="flex flex-1 flex-col pb-4">
+        <div
+          className={cn(
+            "min-h-[3.25rem]",
+            valueVariant === "metric" && "flex items-center",
+          )}
         >
-          {subtitle}
+          <CardTitle
+            className={cn(
+              "font-semibold tracking-tight",
+              valueVariant === "metric"
+                ? "text-3xl md:text-4xl"
+                : "line-clamp-2 text-sm leading-snug break-all md:text-base",
+              variant === "warning" &&
+                valueVariant === "metric" &&
+                "text-destructive",
+            )}
+            title={valueTitle}
+          >
+            {value}
+          </CardTitle>
+        </div>
+
+        <p
+          className={cn(
+            "mt-1 min-h-[2.5rem] line-clamp-2 text-xs leading-snug text-muted-foreground",
+            !subtitle && "invisible",
+          )}
+          title={subtitleTitle}
+          aria-hidden={!subtitle}
+        >
+          {subtitle || "\u00a0"}
         </p>
-      )}
-    </div>
+
+        <div className="mt-auto border-t border-border/60 pt-3">
+          {action ? (
+            <Link
+              href={action.href}
+              className="group inline-flex items-center gap-1.5 text-sm font-medium text-foreground/80 transition-colors hover:text-primary"
+            >
+              {action.label}
+              <ArrowRight className="size-3.5 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary" />
+            </Link>
+          ) : (
+            <span className="block min-h-5" aria-hidden />
+          )}
+        </div>
+      </CardContent>
+    </Card>
   );
 }

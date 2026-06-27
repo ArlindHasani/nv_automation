@@ -14,6 +14,7 @@ import {
   setActiveDataset,
   syncProjectFiles,
   updateProject,
+  loadDatasetData,
   type CreateProjectInput,
   type UpdateProjectInput,
 } from "@nv/core";
@@ -74,6 +75,15 @@ export async function removeDataset(slug: string, datasetId: string) {
 
 export async function removeProject(slug: string) {
   return deleteProject(slug);
+}
+
+export async function loadDatasetPreview(slug: string, datasetId: string) {
+  const rows = await loadDatasetData(slug, datasetId);
+  return {
+    rows: rows.slice(0, 100),
+    totalRows: rows.length,
+    columns: rows[0] ? Object.keys(rows[0]) : [],
+  };
 }
 
 export async function importSavToProject(

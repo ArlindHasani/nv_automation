@@ -1,4 +1,15 @@
 {
-  "activeId": null,
-  "datasets": []
+  "activeId": "b108e646",
+  "datasets": [
+    {
+      "id": "b108e646",
+      "name": "Kantar ES, Power brand Pymes BBVA B2B wave 1_PROFILES_ALL",
+      "rowCount": 200,
+      "file": "b108e646.json",
+      "savFile": "b108e646.sav",
+      "variablesFile": "b108e646-variables.json",
+      "isActive": true,
+      "importedAt": "2026-06-27T12:06:50.495Z"
+    }
+  ]
 }

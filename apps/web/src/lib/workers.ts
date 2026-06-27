@@ -2,14 +2,20 @@ import "server-only";
 
 import { spawn } from "node:child_process";
 import path from "node:path";
-import { ensurePlaywrightBrowsersEnv, getPlaywrightBrowsersPath, getRepoRoot } from "@nv/core";
+import {
+  ensurePlaywrightBrowsersEnv,
+  getPlaywrightBrowsersPath,
+  getProject,
+  getRepoRoot,
+} from "@nv/core";
 import { prepareForExecution } from "@/lib/projects";
 
 export interface WorkerState {
   id: string;
   projectId: string;
-  rowIndex: number;
-  status: "idle" | "running" | "completed" | "failed";
+  workerProfileId: string;
+  workerProfileLabel: string;
+  status: "running" | "completed" | "failed" | "stopped";
   logs: string[];
   startedAt?: string;
   finishedAt?: string;
@@ -19,6 +25,7 @@ export interface WorkerState {
 class WorkerManager {
   private workers = new Map<string, WorkerState>();
   private processes = new Map<string, ReturnType<typeof spawn>>();
+  private activeProfiles = new Set<string>();
 
   list(): WorkerState[] {
     return [...this.workers.values()];
@@ -28,31 +35,43 @@ class WorkerManager {
     return this.workers.get(id);
   }
 
-  async startInterview(
+  async startLiveWorker(
     projectSlug: string,
-    rowIndex: number,
+    workerProfileId: string,
     headed = false,
   ): Promise<WorkerState> {
+    const profileKey = `${projectSlug}:${workerProfileId}`;
+    if (this.activeProfiles.has(profileKey)) {
+      throw new Error(`Worker profile ${workerProfileId} is already running`);
+    }
+
+    const project = await getProject(projectSlug);
+    if (!project) throw new Error("Project not found");
+
+    const profile = project.workerProfiles.find((p) => p.id === workerProfileId);
+    if (!profile) throw new Error(`Worker profile not found: ${workerProfileId}`);
+
     await prepareForExecution(projectSlug);
 
-    const id = `worker-${Date.now()}-${rowIndex}`;
+    const id = `live-${workerProfileId}-${Date.now()}`;
     const state: WorkerState = {
       id,
       projectId: projectSlug,
-      rowIndex,
+      workerProfileId,
+      workerProfileLabel: profile.label,
       status: "running",
       logs: [],
       startedAt: new Date().toISOString(),
     };
     this.workers.set(id, state);
+    this.activeProfiles.add(profileKey);
 
-    const script = path.join(getRepoRoot(), "workers", "run-interview.ts");
+    const script = path.join(getRepoRoot(), "workers", "run-live-worker.ts");
     const args = [
       "tsx",
       script,
       projectSlug,
-      String(rowIndex),
-      id,
+      workerProfileId,
       ...(headed ? ["--headed"] : []),
     ];
 
@@ -64,6 +83,7 @@ class WorkerManager {
         ...process.env,
         FORCE_COLOR: "0",
         PLAYWRIGHT_BROWSERS_PATH: getPlaywrightBrowsersPath(),
+        NV_WORKER_ID: id,
       },
     });
     this.processes.set(id, proc);
@@ -87,6 +107,7 @@ class WorkerManager {
       state.exitCode = code ?? undefined;
       state.finishedAt = new Date().toISOString();
       this.processes.delete(id);
+      this.activeProfiles.delete(profileKey);
     });
 
     return state;
@@ -98,8 +119,9 @@ class WorkerManager {
     proc.kill("SIGTERM");
     const state = this.workers.get(id);
     if (state) {
-      state.status = "failed";
+      state.status = "stopped";
       state.finishedAt = new Date().toISOString();
+      this.activeProfiles.delete(`${state.projectId}:${state.workerProfileId}`);
     }
     return true;
   }

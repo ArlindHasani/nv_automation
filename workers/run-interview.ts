@@ -3,6 +3,7 @@ import {
   DataRowSchema,
   DefinitionSchema,
   ensurePlaywrightBrowsersEnv,
+  ensurePlaywrightChromiumInstalled,
   getProjectPaths,
   InterviewDataSchema,
   ProjectConfigSchema,
@@ -10,6 +11,7 @@ import {
 import { NvInterviewRunner } from "@nv/playwright";
 
 async function main() {
+  await ensurePlaywrightChromiumInstalled();
   ensurePlaywrightBrowsersEnv();
   const projectId = process.argv[2] ?? "ACTIVE";
   const rowIndex = parseInt(process.argv[3] ?? "0", 10);

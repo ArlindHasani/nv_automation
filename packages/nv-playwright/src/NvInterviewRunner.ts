@@ -8,6 +8,7 @@ import {
   buildLoiSchedule,
   delay,
   findQuestion,
+  getChromiumLaunchOptions,
   resolveAnswerForQuestion,
 } from "@nv/core";
 import { NvInterviewPage } from "./pages/NvInterviewPage.js";
@@ -63,7 +64,7 @@ export class NvInterviewRunner {
     const logFile = path.join(outputDir, `${workerId}-interview.log`);
 
     try {
-      this.browser = await chromium.launch({ headless });
+      this.browser = await chromium.launch(getChromiumLaunchOptions(headless));
       const page = await this.browser.newPage();
       const loginPage = new NvLoginPage(page);
       const interview = new NvInterviewPage(page);

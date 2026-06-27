@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -13,6 +13,12 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import {
+  FilterBar,
+  FilterGroup,
+  FilterSegment,
+} from "@/components/project/filter-group";
+import { SearchInput, TableResultCount } from "@/components/project/table-toolbar";
 import {
   QuestionAnsweringCell,
   type QuestionAnsweringPatch,
@@ -30,6 +36,9 @@ interface DefinitionQuestion {
   Statements?: Array<{ name: string; rowLabel: string }>;
   FixedAnswer?: string | null;
   ExploreOverride?: string | null;
+  Min?: number;
+  Max?: number;
+  AVG?: number | null;
 }
 
 function displayTypeLabel(q: DefinitionQuestion): string {
@@ -114,6 +123,45 @@ export function DefinitionQuestionTable({
   onUpdated,
 }: DefinitionQuestionTableProps) {
   const [saving, setSaving] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [sourceFilter, setSourceFilter] = useState<string>("all");
+  const [datasetFilter, setDatasetFilter] = useState<
+    "all" | "in-dataset" | "not-in-dataset"
+  >("all");
+
+  const filteredQuestions = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return questions.filter((question) => {
+      if (sourceFilter !== "all" && question.Source !== sourceFilter) return false;
+      const inDataset = questionsInDataset
+        ? questionsInDataset.has(question.Name.toUpperCase())
+        : true;
+      if (datasetFilter === "in-dataset" && !inDataset) return false;
+      if (datasetFilter === "not-in-dataset" && inDataset) return false;
+      if (!q) return true;
+      const haystack = [
+        question.Name,
+        question.Type,
+        question.Method,
+        question.Source ?? "",
+        question.GridScreen ?? "",
+        ...Object.keys(question.Split),
+        ...Object.values(question.Labels ?? {}),
+      ]
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(q);
+    });
+  }, [questions, search, sourceFilter, datasetFilter, questionsInDataset]);
+
+  const sourceCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const question of questions) {
+      const key = question.Source ?? "unknown";
+      counts[key] = (counts[key] ?? 0) + 1;
+    }
+    return counts;
+  }, [questions]);
 
   async function saveField(
     name: string,
@@ -141,8 +189,60 @@ export function DefinitionQuestionTable({
     }
   }
 
+  const inDatasetCount = questions.filter((q) =>
+    questionsInDataset?.has(q.Name.toUpperCase()),
+  ).length;
+  const notInDatasetCount = questions.length - inDatasetCount;
+
   return (
-    <Table>
+    <div className="space-y-3">
+      <div className="space-y-2 rounded-xl border bg-muted/20 p-3">
+        <FilterBar>
+        <SearchInput
+          value={search}
+          onChange={setSearch}
+          placeholder="Search questions, codes, labels…"
+          className="flex-1 sm:max-w-xs"
+        />
+        <FilterGroup label="Dataset" layout="inline">
+          <FilterSegment
+            value={datasetFilter}
+            onChange={(value) =>
+              setDatasetFilter(value as "all" | "in-dataset" | "not-in-dataset")
+            }
+            options={[
+              { value: "all", label: "All", count: questions.length },
+              { value: "in-dataset", label: "In dataset", count: inDatasetCount },
+              {
+                value: "not-in-dataset",
+                label: "Not in dataset",
+                count: notInDatasetCount,
+              },
+            ]}
+          />
+        </FilterGroup>
+        <FilterGroup label="Source" layout="inline">
+          <FilterSegment
+            value={sourceFilter}
+            onChange={setSourceFilter}
+            options={[
+              { value: "all", label: "All", count: questions.length },
+              ...Object.entries(sourceCounts).map(([source, count]) => ({
+                value: source,
+                label: sourceLabel(source as DefinitionQuestion["Source"]),
+                count,
+              })),
+            ]}
+          />
+        </FilterGroup>
+        </FilterBar>
+        <TableResultCount
+          filtered={filteredQuestions.length}
+          total={questions.length}
+          noun="questions"
+        />
+      </div>
+      <Table>
         <TableHeader>
           <TableRow className="hover:bg-transparent">
             <TableHead className="h-8 w-[148px] text-[10px] font-semibold tracking-wide text-muted-foreground uppercase">
@@ -157,7 +257,7 @@ export function DefinitionQuestionTable({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {questions.map((q, index) => (
+          {filteredQuestions.map((q, index) => (
             <TableRow
               key={`${q.Name}-${index}`}
               className={cn(
@@ -239,5 +339,6 @@ export function DefinitionQuestionTable({
           ))}
         </TableBody>
       </Table>
+    </div>
   );
 }

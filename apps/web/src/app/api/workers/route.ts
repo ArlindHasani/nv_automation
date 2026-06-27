@@ -1,4 +1,8 @@
 import { NextResponse } from "next/server";
+import {
+  applyManualAssignments,
+  clearManualAssignments,
+} from "@nv/core";
 import { getWorkerManager } from "@/lib/workers";
 
 export async function GET() {
@@ -6,23 +10,46 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const body = await req.json();
-  const { projectId, rowIndices, headed } = body as {
-    projectId: string;
-    rowIndices: number[];
-    headed?: boolean;
-  };
+  try {
+    const body = await req.json();
+    const { projectId, workerProfileIds, headed, assignmentMode, assignments } =
+      body as {
+        projectId: string;
+        workerProfileIds: string[];
+        headed?: boolean;
+        assignmentMode?: "auto" | "manual";
+        assignments?: Record<string, number[]>;
+      };
 
-  if (!projectId || !Array.isArray(rowIndices)) {
-    return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
+    if (!projectId || !Array.isArray(workerProfileIds)) {
+      return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
+    }
+
+    if (assignmentMode === "manual") {
+      if (!assignments || Object.keys(assignments).length === 0) {
+        return NextResponse.json(
+          { error: "Manual mode requires row assignments" },
+          { status: 400 },
+        );
+      }
+      await applyManualAssignments(projectId, assignments);
+    } else {
+      await clearManualAssignments(projectId);
+    }
+
+    const manager = getWorkerManager();
+    const started = [];
+    for (const profileId of workerProfileIds) {
+      started.push(
+        await manager.startLiveWorker(projectId, profileId, headed ?? false),
+      );
+    }
+
+    return NextResponse.json({ workers: started });
+  } catch (e) {
+    return NextResponse.json(
+      { error: e instanceof Error ? e.message : "Failed to start workers" },
+      { status: 400 },
+    );
   }
-
-  const manager = getWorkerManager();
-  const started = await Promise.all(
-    rowIndices.map((rowIndex) =>
-      manager.startInterview(projectId, rowIndex, headed ?? false),
-    ),
-  );
-
-  return NextResponse.json({ workers: started });
 }

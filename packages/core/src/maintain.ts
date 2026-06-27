@@ -5,6 +5,14 @@ import {
   getOtherTextColumnForQuestion,
   getValueColumnForQuestion,
 } from "./mapping.js";
+import {
+  hasMentionSplitBounds,
+  pickWeightedDistinctCodes,
+  questionAnswerCodes,
+  resolveMentionBounds,
+  sampleMentionCount,
+  seededUnit,
+} from "./split.js";
 import type { DataRow, Definition, Question } from "./schemas.js";
 
 export interface ResolvedAnswer {
@@ -108,19 +116,15 @@ function resolveMaintainOpen(
   return { codes: [], openText: "", source: "fallback", warnings };
 }
 
-function seededUnit(seed: string): number {
-  let h = 0;
-  for (let i = 0; i < seed.length; i++) {
-    h = (Math.imul(31, h) + seed.charCodeAt(i)) | 0;
-  }
-  return (Math.abs(h) % 10000) / 10000;
-}
-
 /** Pick a code from Split weights; optional seed makes explore passes reproducible. */
 export function resolveSplit(
   question: Question,
   seed?: string,
 ): ResolvedAnswer {
+  if (question.Type === "Multi") {
+    return resolveSplitMulti(question, seed);
+  }
+
   const entries = Object.entries(question.Split).filter(
     ([, weight]) => weight > 0,
   );
@@ -150,6 +154,53 @@ export function resolveSplit(
   }
 
   return { codes: [entries[0]![0]], source: "split", warnings: [] };
+}
+
+/**
+ * Mention-style multi: sample a mention count within min/max (avg ~ AVG), then pick
+ * that many distinct codes using split weights as relative likelihoods.
+ */
+function resolveSplitMulti(
+  question: Question,
+  seed?: string,
+): ResolvedAnswer {
+  const codes = questionAnswerCodes(question.Split);
+  if (codes.length === 0) {
+    return {
+      codes: [],
+      source: "fallback",
+      warnings: [`No split weights for '${question.Name}'.`],
+    };
+  }
+
+  const bounds = resolveMentionBounds(question);
+  if (hasMentionSplitBounds(question) && bounds) {
+    const mentionCount = sampleMentionCount(bounds, seed);
+    const rawCodes = pickWeightedDistinctCodes(
+      question.Split,
+      mentionCount,
+      seed,
+    );
+    return {
+      codes: rawCodes.map((code) => formatCodeForQuestion(question, code)),
+      source: "split",
+      warnings: [],
+    };
+  }
+
+  const selected: string[] = [];
+  for (const code of codes) {
+    const weight = question.Split[code] ?? 0;
+    if (weight <= 0) continue;
+    const threshold = weight / 100;
+    const roll =
+      seed !== undefined ? seededUnit(`${seed}:${code}`) : Math.random();
+    if (roll < threshold) {
+      selected.push(formatCodeForQuestion(question, code));
+    }
+  }
+
+  return { codes: selected, source: "split", warnings: [] };
 }
 
 export function resolveAnswer(

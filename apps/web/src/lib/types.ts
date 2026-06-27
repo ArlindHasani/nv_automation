@@ -33,6 +33,54 @@ export interface ProjectWorkflowView {
       reason: string;
     }>;
   };
+  liveRunPreflight: {
+    ready: boolean;
+    checks: Array<{
+      id: string;
+      label: string;
+      ok: boolean;
+      detail?: string;
+    }>;
+    answerGaps?: Array<{
+      question: string;
+      type: string;
+      reason: string;
+    }>;
+  };
+}
+
+export interface WorkerProfileView {
+  id: string;
+  label: string;
+  station: string;
+  password: string;
+  callerId: string;
+  group?: string;
+  rowStart?: number;
+  rowEnd?: number;
+}
+
+export interface InterviewQueueRowView {
+  index: number;
+  status: string;
+  quest?: string;
+  workerProfileId?: string;
+  assignedProfileId?: string;
+  sessionId?: string;
+  startedAt?: string;
+  completedAt?: string;
+  lastQuestion?: string;
+  error?: string | null;
+}
+
+export interface InterviewQueueSummaryView {
+  rowCount: number;
+  pending: number;
+  in_progress: number;
+  completed: number;
+  failed: number;
+  skipped: number;
+  rows: InterviewQueueRowView[];
 }
 
 export interface ProjectBundle {
@@ -44,10 +92,13 @@ export interface ProjectBundle {
     mode: string;
     loiTargetMinutes: number;
     loiJitterPercent: number;
-    maxWorkers: number;
     exploreSeedRowIndex?: number;
     exploreRowCount?: number;
     exploreEndQuestions?: string[];
+    nvProjectId?: string;
+    nvGroup?: string;
+    questField?: string;
+    workerProfiles?: WorkerProfileView[];
   };
   definition: {
     Questions: Array<{
@@ -62,6 +113,9 @@ export interface ProjectBundle {
       Statements?: Array<{ name: string; rowLabel: string }>;
       FixedAnswer?: string | null;
       ExploreOverride?: string | null;
+      Min?: number;
+      Max?: number;
+      AVG?: number | null;
     }>;
   };
   datasets: Array<{
@@ -108,6 +162,7 @@ export interface ProjectBundle {
     createdAt: string;
   }>;
   workflow: ProjectWorkflowView;
+  queueSummary?: InterviewQueueSummaryView | null;
 }
 
 export type ProjectSection =

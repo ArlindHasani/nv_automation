@@ -7,8 +7,8 @@ import {
   type SavVariablesMeta,
 } from "./mapping.js";
 import { fillDefinitionGapsFromData } from "./fill-gaps.js";
-import { migrateExploreDefaultsToDefinition, migrateFixedAnswerFields } from "./answer-policy.js";
-import { mergeSplitWeights } from "./split.js";
+import { migrateExploreDefaultsToDefinition, migrateFixedAnswerFields, reconcileFixedAnswerSplits } from "./answer-policy.js";
+import { mergeSplitWeights, normalizeSplitForFixedAnswer, isSplitTotalValid, splitWeightSum, resolveMentionBounds } from "./split.js";
 import { buildProjectWorkflow } from "./workflow.js";
 import {
   type Definition,
@@ -19,8 +19,15 @@ import {
   type ProjectConfig,
   ProjectConfigSchema,
   type SavFieldMap,
+  type WorkerProfile,
+  normalizeNvProjectId,
 } from "./schemas.js";
 import { getProjectPaths, getProjectsRoot } from "./paths.js";
+import {
+  initInterviewQueue,
+  getInterviewQueueSummary,
+  formatQuestId,
+} from "./interview-queue.js";
 
 function normalizeSavFieldMap(map: SavFieldMap | undefined): SavFieldMap {
   if (!map) return { ...DEFAULT_SAV_FIELD_MAP };
@@ -44,13 +51,16 @@ export interface ProjectMeta {
   liveLink: string;
   testLink: string;
   mode: string;
+  nvProjectId: string;
+  nvGroup: string;
+  questField: string;
   loiTargetMinutes: number;
   loiJitterPercent: number;
-  maxWorkers: number;
   savFieldMap: SavFieldMap;
   exploreSeedRowIndex: number;
   exploreRowCount: number;
   exploreEndQuestions: string[];
+  workerProfiles: WorkerProfile[];
   activeDatasetId: string | null;
   createdAt: string;
   updatedAt: string;
@@ -106,11 +116,14 @@ export interface CreateProjectInput {
   mode?: string;
   loiTargetMinutes?: number;
   loiJitterPercent?: number;
-  maxWorkers?: number;
   savFieldMap?: SavFieldMap;
   exploreSeedRowIndex?: number;
   exploreRowCount?: number;
   exploreEndQuestions?: string[];
+  nvProjectId?: string;
+  nvGroup?: string;
+  questField?: string;
+  workerProfiles?: WorkerProfile[];
 }
 
 export interface UpdateProjectInput {
@@ -121,11 +134,14 @@ export interface UpdateProjectInput {
   mode?: string;
   loiTargetMinutes?: number;
   loiJitterPercent?: number;
-  maxWorkers?: number;
   savFieldMap?: SavFieldMap;
   exploreSeedRowIndex?: number;
   exploreRowCount?: number;
   exploreEndQuestions?: string[];
+  nvProjectId?: string;
+  nvGroup?: string;
+  questField?: string;
+  workerProfiles?: WorkerProfile[];
 }
 
 function slugify(name: string): string {
@@ -164,6 +180,10 @@ function normalizeExploreEndQuestions(value: string[] | undefined): string[] {
   return value.map((q) => q.trim()).filter(Boolean);
 }
 
+function workerConcurrencyFromProfiles(profiles: WorkerProfile[] | undefined): number {
+  return Math.max(1, profiles?.length ?? 0);
+}
+
 function projectToConfig(meta: ProjectMeta): ProjectConfig {
   const liveLink = meta.liveLink;
   return ProjectConfigSchema.parse({
@@ -171,15 +191,21 @@ function projectToConfig(meta: ProjectMeta): ProjectConfig {
     liveLink,
     testLink: meta.testLink,
     mode: "Freestyle",
+    nvProjectId: meta.nvProjectId,
+    nvGroup: meta.nvGroup,
+    questField: meta.questField,
     loi: {
       targetMinutes: meta.loiTargetMinutes,
       jitterPercent: meta.loiJitterPercent,
     },
-    workers: { maxConcurrent: meta.maxWorkers },
+    workers: {
+      maxConcurrent: workerConcurrencyFromProfiles(meta.workerProfiles),
+    },
     savFieldMap: meta.savFieldMap,
     exploreSeedRowIndex: meta.exploreSeedRowIndex ?? 0,
     exploreRowCount: meta.exploreRowCount ?? 1,
     exploreEndQuestions: normalizeExploreEndQuestions(meta.exploreEndQuestions),
+    workerProfiles: meta.workerProfiles ?? [],
   });
 }
 
@@ -209,13 +235,16 @@ function normalizeMetaFromFile(raw: MetaFile): ProjectMeta {
     liveLink,
     testLink: raw.testLink ?? "",
     mode: raw.mode ?? "Freestyle",
+    nvProjectId: normalizeNvProjectId(raw.nvProjectId ?? ""),
+    nvGroup: raw.nvGroup ?? "1",
+    questField: raw.questField ?? "quest",
     loiTargetMinutes: raw.loiTargetMinutes ?? 12,
     loiJitterPercent: raw.loiJitterPercent ?? 15,
-    maxWorkers: raw.maxWorkers ?? 2,
     savFieldMap: normalizeSavFieldMap(raw.savFieldMap),
     exploreSeedRowIndex: raw.exploreSeedRowIndex ?? 0,
     exploreRowCount: raw.exploreRowCount ?? 1,
     exploreEndQuestions: normalizeExploreEndQuestions(raw.exploreEndQuestions),
+    workerProfiles: raw.workerProfiles ?? [],
     activeDatasetId: raw.activeDatasetId ?? null,
     createdAt: raw.createdAt,
     updatedAt: raw.updatedAt,
@@ -225,6 +254,10 @@ function normalizeMetaFromFile(raw: MetaFile): ProjectMeta {
 async function loadExploreSettingsFromProjectJson(slug: string): Promise<{
   exploreRowCount?: number;
   exploreEndQuestions?: string[];
+  nvProjectId?: string;
+  nvGroup?: string;
+  questField?: string;
+  workerProfiles?: WorkerProfile[];
 }> {
   try {
     const config = ProjectConfigSchema.parse(
@@ -308,13 +341,16 @@ async function ensureProjectInitialized(slug: string): Promise<ProjectMeta> {
       liveLink,
       testLink: config.testLink ?? "",
       mode: config.mode,
+      nvProjectId: normalizeNvProjectId(config.nvProjectId ?? ""),
+      nvGroup: config.nvGroup ?? "1",
+      questField: config.questField ?? "quest",
       loiTargetMinutes: config.loi.targetMinutes,
       loiJitterPercent: config.loi.jitterPercent,
-      maxWorkers: config.workers.maxConcurrent,
       savFieldMap: normalizeSavFieldMap(config.savFieldMap),
       exploreSeedRowIndex: config.exploreSeedRowIndex ?? 0,
       exploreRowCount: config.exploreRowCount ?? 1,
       exploreEndQuestions: normalizeExploreEndQuestions(config.exploreEndQuestions),
+      workerProfiles: config.workerProfiles ?? [],
       activeDatasetId: null,
       createdAt: now,
       updatedAt: now,
@@ -488,13 +524,16 @@ export async function createProject(input: CreateProjectInput): Promise<ProjectM
     liveLink,
     testLink: input.testLink ?? "",
     mode: input.mode ?? "Freestyle",
+    nvProjectId: normalizeNvProjectId(input.nvProjectId ?? ""),
+    nvGroup: input.nvGroup ?? "1",
+    questField: input.questField ?? "quest",
     loiTargetMinutes: input.loiTargetMinutes ?? 12,
     loiJitterPercent: input.loiJitterPercent ?? 15,
-    maxWorkers: input.maxWorkers ?? 2,
     savFieldMap: normalizeSavFieldMap(input.savFieldMap ?? DEFAULT_SAV_FIELD_MAP),
     exploreSeedRowIndex: input.exploreSeedRowIndex ?? 0,
     exploreRowCount: input.exploreRowCount ?? 1,
     exploreEndQuestions: normalizeExploreEndQuestions(input.exploreEndQuestions),
+    workerProfiles: input.workerProfiles ?? [],
     activeDatasetId: null,
     createdAt: now,
     updatedAt: now,
@@ -503,6 +542,7 @@ export async function createProject(input: CreateProjectInput): Promise<ProjectM
   const paths = getProjectPaths(slug);
   await ensureDir(paths.dir);
   await ensureDir(paths.exploreCache);
+  await ensureDir(paths.runCache);
   await ensureDir(datasetsDir(slug));
 
   await writeMeta(slug, meta);
@@ -537,9 +577,14 @@ export async function updateProject(
     liveLink,
     testLink: input.testLink ?? meta.testLink,
     mode: "Freestyle",
+    nvProjectId:
+      input.nvProjectId !== undefined
+        ? normalizeNvProjectId(input.nvProjectId)
+        : meta.nvProjectId,
+    nvGroup: input.nvGroup ?? meta.nvGroup,
+    questField: input.questField ?? meta.questField,
     loiTargetMinutes: input.loiTargetMinutes ?? meta.loiTargetMinutes,
     loiJitterPercent: input.loiJitterPercent ?? meta.loiJitterPercent,
-    maxWorkers: input.maxWorkers ?? meta.maxWorkers,
     savFieldMap: normalizeSavFieldMap(input.savFieldMap ?? meta.savFieldMap),
     exploreSeedRowIndex:
       input.exploreSeedRowIndex ?? meta.exploreSeedRowIndex ?? 0,
@@ -547,6 +592,7 @@ export async function updateProject(
     exploreEndQuestions: normalizeExploreEndQuestions(
       input.exploreEndQuestions ?? meta.exploreEndQuestions,
     ),
+    workerProfiles: input.workerProfiles ?? meta.workerProfiles,
     updatedAt: new Date().toISOString(),
   };
 
@@ -562,7 +608,14 @@ export async function getDefinition(slug: string): Promise<Definition> {
     const definition = DefinitionSchema.parse(
       JSON.parse(await fs.readFile(paths.definitionJson, "utf-8")),
     );
+    let changed = false;
     if (migrateFixedAnswerFields(definition)) {
+      changed = true;
+    }
+    if (reconcileFixedAnswerSplits(definition)) {
+      changed = true;
+    }
+    if (changed) {
       await fs.writeFile(
         paths.definitionJson,
         JSON.stringify(definition, null, 2),
@@ -595,6 +648,9 @@ export interface DefinitionQuestionPatch {
   ExploreOverride?: string | null;
   Method?: "Maintain" | "Split";
   Split?: Record<string, number>;
+  Min?: number;
+  Max?: number;
+  AVG?: number | null;
 }
 
 export async function patchDefinitionQuestions(
@@ -617,6 +673,7 @@ export async function patchDefinitionQuestions(
         q.FixedAnswer = update.FixedAnswer;
         delete q.ExploreOverride;
         q.Source = "manual";
+        q.Split = normalizeSplitForFixedAnswer(q.Split, update.FixedAnswer);
       }
     } else if (update.ExploreOverride !== undefined) {
       if (update.ExploreOverride === "" || update.ExploreOverride === null) {
@@ -626,6 +683,7 @@ export async function patchDefinitionQuestions(
         q.FixedAnswer = update.ExploreOverride;
         delete q.ExploreOverride;
         q.Source = "manual";
+        q.Split = normalizeSplitForFixedAnswer(q.Split, update.ExploreOverride);
       }
     }
     if (update.Method !== undefined) {
@@ -633,8 +691,39 @@ export async function patchDefinitionQuestions(
       q.Source = "manual";
     }
     if (update.Split !== undefined) {
-      q.Split = mergeSplitWeights(q.Split, update.Split);
+      const merged = mergeSplitWeights(q.Split, update.Split);
+      const total = splitWeightSum(merged);
+      if (!isSplitTotalValid(total, q.Type)) {
+        throw new Error(
+          q.Type === "Multi"
+            ? `Split weights for '${q.Name}' need at least one positive mention %`
+            : `Split weights for '${q.Name}' must sum to 100% (got ${Math.round(total * 10) / 10}%)`,
+        );
+      }
+      q.Split = merged;
       q.Source = "manual";
+    }
+    if (
+      update.Min !== undefined ||
+      update.Max !== undefined ||
+      update.AVG !== undefined
+    ) {
+      if (update.Min !== undefined) q.Min = update.Min;
+      if (update.Max !== undefined) q.Max = update.Max;
+      if (update.AVG !== undefined) {
+        q.AVG = update.AVG === null ? null : update.AVG;
+      }
+      q.Source = "manual";
+
+      const min = q.Min ?? 0;
+      const max = q.Max ?? 0;
+      const avg = q.AVG ?? 0;
+      const allSet = min > 0 && max > 0 && avg > 0;
+      if (allSet && !resolveMentionBounds(q)) {
+        throw new Error(
+          `Mention bounds for '${q.Name}' must satisfy Min ≤ AVG ≤ Max`,
+        );
+      }
     }
   }
 
@@ -657,8 +746,18 @@ export async function getActiveDataset(slug: string): Promise<DatasetMeta | null
 export async function loadActiveData(slug: string): Promise<InterviewData> {
   const active = await getActiveDataset(slug);
   if (!active) return [];
+  return loadDatasetData(slug, active.id);
+}
+
+export async function loadDatasetData(
+  slug: string,
+  datasetId: string,
+): Promise<InterviewData> {
+  const manifest = await readManifest(slug);
+  const dataset = manifest.datasets.find((d) => d.id === datasetId);
+  if (!dataset) throw new Error("Dataset not found");
   const raw = await fs.readFile(
-    path.join(datasetsDir(slug), active.file),
+    path.join(datasetsDir(slug), dataset.file),
     "utf-8",
   );
   return InterviewDataSchema.parse(JSON.parse(raw));
@@ -767,6 +866,7 @@ export async function importDataset(
   );
 
   await syncProjectFiles(slug);
+  await initInterviewQueue(slug, rows.length, true);
   return { dataset, coverage };
 }
 
@@ -793,6 +893,7 @@ export async function setActiveDataset(
   }
 
   await syncProjectFiles(slug);
+  await initInterviewQueue(slug, ds.rowCount, false);
   return true;
 }
 
@@ -928,6 +1029,7 @@ export async function getProjectBundle(slug: string) {
   const datasets = await listDatasets(slug);
   const activeDataset = await getActiveDataset(slug);
   const data = await loadActiveData(slug);
+  await initInterviewQueue(slug, data.length, false);
   const coverage = buildCoverageReport(data, definition, project.savFieldMap);
   const exploreRuns = await listExploreRuns(slug);
   const workflow = buildProjectWorkflow({
@@ -935,9 +1037,26 @@ export async function getProjectBundle(slug: string) {
     definition,
     activeDataset,
     dataRowCount: data.length,
+    dataColumns: data[0] ? Object.keys(data[0]) : [],
     coverage,
     exploreRuns,
   });
+
+  let queueSummary = await getInterviewQueueSummary(slug);
+  if (queueSummary && data.length > 0) {
+    const questField = config.questField || "quest";
+    queueSummary = {
+      ...queueSummary,
+      rows: queueSummary.rows.map((row) => ({
+        ...row,
+        quest:
+          row.quest ??
+          (data[row.index]
+            ? formatQuestId(data[row.index][questField])
+            : undefined),
+      })),
+    };
+  }
 
   return {
     project: {
@@ -952,5 +1071,6 @@ export async function getProjectBundle(slug: string) {
     coverage,
     exploreRuns,
     workflow,
+    queueSummary,
   };
 }

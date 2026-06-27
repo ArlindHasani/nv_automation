@@ -6,8 +6,10 @@ import {
   ChevronRight,
   Compass,
   Database,
+  Eye,
   FileStack,
   ListTree,
+  Loader2,
   Play,
   RefreshCw,
   Save,
@@ -17,6 +19,7 @@ import {
   Upload,
   Wrench,
 } from "lucide-react";
+import { LoadingButton } from "@/components/ui/loading-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -52,11 +55,13 @@ import {
 } from "@/components/ui/dialog";
 import { useProject } from "@/contexts/project-context";
 import { ExploreConsole, type ExploreConsoleLine } from "@/components/project/explore-console";
+import { WorkerConsole } from "@/components/project/worker-console";
 import { consumeExploreStream } from "@/lib/explore-stream";
-import type { ProjectSection } from "@/lib/types";
-import { useRef, useState, type ReactNode } from "react";
+import type { ProjectSection, WorkerProfileView } from "@/lib/types";
+import { useMemo, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
+import { formatStatusLabel } from "@/lib/format-labels";
 import { WorkflowProgress } from "@/components/project/workflow-progress";
 import { DefinitionQuestionTable } from "@/components/project/definition-question-table";
 import { ExplorePreflightCard } from "@/components/project/explore-preflight-card";
@@ -64,8 +69,30 @@ import {
   ReviewItemsPanel,
   filterReviewIssues,
 } from "@/components/project/review-items-panel";
+import { ActionWithHelp, HelpTip, LabelWithHelp, TipItem, TipText } from "@/components/project/help-tip";
+import { DatasetPreviewSheet } from "@/components/project/dataset-preview-sheet";
+import { DeleteProjectDangerZone } from "@/components/project/delete-project-danger-zone";
+import { ManualAssignmentSheet } from "@/components/project/manual-assignment-sheet";
+import { InterviewQueueTable } from "@/components/project/interview-queue-table";
+import { ExploreRunsTable } from "@/components/project/explore-runs-table";
+import { ProjectWorkspaceSkeleton } from "@/components/project/project-workspace-skeleton";
+import { FilterSegment } from "@/components/project/filter-group";
+import { cn } from "@/lib/utils";
 
 const fieldClass = "h-11 text-base";
+
+type EditableWorkerProfile = WorkerProfileView & { clientKey: string };
+
+function withClientKeys(profiles: WorkerProfileView[]): EditableWorkerProfile[] {
+  return profiles.map((profile) => ({
+    ...profile,
+    clientKey: crypto.randomUUID(),
+  }));
+}
+
+function stripClientKeys(profiles: EditableWorkerProfile[]): WorkerProfileView[] {
+  return profiles.map(({ clientKey: _clientKey, ...profile }) => profile);
+}
 
 function RouteChevron() {
   return (
@@ -116,16 +143,21 @@ function ExploreQuestionRoute({
 function SetupConfigSection({
   title,
   description,
+  help,
   children,
 }: {
   title: string;
   description?: string;
+  help?: ReactNode;
   children: ReactNode;
 }) {
   return (
     <section className="space-y-4 rounded-xl border bg-muted/15 p-5 md:p-6">
       <div className="space-y-1 border-b border-border/60 pb-4">
-        <h3 className="text-base font-semibold tracking-tight">{title}</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-base font-semibold tracking-tight">{title}</h3>
+          {help ? <HelpTip content={help} /> : null}
+        </div>
         {description ? (
           <p className="text-sm text-muted-foreground">{description}</p>
         ) : null}
@@ -173,14 +205,7 @@ export function ProjectWorkspace() {
   const meta = SECTION_META[section];
 
   if (loading || !bundle) {
-    return (
-      <div className="flex h-64 items-center justify-center">
-        <div className="flex flex-col items-center gap-3 text-muted-foreground">
-          <div className="size-8 animate-pulse rounded-full bg-muted" />
-          <p className="text-base">Loading project...</p>
-        </div>
-      </div>
-    );
+    return <ProjectWorkspaceSkeleton />;
   }
 
   return (
@@ -204,12 +229,21 @@ export function ProjectWorkspace() {
           Refresh
         </Button>
       </PageHeader>
-      <div className="space-y-8 p-8">
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div
+        className={cn(
+          "space-y-8 p-8",
+          refreshing && "pointer-events-none opacity-60",
+        )}
+      >
+        <div className="grid auto-rows-fr gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <StatCard
             label="Questions"
             value={bundle.definition.Questions.length}
             icon={ListTree}
+            action={{
+              label: "View definition",
+              href: `/projects/${projectId}/definition`,
+            }}
           />
           <StatCard
             label="Active dataset"
@@ -221,6 +255,10 @@ export function ProjectWorkspace() {
                 : "Import and activate a SAV"
             }
             icon={Database}
+            action={{
+              label: "Manage datasets",
+              href: `/projects/${projectId}/datasets`,
+            }}
           />
           <StatCard
             label="Interview rows"
@@ -231,6 +269,10 @@ export function ProjectWorkspace() {
                 : undefined
             }
             icon={FileStack}
+            action={{
+              label: "Open run panel",
+              href: `/projects/${projectId}/run`,
+            }}
           />
           <StatCard
             label="Coverage gaps"
@@ -241,13 +283,29 @@ export function ProjectWorkspace() {
                 ? "warning"
                 : "default"
             }
+            action={{
+              label: "Review in definition",
+              href: `/projects/${projectId}/definition`,
+            }}
           />
         </div>
 
         {bundle.workflow && (
           <Card className="border-none shadow-md">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Freestyle workflow</CardTitle>
+              <div className="flex items-center gap-2">
+                <CardTitle className="text-lg">Freestyle workflow</CardTitle>
+                <HelpTip
+                  content={
+                    <>
+                      Follow these steps in order: import a SAV, configure links
+                      and answer policy, explore the test questionnaire, review
+                      the definition, then run live interviews. Click any step
+                      to jump to that section.
+                    </>
+                  }
+                />
+              </div>
               <CardDescription>
                 SAV row → explore questionnaire → Maintain from dataset per
                 interview. Use <strong>Split</strong> only when a question
@@ -276,16 +334,16 @@ export function ProjectWorkspace() {
 
 function SetupPanel() {
   const { bundle, projectId, refresh } = useProject();
-  const router = useRouter();
-  const [deleteOpen, setDeleteOpen] = useState(false);
-  const [deleting, setDeleting] = useState(false);
+  const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState({
     name: bundle!.project.name,
     liveLink: bundle!.project.liveLink,
     testLink: bundle!.project.testLink,
+    nvProjectId: bundle!.project.nvProjectId ?? "",
+    questField: bundle!.project.questField ?? "quest",
+    workerProfiles: withClientKeys(bundle!.project.workerProfiles ?? []),
     loiTargetMinutes: bundle!.project.loiTargetMinutes,
     loiJitterPercent: bundle!.project.loiJitterPercent,
-    maxWorkers: bundle!.project.maxWorkers,
     exploreSeedRowIndex: bundle!.project.exploreSeedRowIndex ?? 0,
     exploreRowCount: bundle!.project.exploreRowCount ?? 1,
     exploreEndQuestionsText: (bundle!.project.exploreEndQuestions ?? ["ANMER"]).join(
@@ -295,7 +353,9 @@ function SetupPanel() {
 
   async function saveSettings(e: React.FormEvent) {
     e.preventDefault();
-    toast.loading("Saving settings...");
+    if (saving) return;
+    setSaving(true);
+    const id = toast.loading("Saving settings...");
     const exploreEndQuestions = settings.exploreEndQuestionsText
       .split(/[,+\n]/)
       .map((q) => q.trim())
@@ -309,35 +369,31 @@ function SetupPanel() {
         testLink: settings.testLink,
         loiTargetMinutes: settings.loiTargetMinutes,
         loiJitterPercent: settings.loiJitterPercent,
-        maxWorkers: settings.maxWorkers,
         exploreSeedRowIndex: settings.exploreSeedRowIndex,
         exploreRowCount: Math.max(1, settings.exploreRowCount),
         exploreEndQuestions:
           exploreEndQuestions.length > 0 ? exploreEndQuestions : ["ANMER"],
+        nvProjectId: settings.nvProjectId,
+        questField: settings.questField || "quest",
+        workerProfiles: stripClientKeys(settings.workerProfiles).filter(
+          (p) => p.id && p.label && p.station && p.password && p.callerId,
+        ),
         mode: "Freestyle",
       }),
     });
     if (res.ok) {
-      toast.success("Settings saved");
+      toast.success("Settings saved", { id });
     } else {
-      toast.error((await res.json()).error);
+      toast.error((await res.json()).error, { id });
     }
+    setSaving(false);
     await refresh();
   }
 
-  async function handleDeleteProject() {
-    setDeleting(true);
-    const res = await fetch(`/api/projects/${projectId}`, { method: "DELETE" });
-    setDeleting(false);
-    if (!res.ok) {
-      toast.error((await res.json()).error ?? "Failed to delete project");
-      return;
-    }
-    toast.success("Project deleted");
-    setDeleteOpen(false);
-    router.push("/");
-    router.refresh();
-  }
+  const savColumns =
+    bundle!.activeDataset && bundle!.data[0]
+      ? Object.keys(bundle!.data[0]).sort()
+      : [];
 
   return (
     <>
@@ -369,9 +425,14 @@ function SetupPanel() {
           <SetupConfigSection
             title="Survey links"
             description="Live login for interview workers; test preview for guided explore only."
+            help="Live link is where caller workers sign in. Test link opens the questionnaire preview without login — Explore uses it to discover question structure."
           >
             <div className="space-y-2 md:col-span-2">
-              <Label>Live link</Label>
+              <LabelWithHelp
+                help="NV Rev2 live login URL. Workers authenticate with caller profiles below, not SAV login columns."
+              >
+                Live link
+              </LabelWithHelp>
               <Input
                 className={fieldClass}
                 value={settings.liveLink}
@@ -380,14 +441,58 @@ function SetupPanel() {
                 }
                 placeholder="https://nv25.ffind.com/nv_rev2/login.php"
               />
-              <p className="text-sm text-muted-foreground">
-                Station, password, ID, and project are filled from each SAV row
-                (see <code className="text-xs">savFieldMap</code> in project.json).
-                Group and mode use the page default.
-              </p>
+            </div>
+            <div className="space-y-2">
+              <LabelWithHelp
+                help="NOMP project code shown on the NV login screen (e.g. V1DB2606.AR261071). Backslashes in SAV are normalized to dots."
+              >
+                NV project (NOMP)
+              </LabelWithHelp>
+              <Input
+                className={fieldClass}
+                value={settings.nvProjectId}
+                onChange={(e) =>
+                  setSettings({ ...settings, nvProjectId: e.target.value })
+                }
+                placeholder="V1DB2606.AR261071"
+              />
+            </div>
+            <div className="space-y-2">
+              <LabelWithHelp
+                help="SAV column whose value becomes the 10-digit quest ID when a worker starts each interview on the NV home screen."
+              >
+                Quest field (SAV column)
+              </LabelWithHelp>
+              {savColumns.length === 0 ? (
+                <p className="rounded-lg border border-dashed px-3 py-2 text-sm text-muted-foreground">
+                  Import and activate a SAV in Datasets to choose the quest column.
+                </p>
+              ) : (
+                <select
+                  className={`${fieldClass} w-full rounded-md border border-input bg-background px-3`}
+                  value={
+                    savColumns.includes(settings.questField)
+                      ? settings.questField
+                      : savColumns[0]
+                  }
+                  onChange={(e) =>
+                    setSettings({ ...settings, questField: e.target.value })
+                  }
+                >
+                  {savColumns.map((col) => (
+                    <option key={col} value={col}>
+                      {col}
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
             <div className="space-y-2 md:col-span-2">
-              <Label>Test link</Label>
+              <LabelWithHelp
+                help="Test-link URL with token — opens questionnaire preview without live login. Guided Explore walks this link using dataset rows."
+              >
+                Test link
+              </LabelWithHelp>
               <Input
                 className={fieldClass}
                 value={settings.testLink}
@@ -396,19 +501,18 @@ function SetupPanel() {
                 }
                 placeholder="https://nv25.ffind.com/nv_rev2/test.php?token=..."
               />
-              <p className="text-sm text-muted-foreground">
-                Opens the questionnaire preview without a live login — used by
-                Explore only.
-              </p>
             </div>
           </SetupConfigSection>
 
           <SetupConfigSection
             title="Guided explore"
             description="Guided explore walks the test link using dataset seed rows. Questions not in the dataset need a fixed answer or split weights in Definition."
+            help="Explore discovers question order and types from the live test UI, then merges them into your definition. Configure seed row and end questions here before running Explore."
           >
             <div className="space-y-2">
-              <Label>Explore seed row</Label>
+              <LabelWithHelp help="Zero-based index into the active dataset — the first row used when Explore opens the test link.">
+                Explore seed row
+              </LabelWithHelp>
               <Input
                 className={fieldClass}
                 type="number"
@@ -421,12 +525,11 @@ function SetupPanel() {
                   })
                 }
               />
-              <p className="text-sm text-muted-foreground">
-                Row index in the active dataset (0 = first row).
-              </p>
             </div>
             <div className="space-y-2">
-              <Label>Explore row count</Label>
+              <LabelWithHelp help="How many consecutive dataset rows to walk in one explore run, starting at the seed row.">
+                Explore row count
+              </LabelWithHelp>
               <Input
                 className={fieldClass}
                 type="number"
@@ -439,14 +542,11 @@ function SetupPanel() {
                   })
                 }
               />
-              <p className="text-sm text-muted-foreground">
-                Consecutive dataset rows to walk per explore run, starting at
-                the seed row. Each row opens a fresh test-link pass until an end
-                question (e.g. ANMER).
-              </p>
             </div>
             <div className="space-y-2 md:col-span-2">
-              <Label>Explore end questions</Label>
+              <LabelWithHelp help="QLABELs where Explore stops walking the questionnaire — typically ANMER (interview end). Comma-separated.">
+                Explore end questions
+              </LabelWithHelp>
               <Input
                 className={fieldClass}
                 value={settings.exploreEndQuestionsText}
@@ -476,11 +576,149 @@ function SetupPanel() {
           </SetupConfigSection>
 
           <SetupConfigSection
+            title="Caller worker profiles"
+            description="Each profile simulates one interviewer login. Assign rows automatically or manually on the Run tab."
+            help="One browser worker per profile logs into NV once, then claims and runs interviews. Add station, password, and caller ID matching your NV credentials."
+          >
+            <div className="md:col-span-2 space-y-3">
+              {settings.workerProfiles.map((profile, index) => (
+                <details
+                  key={profile.clientKey}
+                  className="group rounded-xl border"
+                >
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 [&::-webkit-details-marker]:hidden">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <ChevronRight className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-90" />
+                      <span className="truncate font-medium">
+                        {profile.label || profile.id || `Profile ${index + 1}`}
+                      </span>
+                      {profile.station ? (
+                        <span className="truncate font-mono text-xs text-muted-foreground">
+                          {profile.station}
+                        </span>
+                      ) : null}
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="shrink-0"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setSettings({
+                          ...settings,
+                          workerProfiles: settings.workerProfiles.filter(
+                            (_, i) => i !== index,
+                          ),
+                        });
+                      }}
+                    >
+                      Remove
+                    </Button>
+                  </summary>
+                  <div className="grid gap-3 border-t p-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label>Profile ID</Label>
+                    <Input
+                      className={fieldClass}
+                      value={profile.id}
+                      onChange={(e) => {
+                        const workerProfiles = [...settings.workerProfiles];
+                        workerProfiles[index] = { ...profile, id: e.target.value };
+                        setSettings({ ...settings, workerProfiles });
+                      }}
+                      placeholder="caller-1"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Label</Label>
+                    <Input
+                      className={fieldClass}
+                      value={profile.label}
+                      onChange={(e) => {
+                        const workerProfiles = [...settings.workerProfiles];
+                        workerProfiles[index] = { ...profile, label: e.target.value };
+                        setSettings({ ...settings, workerProfiles });
+                      }}
+                      placeholder="Caller 1"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Station</Label>
+                    <Input
+                      className={fieldClass}
+                      value={profile.station}
+                      onChange={(e) => {
+                        const workerProfiles = [...settings.workerProfiles];
+                        workerProfiles[index] = { ...profile, station: e.target.value };
+                        setSettings({ ...settings, workerProfiles });
+                      }}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Password</Label>
+                    <Input
+                      className={fieldClass}
+                      type="password"
+                      value={profile.password}
+                      onChange={(e) => {
+                        const workerProfiles = [...settings.workerProfiles];
+                        workerProfiles[index] = { ...profile, password: e.target.value };
+                        setSettings({ ...settings, workerProfiles });
+                      }}
+                    />
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <Label>Caller ID</Label>
+                    <Input
+                      className={fieldClass}
+                      value={profile.callerId}
+                      onChange={(e) => {
+                        const workerProfiles = [...settings.workerProfiles];
+                        workerProfiles[index] = { ...profile, callerId: e.target.value };
+                        setSettings({ ...settings, workerProfiles });
+                      }}
+                    />
+                  </div>
+                  </div>
+                </details>
+              ))}
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={() => {
+                  const n = settings.workerProfiles.length + 1;
+                  setSettings({
+                    ...settings,
+                    workerProfiles: [
+                      ...settings.workerProfiles,
+                      {
+                        clientKey: crypto.randomUUID(),
+                        id: `caller-${n}`,
+                        label: `Caller ${n}`,
+                        station: "",
+                        password: "",
+                        callerId: "",
+                      },
+                    ],
+                  });
+                }}
+              >
+                Add worker profile
+              </Button>
+            </div>
+          </SetupConfigSection>
+
+          <SetupConfigSection
             title="Interview runs"
             description="Timing and concurrency when cloning live interviews from SAV rows."
+            help="LOI target spreads answer delays across the interview. Jitter adds randomness. Max workers limits how many caller profiles can run at once."
           >
+            <div className="grid gap-6 md:col-span-2 md:grid-cols-3">
             <div className="space-y-2">
-              <Label>Target LOI (minutes)</Label>
+              <LabelWithHelp help="Target length of interview in minutes — used to schedule delays between questions.">
+                Target LOI (minutes)
+              </LabelWithHelp>
               <Input
                 className={fieldClass}
                 type="number"
@@ -494,7 +732,9 @@ function SetupPanel() {
               />
             </div>
             <div className="space-y-2">
-              <Label>LOI jitter %</Label>
+              <LabelWithHelp help="Random variation applied to LOI timing so interviews don't all finish at exactly the same pace.">
+                LOI jitter %
+              </LabelWithHelp>
               <Input
                 className={fieldClass}
                 type="number"
@@ -507,84 +747,23 @@ function SetupPanel() {
                 }
               />
             </div>
-            <div className="space-y-2 md:col-span-2">
-              <Label>Max concurrent workers</Label>
-              <Input
-                type="number"
-                min={1}
-                className={`max-w-xs ${fieldClass}`}
-                value={settings.maxWorkers}
-                onChange={(e) =>
-                  setSettings({
-                    ...settings,
-                    maxWorkers: Number(e.target.value),
-                  })
-                }
-              />
             </div>
           </SetupConfigSection>
 
           <div className="flex justify-start border-t pt-6">
-            <Button type="submit" size="lg">
+            <LoadingButton type="submit" size="lg" loading={saving} loadingText="Saving…">
               <Save className="mr-2 size-5" />
               Save settings
-            </Button>
+            </LoadingButton>
           </div>
         </form>
       </CardContent>
     </Card>
 
-    <Card className="border-destructive/30 shadow-md">
-      <CardHeader className="pb-4">
-        <CardTitle className="text-xl text-destructive">Danger zone</CardTitle>
-        <CardDescription className="text-base">
-          Permanently delete this project and all datasets, definitions, and
-          explore history on disk.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        <Button
-          type="button"
-          variant="destructive"
-          size="lg"
-          onClick={() => setDeleteOpen(true)}
-        >
-          <Trash2 className="mr-2 size-5" />
-          Delete project
-        </Button>
-      </CardContent>
-    </Card>
-
-    <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Delete project?</DialogTitle>
-          <DialogDescription>
-            This will permanently remove <strong>{bundle!.project.name}</strong>{" "}
-            and everything under <code>projects/{projectId}</code>. This cannot
-            be undone.
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => setDeleteOpen(false)}
-            disabled={deleting}
-          >
-            Cancel
-          </Button>
-          <Button
-            type="button"
-            variant="destructive"
-            onClick={() => void handleDeleteProject()}
-            disabled={deleting}
-          >
-            {deleting ? "Deleting..." : "Delete project"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <DeleteProjectDangerZone
+      projectId={projectId}
+      projectName={bundle!.project.name}
+    />
     </>
   );
 }
@@ -592,6 +771,13 @@ function SetupPanel() {
 function DatasetsPanel() {
   const { bundle, projectId, refresh } = useProject();
   const [datasetName, setDatasetName] = useState("");
+  const [uploading, setUploading] = useState(false);
+  const [previewTarget, setPreviewTarget] = useState<{
+    id: string;
+    name: string;
+    rowCount: number;
+    isActive: boolean;
+  } | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{
     id: string;
     name: string;
@@ -600,22 +786,28 @@ function DatasetsPanel() {
   const [deleting, setDeleting] = useState(false);
 
   async function uploadSav(file: File) {
+    if (uploading) return;
+    setUploading(true);
     const form = new FormData();
     form.append("file", file);
     form.append("name", datasetName || file.name.replace(/\.sav$/i, ""));
     const id = toast.loading("Importing SAV...");
-    const res = await fetch(`/api/projects/${projectId}/import-sav`, {
-      method: "POST",
-      body: form,
-    });
-    const data = await res.json();
-    if (res.ok) {
-      toast.success(`Imported ${data.dataset.rowCount} rows`, { id });
-    } else {
-      toast.error(data.error, { id });
+    try {
+      const res = await fetch(`/api/projects/${projectId}/import-sav`, {
+        method: "POST",
+        body: form,
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success(`Imported ${data.dataset.rowCount} rows`, { id });
+      } else {
+        toast.error(data.error, { id });
+      }
+      setDatasetName("");
+      await refresh();
+    } finally {
+      setUploading(false);
     }
-    setDatasetName("");
-    await refresh();
   }
 
   async function activateDataset(datasetId: string) {
@@ -649,15 +841,31 @@ function DatasetsPanel() {
     <>
     <Card className="border-none shadow-md">
       <CardHeader className="pb-4">
-        <CardTitle className="text-xl">Dataset library</CardTitle>
-        <CardDescription className="text-base">
-          Each upload is stored in <code className="text-sm">projects/{projectId}/datasets/</code>
-        </CardDescription>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <CardTitle className="text-xl">Dataset library</CardTitle>
+            <CardDescription className="text-base">
+              Each SAV upload becomes one dataset. Activate one to drive Explore,
+              definition coverage, and live interview rows.
+            </CardDescription>
+          </div>
+          <HelpTip
+            content={
+              <>
+                Import SPSS .sav files — each row is one interview. The active
+                dataset supplies answer values for Maintain mode and populates the
+                interview queue on Run. Preview any dataset before activating.
+              </>
+            }
+          />
+        </div>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="flex flex-wrap items-end gap-4 rounded-2xl border border-dashed bg-muted/30 p-6">
           <div className="space-y-2">
-            <Label className="text-base">Dataset name</Label>
+            <LabelWithHelp help="Friendly name for this upload — defaults to the .sav filename if left blank.">
+              Dataset name
+            </LabelWithHelp>
             <Input
               value={datasetName}
               onChange={(e) => setDatasetName(e.target.value)}
@@ -665,16 +873,28 @@ function DatasetsPanel() {
               className={`w-64 bg-background ${fieldClass}`}
             />
           </div>
-          <label className="inline-flex h-11 cursor-pointer items-center gap-2 rounded-lg border bg-primary px-5 text-base font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90">
-            <Upload className="size-5" />
-            Upload .sav
+          <label
+            className={`inline-flex h-11 items-center gap-2 rounded-lg border px-5 text-base font-medium shadow-sm transition-colors ${
+              uploading
+                ? "cursor-not-allowed bg-muted text-muted-foreground"
+                : "cursor-pointer bg-primary text-primary-foreground hover:bg-primary/90"
+            }`}
+          >
+            {uploading ? (
+              <Loader2 className="size-5 animate-spin" />
+            ) : (
+              <Upload className="size-5" />
+            )}
+            {uploading ? "Importing…" : "Upload .sav"}
             <input
               type="file"
               accept=".sav"
               className="hidden"
+              disabled={uploading}
               onChange={(e) => {
                 const f = e.target.files?.[0];
-                if (f) uploadSav(f);
+                if (f) void uploadSav(f);
+                e.target.value = "";
               }}
             />
           </label>
@@ -716,6 +936,21 @@ function DatasetsPanel() {
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
+                    <Button
+                      size="default"
+                      variant="outline"
+                      onClick={() =>
+                        setPreviewTarget({
+                          id: ds.id,
+                          name: ds.name,
+                          rowCount: ds.rowCount,
+                          isActive: ds.isActive,
+                        })
+                      }
+                    >
+                      <Eye className="mr-1.5 size-4" />
+                      Preview
+                    </Button>
                     {!ds.isActive && (
                       <Button
                         size="default"
@@ -803,6 +1038,18 @@ function DatasetsPanel() {
         </DialogFooter>
       </DialogContent>
     </Dialog>
+
+    <DatasetPreviewSheet
+      open={previewTarget !== null}
+      onOpenChange={(open) => {
+        if (!open) setPreviewTarget(null);
+      }}
+      projectId={projectId}
+      dataset={previewTarget}
+      cachedRows={
+        previewTarget?.isActive ? bundle!.data : undefined
+      }
+    />
     </>
   );
 }
@@ -863,7 +1110,25 @@ function DefinitionPanel() {
     <Card className="border-none shadow-md">
       <CardHeader className="flex flex-row items-start justify-between gap-4">
         <div className="min-w-0 flex-1 space-y-2">
-          <CardTitle>Question definition</CardTitle>
+          <div className="flex items-center gap-2">
+            <CardTitle>Question definition</CardTitle>
+            <HelpTip
+              content={
+                <div className="space-y-2">
+                  <TipText>
+                    The questionnaire blueprint used by Explore and live workers.
+                  </TipText>
+                  <TipItem title="Maintain">
+                    Answers come from active dataset rows (SAV columns).
+                  </TipItem>
+                  <TipItem title="Fixed / Split">
+                    For questions only found in Explore — set a fixed code or
+                    weighted split.
+                  </TipItem>
+                </div>
+              }
+            />
+          </div>
           <CardDescription>
             {bundle!.definition.Questions.length} questions ·{" "}
             <strong>Maintain</strong> uses dataset rows ·{" "}
@@ -886,10 +1151,21 @@ function DefinitionPanel() {
             </p>
           )}
         </div>
-        <Button variant="outline" size="lg" onClick={fixGaps}>
-          <Wrench className="mr-2 size-5" />
-          Fix gaps
-        </Button>
+        <ActionWithHelp
+          help={
+            <>
+              Scans the active SAV for columns that are not yet in
+              Definition.json and adds them automatically with types inferred
+              from the data. Run this after importing a dataset — it does not
+              change questions already in the definition.
+            </>
+          }
+        >
+          <Button variant="outline" size="lg" onClick={fixGaps}>
+            <Wrench className="mr-2 size-5" />
+            Fix gaps
+          </Button>
+        </ActionWithHelp>
       </CardHeader>
       <CardContent className="space-y-3">
         <ReviewItemsPanel
@@ -1033,7 +1309,19 @@ function ExplorePanel() {
     <Card className="border-none shadow-md">
       <CardHeader className="flex flex-row items-start justify-between gap-4">
         <div>
-          <CardTitle>Explore</CardTitle>
+          <div className="flex items-center gap-2">
+            <CardTitle>Explore</CardTitle>
+            <HelpTip
+              content={
+                <>
+                  Opens the test link in a browser using dataset rows from Setup.
+                  Each question encountered is classified and merged into
+                  Definition.json. Saves a trail CSV per run. Stop anytime —
+                  partial runs still add discovered questions.
+                </>
+              }
+            />
+          </div>
           <CardDescription>
             Opens the test link using dataset row(s) from Setup, detects each
             question, and merges structure into Definition.json. Each explore run
@@ -1053,20 +1341,22 @@ function ExplorePanel() {
               {stopping ? "Stopping…" : "Stop"}
             </Button>
           )}
-          <Button
+          <LoadingButton
             size="lg"
             onClick={() => void runExplore()}
+            loading={running}
+            loadingText="Exploring…"
             disabled={
               !bundle!.project.testLink ||
               !bundle!.activeDataset ||
               bundle!.activeDataset.rowCount === 0 ||
               !bundle!.workflow?.explorePreflight?.ready ||
-              running
+              stopping
             }
           >
             <Compass className="mr-2 size-5" />
-            {running ? "Exploring…" : "Run explore"}
-          </Button>
+            Run explore
+          </LoadingButton>
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -1089,217 +1379,364 @@ function ExplorePanel() {
           )}
         <ExploreConsole lines={consoleLines} running={running || stopping} />
 
-        <div className="space-y-2">
+        <div className="space-y-3">
           <h3 className="text-sm font-semibold text-muted-foreground">
             Past runs ({bundle!.exploreRuns.length})
           </h3>
-        {bundle!.exploreRuns.length === 0 ? (
-          <div className="rounded-xl border border-dashed py-8 text-center text-muted-foreground">
-            <Compass className="mx-auto mb-3 size-8 opacity-40" />
-            <p className="text-sm">No explore runs yet</p>
-            <p className="mt-1 text-xs">Set a test link in Setup first</p>
-          </div>
-        ) : (
-          bundle!.exploreRuns.map((run, index) => (
-            <details
-              key={run.id}
-              open={index === 0}
-              className="group rounded-xl border bg-card"
-            >
-              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 [&::-webkit-details-marker]:hidden">
-                <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium">
-                    {new Date(run.createdAt).toLocaleString()}
-                  </p>
-                  <p className="mt-0.5 min-w-0 text-xs text-muted-foreground">
-                    {run.discoveredNames?.length ? (
-                      <ExploreQuestionRoute
-                        names={run.discoveredNames}
-                        compact
-                      />
-                    ) : (
-                      `${run.discovered} question(s)`
-                    )}
-                    {run.blockers?.[0]
-                      ? run.blockers[0].type === "stopped"
-                        ? ` · stopped at ${run.blockers[0].question}`
-                        : ` · blocked at ${run.blockers[0].question}`
-                      : ""}
-                  </p>
-                </div>
-                <div className="flex shrink-0 items-center gap-2">
-                  {run.status === "partial" ? (
-                    <Badge variant="outline">Partial</Badge>
-                  ) : (
-                    <Badge variant="secondary">Complete</Badge>
-                  )}
-                  <Badge variant="secondary">{run.discovered} found</Badge>
-                  <span className="text-muted-foreground transition-transform group-open:rotate-180">
-                    ▾
-                  </span>
-                </div>
-              </summary>
-              <div className="space-y-2 border-t px-4 pb-4 pt-3 text-sm">
-                {run.discoveredNames && run.discoveredNames.length > 0 && (
-                  <div className="space-y-1">
-                    <p className="text-xs font-medium text-muted-foreground">
-                      Question route
-                    </p>
-                    <ExploreQuestionRoute names={run.discoveredNames} />
-                  </div>
-                )}
-                <p className="text-muted-foreground">
-                  Added {run.added.length} · Updated {run.updated.length}
-                  {run.rowsWalked != null && run.rowsWalked > 0
-                    ? ` · ${run.rowsWalked} row pass(es)`
-                    : ""}
-                </p>
-                {run.trailCsv && (
-                  <p>
-                    <a
-                      href={`/api/projects/${projectId}/explore-runs/${run.id}/trail`}
-                      className="font-medium text-primary underline-offset-4 hover:underline"
-                      download
-                    >
-                      Download answer trail (CSV)
-                    </a>
-                    <span className="ml-2 font-mono text-xs text-muted-foreground">
-                      explore-cache/{run.trailCsv}
-                    </span>
-                  </p>
-                )}
-                {run.added.length > 0 && (
-                  <p className="font-mono text-xs text-muted-foreground">
-                    + {run.added.join(", ")}
-                  </p>
-                )}
-                {run.updated.length > 0 && (
-                  <p className="font-mono text-xs text-muted-foreground">
-                    ~ {run.updated.join(", ")}
-                  </p>
-                )}
-                {run.blockers && run.blockers.length > 0 && (
-                  <Alert variant="default">
-                    <AlertTriangle className="size-4" />
-                    <AlertTitle>
-                      {run.blockers[0].type === "stopped"
-                        ? `Stopped at ${run.blockers[0].question}`
-                        : `Blocked at ${run.blockers[0].question}`}
-                    </AlertTitle>
-                    <AlertDescription className="text-sm">
-                      {run.blockers[0].reason}
-                      {run.blockers[0].screenshot && (
-                        <span className="mt-1 block font-mono text-xs">
-                          Screenshot: explore-cache/{run.blockers[0].screenshot}
-                        </span>
-                      )}
-                    </AlertDescription>
-                  </Alert>
-                )}
-              </div>
-            </details>
-          ))
-        )}
+          {bundle!.exploreRuns.length === 0 ? (
+            <div className="rounded-xl border border-dashed py-8 text-center text-muted-foreground">
+              <Compass className="mx-auto mb-3 size-8 opacity-40" />
+              <p className="text-sm">No explore runs yet</p>
+              <p className="mt-1 text-xs">Set a test link in Setup first</p>
+            </div>
+          ) : (
+            <ExploreRunsTable
+              runs={bundle!.exploreRuns}
+              projectId={projectId}
+            />
+          )}
         </div>
       </CardContent>
     </Card>
   );
 }
 
+function buildProfileAssignments(
+  rowAssignments: Record<number, string>,
+): Record<string, number[]> {
+  const out: Record<string, number[]> = {};
+  for (const [rowKey, profileId] of Object.entries(rowAssignments)) {
+    if (!profileId) continue;
+    if (!out[profileId]) out[profileId] = [];
+    out[profileId].push(Number(rowKey));
+  }
+  return out;
+}
+
 function RunPanel() {
   const { bundle, projectId, workers, refresh } = useProject();
-  const [rowIndex, setRowIndex] = useState(0);
-  const [workerCount, setWorkerCount] = useState(1);
+  const [selectedProfiles, setSelectedProfiles] = useState<string[]>([]);
+  const [assignmentMode, setAssignmentMode] = useState<"auto" | "manual">("auto");
+  const [assignSheetOpen, setAssignSheetOpen] = useState(false);
+  const [rowAssignments, setRowAssignments] = useState<Record<number, string>>({});
+  const [starting, setStarting] = useState(false);
+  const [resettingQueue, setResettingQueue] = useState(false);
+  const preflight = bundle!.workflow?.liveRunPreflight;
+  const profiles = bundle!.project.workerProfiles ?? [];
+  const queue = bundle!.queueSummary;
 
   const projectWorkers = workers.filter((w) => w.projectId === projectId);
+  const liveConsoleWorkers = useMemo(() => {
+    const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+    return projectWorkers.filter(
+      (w) =>
+        w.status === "running" ||
+        (w.finishedAt && new Date(w.finishedAt).getTime() >= cutoff),
+    );
+  }, [projectWorkers]);
+  const profileLabelById = Object.fromEntries(
+    profiles.map((p) => [p.id, p.label || p.id]),
+  );
 
-  async function startWorkers() {
-    const indices = Array.from({ length: workerCount }, (_, i) => rowIndex + i);
-    const id = toast.loading("Starting workers...");
-    const res = await fetch("/api/workers", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ projectId, rowIndices: indices }),
-    });
-    const data = await res.json();
-    if (res.ok) {
-      toast.success(`Started ${data.workers?.length ?? 0} workers`, { id });
-    } else {
-      toast.error(data.error, { id });
+  const assignableRows =
+    queue?.rows.filter((row) => row.status !== "completed") ?? [];
+
+  function toggleProfile(id: string) {
+    setSelectedProfiles((prev) =>
+      prev.includes(id) ? prev.filter((p) => p !== id) : [...prev, id],
+    );
+  }
+
+  function openManualAssignmentSheet() {
+    const initial: Record<number, string> = {};
+    for (const row of assignableRows) {
+      initial[row.index] = row.assignedProfileId ?? "";
     }
+    setRowAssignments(initial);
+    setAssignSheetOpen(true);
+  }
+
+  function distributeRowsEvenly() {
+    if (selectedProfiles.length === 0) return;
+    const pending = assignableRows
+      .filter((row) => row.status === "pending" || row.status === "failed")
+      .map((row) => row.index);
+    const next: Record<number, string> = { ...rowAssignments };
+    pending.forEach((rowIndex, i) => {
+      next[rowIndex] = selectedProfiles[i % selectedProfiles.length];
+    });
+    setRowAssignments(next);
+  }
+
+  function handleStartClick() {
+    if (selectedProfiles.length === 0) {
+      toast.error("Select at least one worker profile");
+      return;
+    }
+    if (assignmentMode === "manual") {
+      openManualAssignmentSheet();
+      return;
+    }
+    void startWorkers();
+  }
+
+  async function startWorkers(assignments?: Record<string, number[]>) {
+    setStarting(true);
+    const id = toast.loading("Starting workers...");
+    try {
+      const res = await fetch("/api/workers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          projectId,
+          workerProfileIds: selectedProfiles,
+          assignmentMode,
+          assignments,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success(`Started ${data.workers?.length ?? 0} workers`, { id });
+        setAssignSheetOpen(false);
+      } else {
+        toast.error(data.error, { id });
+      }
+      await refresh();
+    } finally {
+      setStarting(false);
+    }
+  }
+
+  function confirmManualStart() {
+    const assignments = buildProfileAssignments(rowAssignments);
+    const assignedCount = Object.values(assignments).reduce(
+      (sum, rows) => sum + rows.length,
+      0,
+    );
+    if (assignedCount === 0) {
+      toast.error("Assign at least one row to a caller");
+      return;
+    }
+    void startWorkers(assignments);
+  }
+
+  async function stopWorker(workerId: string) {
+    const res = await fetch(`/api/workers/${workerId}`, { method: "DELETE" });
+    if (res.ok) toast.success("Stop signal sent");
+    else toast.error("Failed to stop worker");
     await refresh();
   }
 
+  async function resetFailedRows() {
+    if (resettingQueue) return;
+    setResettingQueue(true);
+    const id = toast.loading("Resetting failed rows...");
+    try {
+      const res = await fetch(`/api/projects/${projectId}/queue`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ statuses: ["failed", "in_progress"] }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        toast.success(`Reset ${data.resetCount ?? 0} row(s)`, { id });
+      } else {
+        toast.error(data.error, { id });
+      }
+      await refresh();
+    } finally {
+      setResettingQueue(false);
+    }
+  }
+
+  const canStart =
+    Boolean(bundle!.activeDataset) &&
+    Boolean(bundle!.project.liveLink) &&
+    Boolean(preflight?.ready) &&
+    selectedProfiles.length > 0 &&
+    !starting;
+
   return (
+    <>
     <Card className="border-none shadow-md">
       <CardHeader>
-        <CardTitle>Interview workers</CardTitle>
+        <div className="flex items-center gap-2">
+          <CardTitle>Interview workers</CardTitle>
+          <HelpTip
+            content={
+              <>
+                Each selected caller profile starts a Playwright worker that logs
+                into NV live, claims rows from the queue, and replays interviews
+                using SAV answers with realistic LOI timing.
+              </>
+            }
+          />
+        </div>
         <CardDescription>
-          Playwright runs with LOI timing · cache synced automatically
+          Live workers login once, claim rows from the queue, and run interviews
+          with LOI timing
         </CardDescription>
       </CardHeader>
-      <CardContent className="space-y-5">
-        <div className="flex flex-wrap items-end gap-4 rounded-xl bg-muted/40 p-4">
+      <CardContent className="space-y-6">
+        {preflight && (
+          <ExplorePreflightCard preflight={preflight} title="Live run pre-flight" />
+        )}
+
+        <section className="space-y-4 rounded-xl border p-4">
+          <div>
+            <LabelWithHelp help="Choose which caller credentials to start. Each runs in its own browser until the queue is empty or you stop it.">
+              <span className="text-base font-semibold">Start workers</span>
+            </LabelWithHelp>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Select profiles, choose how rows are assigned, then start.
+            </p>
+          </div>
+
+          {profiles.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              Add caller profiles in Setup before starting workers.
+            </p>
+          ) : (
+            <div className="grid gap-2 sm:grid-cols-2">
+              {profiles.map((p) => (
+                <label
+                  key={p.id}
+                  className="flex cursor-pointer items-center gap-3 rounded-lg border bg-muted/20 px-3 py-2.5 transition-colors hover:bg-muted/40"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedProfiles.includes(p.id)}
+                    onChange={() => toggleProfile(p.id)}
+                  />
+                  <span className="font-medium">{p.label}</span>
+                  <span className="ml-auto font-mono text-xs text-muted-foreground">
+                    {p.id}
+                  </span>
+                </label>
+              ))}
+            </div>
+          )}
+
           <div className="space-y-2">
-            <Label className="text-base">Start row</Label>
-            <Input
-              type="number"
-              min={0}
-              value={rowIndex}
-              onChange={(e) => setRowIndex(Number(e.target.value))}
-              className={`w-28 bg-background ${fieldClass}`}
+            <LabelWithHelp
+              help={
+                <div className="space-y-2">
+                  <TipItem title="Auto">
+                    Workers share one queue and claim the next pending row.
+                  </TipItem>
+                  <TipItem title="Manual">
+                    You assign specific rows to each caller before starting;
+                    unassigned rows are skipped for that run.
+                  </TipItem>
+                </div>
+              }
+            >
+              Row assignment
+            </LabelWithHelp>
+            <FilterSegment
+              value={assignmentMode}
+              onChange={(value) =>
+                setAssignmentMode(value as "auto" | "manual")
+              }
+              options={[
+                { value: "auto", label: "Auto queue" },
+                { value: "manual", label: "Manual assign" },
+              ]}
             />
           </div>
-          <div className="space-y-2">
-            <Label className="text-base">Workers</Label>
-            <Input
-              type="number"
-              min={1}
-              max={bundle!.project.maxWorkers}
-              value={workerCount}
-              onChange={(e) => setWorkerCount(Number(e.target.value))}
-              className={`w-28 bg-background ${fieldClass}`}
-            />
-          </div>
-          <Button
+
+          <LoadingButton
             size="lg"
-            onClick={startWorkers}
-            disabled={!bundle!.activeDataset || !bundle!.project.liveLink}
+            onClick={handleStartClick}
+            loading={starting}
+            loadingText="Starting…"
+            disabled={!canStart}
           >
             <Play className="mr-2 size-5" />
-            Start workers
-          </Button>
-        </div>
+            {assignmentMode === "manual" ? "Assign rows & start" : "Start selected workers"}
+          </LoadingButton>
+        </section>
 
-        {projectWorkers.length === 0 ? (
+        <section className="space-y-3">
+          <LabelWithHelp help="Live stdout from each caller worker. Logs refresh every few seconds while workers are running.">
+            <span className="text-base font-semibold">Caller console</span>
+          </LabelWithHelp>
+          <WorkerConsole
+            workers={liveConsoleWorkers}
+            onStop={(id) => void stopWorker(id)}
+          />
+        </section>
+
+        {queue && queue.rows.length > 0 && (
+          <section className="space-y-3">
+            <LabelWithHelp help="One row per SAV case. Sort columns and filter by status in the toolbar above the table.">
+              <span className="text-base font-semibold">Interview queue</span>
+            </LabelWithHelp>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="secondary">
+                {queue.pending} {formatStatusLabel("pending")}
+              </Badge>
+              <Badge variant="default">
+                {queue.in_progress} {formatStatusLabel("in_progress")}
+              </Badge>
+              <Badge variant="outline">
+                {queue.completed} {formatStatusLabel("completed")}
+              </Badge>
+              <Badge variant="destructive">
+                {queue.failed} {formatStatusLabel("failed")}
+              </Badge>
+              {queue.skipped > 0 && (
+                <Badge variant="secondary" className="opacity-70">
+                  {queue.skipped} {formatStatusLabel("skipped")}
+                </Badge>
+              )}
+              {(queue.failed > 0 || queue.in_progress > 0) && (
+                <LoadingButton
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="ml-auto"
+                  loading={resettingQueue}
+                  loadingText="Resetting…"
+                  onClick={() => void resetFailedRows()}
+                >
+                  Reset failed / stuck
+                </LoadingButton>
+              )}
+            </div>
+
+            <InterviewQueueTable
+              rows={queue.rows}
+              profileLabelById={profileLabelById}
+              projectId={projectId}
+              onUpdated={refresh}
+            />
+          </section>
+        )}
+
+        {liveConsoleWorkers.length === 0 && (!queue || queue.rows.length === 0) && (
           <div className="rounded-xl border border-dashed py-10 text-center text-muted-foreground">
             <Play className="mx-auto mb-3 size-8 opacity-40" />
             <p className="text-sm">No active workers</p>
           </div>
-        ) : (
-          projectWorkers.map((w) => (
-            <div key={w.id} className="overflow-hidden rounded-xl border">
-              <div className="flex items-center justify-between border-b bg-muted/30 px-4 py-2">
-                <span className="font-mono text-xs">{w.id}</span>
-                <Badge
-                  variant={
-                    w.status === "running"
-                      ? "default"
-                      : w.status === "completed"
-                        ? "secondary"
-                        : "destructive"
-                  }
-                >
-                  {w.status}
-                </Badge>
-              </div>
-              <pre className="max-h-52 overflow-auto bg-zinc-950 p-4 font-mono text-xs text-zinc-300">
-                {w.logs.slice(-40).join("\n") || "Waiting for logs..."}
-              </pre>
-            </div>
-          ))
         )}
       </CardContent>
     </Card>
+
+    <ManualAssignmentSheet
+      open={assignSheetOpen}
+      onOpenChange={setAssignSheetOpen}
+      rows={queue?.rows ?? []}
+      selectedProfileIds={selectedProfiles}
+      profileLabelById={profileLabelById}
+      rowAssignments={rowAssignments}
+      onRowAssignmentsChange={setRowAssignments}
+      onDistributeEvenly={distributeRowsEvenly}
+      onClear={() => setRowAssignments({})}
+      onConfirm={confirmManualStart}
+      starting={starting}
+    />
+    </>
   );
 }
