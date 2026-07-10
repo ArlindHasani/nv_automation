@@ -1,0 +1,24 @@
+{
+  "slug": "heavy-machines-study",
+  "name": "Heavy Machines Study",
+  "liveLink": "https://nv25.ffind.com/nv_rev2/login.php",
+  "testLink": "https://nv25.ffind.com/nv_rev2/test.php?token=mbh71PpiYr",
+  "mode": "Freestyle",
+  "loiTargetMinutes": 30,
+  "loiJitterPercent": 15,
+  "maxWorkers": 2,
+  "savFieldMap": {
+    "station": "ws",
+    "password": "password",
+    "id": "s_ini",
+    "project": "project"
+  },
+  "exploreSeedRowIndex": 0,
+  "exploreRowCount": 1,
+  "exploreEndQuestions": [
+    "ANMER"
+  ],
+  "activeDatasetId": null,
+  "createdAt": "2026-07-07T09:07:20.212Z",
+  "updatedAt": "2026-07-07T09:07:58.291Z"
+}

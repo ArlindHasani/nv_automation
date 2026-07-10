@@ -1,0 +1,25 @@
+{
+  "activeId": "ecf8e477",
+  "datasets": [
+    {
+      "id": "ecf8e477",
+      "name": "IT_PROFILES",
+      "rowCount": 30,
+      "file": "ecf8e477.json",
+      "savFile": "ecf8e477.sav",
+      "variablesFile": "ecf8e477-variables.json",
+      "isActive": true,
+      "importedAt": "2026-07-10T09:31:03.514Z"
+    },
+    {
+      "id": "d0cb6d51",
+      "name": "IT_PROFILES",
+      "rowCount": 45,
+      "file": "d0cb6d51.json",
+      "savFile": "d0cb6d51.sav",
+      "variablesFile": "d0cb6d51-variables.json",
+      "isActive": false,
+      "importedAt": "2026-07-10T09:19:31.633Z"
+    }
+  ]
+}

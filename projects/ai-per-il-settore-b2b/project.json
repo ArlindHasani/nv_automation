@@ -1,0 +1,29 @@
+{
+  "name": "AI per il settore B2B",
+  "nvLoginUrl": "",
+  "liveLink": "https://nv15.ffind.com/nv_rev2/login.php",
+  "testLink": "https://nv15.ffind.com/nv_rev2/test.php?token=cL5GLXnHYR",
+  "mode": "Freestyle",
+  "nvProjectId": "V1DB2606.IT261361",
+  "nvGroup": "1",
+  "questField": "quest",
+  "loi": {
+    "targetMinutes": 12,
+    "jitterPercent": 15
+  },
+  "workers": {
+    "maxConcurrent": 1
+  },
+  "savFieldMap": {
+    "station": "ws",
+    "password": "password",
+    "id": "s_ini",
+    "project": "project"
+  },
+  "exploreSeedRowIndex": 0,
+  "exploreRowCount": 1,
+  "exploreEndQuestions": [
+    "ANMER"
+  ],
+  "workerProfiles": []
+}
