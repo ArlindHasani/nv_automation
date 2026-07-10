@@ -18,9 +18,9 @@
       "Values": null,
       "AVG": null,
       "Labels": {
-        "98": "98 - Altro",
-        "01": "01 - Avvocato (operante presso uno studio legale o come libero professionista)",
-        "02": "02 - Legale d'azienda / Giurista d'impresa (operante all'interno di un'azienda)"
+        "98": "Other",
+        "01": "Lawyer / Attorney (working in a law firm or private practice",
+        "02": "In-house Legal Counsel (working within a company)"
       },
       "Source": "explore"
     },
@@ -105,8 +105,8 @@
       "Values": null,
       "AVG": null,
       "Labels": {
-        "1": "1 - Accetto",
-        "2": "2 - Rifiuto"
+        "1": "I accept",
+        "2": "I refuse"
       },
       "Source": "manual",
       "FixedAnswer": "1"
@@ -154,14 +154,14 @@
         "16": "Omnilexia",
         "17": "Lex AI (not referring to Wolters Kluwer products)",
         "18": "Gaius-Lex",
-        "98": "98 - Altro (specificare:)",
+        "98": "Other (specify:)",
         "99": "99 - Nessuna",
-        "01": "01 - Legora",
-        "02": "02 - Harvey",
-        "03": "03 - Claude (Anthropic)",
-        "04": "04 - ChatGPT (OpenAI)",
-        "05": "05 - Libra (Wolters Kluwer)",
-        "07": "07 - Lexroom",
+        "01": "Legora",
+        "02": "Harvey",
+        "03": "Claude (Anthropic)",
+        "04": "ChatGPT (OpenAI)",
+        "05": "Libra (Wolters Kluwer)",
+        "07": "Lexroom",
         "06": "Beck-Noxtua",
         "08": "Bryter (Bryter Beamon)",
         "09": "Zeno"
@@ -211,14 +211,14 @@
         "16": "Omnilexia",
         "17": "Lex AI (not referring to Wolters Kluwer products)",
         "18": "Gaius-Lex",
-        "98": "98 - Altro (specificare:)",
+        "98": "Other (specify:)",
         "99": "99 - Nessuna",
-        "02": "02 - Harvey",
-        "03": "03 - Claude (Anthropic)",
-        "04": "04 - ChatGPT (OpenAI)",
+        "02": "Harvey",
+        "03": "Claude (Anthropic)",
+        "04": "ChatGPT (OpenAI)",
         "05": "Libra (Wolters Kluwer)",
-        "07": "07 - Lexroom",
-        "01": "01 - Legora",
+        "07": "Lexroom",
+        "01": "Legora",
         "06": "Beck-Noxtua",
         "08": "Bryter (Bryter Beamon)",
         "09": "Zeno"
@@ -491,6 +491,10 @@
       "Type": "Single",
       "Answer": null,
       "Split": {
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
         "01": 0,
         "02": 100,
         "03": 0,
@@ -503,6 +507,10 @@
       "Values": null,
       "AVG": null,
       "Labels": {
+        "1": "Is my preferred brand",
+        "2": "Is a brand I would definitely consider",
+        "3": "Is a brand I might consider",
+        "4": "Is a brand I would not consider",
         "01": "01",
         "02": "02",
         "03": "03",
@@ -530,6 +538,829 @@
       },
       "Source": "manual",
       "FixedAnswer": "01"
+    },
+    {
+      "Name": "SKPCW",
+      "Method": "Maintain",
+      "Type": "Single",
+      "Answer": null,
+      "Split": {
+        "": 0
+      },
+      "Filters": null,
+      "CopyQuestion": null,
+      "Min": 0,
+      "Max": 0,
+      "Values": null,
+      "AVG": null,
+      "Source": "sav"
+    },
+    {
+      "Name": "P2_05",
+      "Method": "Maintain",
+      "Type": "Single",
+      "Answer": null,
+      "Split": {
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0
+      },
+      "Filters": null,
+      "CopyQuestion": null,
+      "Min": 0,
+      "Max": 0,
+      "Values": null,
+      "AVG": null,
+      "Labels": {
+        "1": "Much better",
+        "2": "A bit better",
+        "3": "About the same",
+        "4": "A bit worse",
+        "5": "Much worse"
+      },
+      "Source": "sav"
+    },
+    {
+      "Name": "P3A05",
+      "Method": "Maintain",
+      "Type": "Single",
+      "Answer": null,
+      "Split": {
+        "10": 0,
+        "00": 0,
+        "01": 0,
+        "02": 0,
+        "03": 0,
+        "04": 0,
+        "05": 0,
+        "06": 0,
+        "07": 0,
+        "08": 0,
+        "09": 0
+      },
+      "Filters": null,
+      "CopyQuestion": null,
+      "Min": 0,
+      "Max": 0,
+      "Values": null,
+      "AVG": null,
+      "Labels": {
+        "10": "10 - strongly agree",
+        "00": "0 - strongly disagree",
+        "01": "1",
+        "02": "2",
+        "03": "3",
+        "04": "4",
+        "05": "5",
+        "06": "6",
+        "07": "7",
+        "08": "8",
+        "09": "9"
+      },
+      "Source": "sav"
+    },
+    {
+      "Name": "P3B05",
+      "Method": "Maintain",
+      "Type": "Single",
+      "Answer": null,
+      "Split": {
+        "10": 0,
+        "00": 0,
+        "01": 0,
+        "02": 0,
+        "03": 0,
+        "04": 0,
+        "05": 0,
+        "06": 0,
+        "07": 0,
+        "08": 0,
+        "09": 0
+      },
+      "Filters": null,
+      "CopyQuestion": null,
+      "Min": 0,
+      "Max": 0,
+      "Values": null,
+      "AVG": null,
+      "Labels": {
+        "10": "10 - strongly agree",
+        "00": "0 - strongly disagree",
+        "01": "1",
+        "02": "2",
+        "03": "3",
+        "04": "4",
+        "05": "5",
+        "06": "6",
+        "07": "7",
+        "08": "8",
+        "09": "9"
+      },
+      "Source": "sav"
+    },
+    {
+      "Name": "P3C05",
+      "Method": "Maintain",
+      "Type": "Single",
+      "Answer": null,
+      "Split": {
+        "10": 0,
+        "00": 0,
+        "01": 0,
+        "02": 0,
+        "03": 0,
+        "04": 0,
+        "05": 0,
+        "06": 0,
+        "07": 0,
+        "08": 0,
+        "09": 0
+      },
+      "Filters": null,
+      "CopyQuestion": null,
+      "Min": 0,
+      "Max": 0,
+      "Values": null,
+      "AVG": null,
+      "Labels": {
+        "10": "10 - strongly agree",
+        "00": "0 - strongly disagree",
+        "01": "1",
+        "02": "2",
+        "03": "3",
+        "04": "4",
+        "05": "5",
+        "06": "6",
+        "07": "7",
+        "08": "8",
+        "09": "9"
+      },
+      "Source": "sav"
+    },
+    {
+      "Name": "P3D05",
+      "Method": "Maintain",
+      "Type": "Single",
+      "Answer": null,
+      "Split": {
+        "10": 0,
+        "00": 0,
+        "01": 0,
+        "02": 0,
+        "03": 0,
+        "04": 0,
+        "05": 0,
+        "06": 0,
+        "07": 0,
+        "08": 0,
+        "09": 0
+      },
+      "Filters": null,
+      "CopyQuestion": null,
+      "Min": 0,
+      "Max": 0,
+      "Values": null,
+      "AVG": null,
+      "Labels": {
+        "10": "10 - strongly agree",
+        "00": "0 - strongly disagree",
+        "01": "1",
+        "02": "2",
+        "03": "3",
+        "04": "4",
+        "05": "5",
+        "06": "6",
+        "07": "7",
+        "08": "8",
+        "09": "9"
+      },
+      "Source": "sav"
+    },
+    {
+      "Name": "D0301",
+      "Method": "Maintain",
+      "Type": "Single",
+      "Answer": null,
+      "Split": {
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0
+      },
+      "Filters": null,
+      "CopyQuestion": null,
+      "Min": 0,
+      "Max": 0,
+      "Values": null,
+      "AVG": null,
+      "Labels": {
+        "1": "Extremely important",
+        "2": "Moderately important",
+        "3": "Slightly important",
+        "4": "Not at all important"
+      },
+      "Source": "sav"
+    },
+    {
+      "Name": "D0302",
+      "Method": "Maintain",
+      "Type": "Single",
+      "Answer": null,
+      "Split": {
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0
+      },
+      "Filters": null,
+      "CopyQuestion": null,
+      "Min": 0,
+      "Max": 0,
+      "Values": null,
+      "AVG": null,
+      "Labels": {
+        "1": "Extremely important",
+        "2": "Moderately important",
+        "3": "Slightly important",
+        "4": "Not at all important"
+      },
+      "Source": "sav"
+    },
+    {
+      "Name": "D0303",
+      "Method": "Maintain",
+      "Type": "Single",
+      "Answer": null,
+      "Split": {
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0
+      },
+      "Filters": null,
+      "CopyQuestion": null,
+      "Min": 0,
+      "Max": 0,
+      "Values": null,
+      "AVG": null,
+      "Labels": {
+        "1": "Extremely important",
+        "2": "Moderately important",
+        "3": "Slightly important",
+        "4": "Not at all important"
+      },
+      "Source": "sav"
+    },
+    {
+      "Name": "D0304",
+      "Method": "Maintain",
+      "Type": "Single",
+      "Answer": null,
+      "Split": {
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0
+      },
+      "Filters": null,
+      "CopyQuestion": null,
+      "Min": 0,
+      "Max": 0,
+      "Values": null,
+      "AVG": null,
+      "Labels": {
+        "1": "Extremely important",
+        "2": "Moderately important",
+        "3": "Slightly important",
+        "4": "Not at all important"
+      },
+      "Source": "sav"
+    },
+    {
+      "Name": "D0305",
+      "Method": "Maintain",
+      "Type": "Single",
+      "Answer": null,
+      "Split": {
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0
+      },
+      "Filters": null,
+      "CopyQuestion": null,
+      "Min": 0,
+      "Max": 0,
+      "Values": null,
+      "AVG": null,
+      "Labels": {
+        "1": "Extremely important",
+        "2": "Moderately important",
+        "3": "Slightly important",
+        "4": "Not at all important"
+      },
+      "Source": "sav"
+    },
+    {
+      "Name": "D0306",
+      "Method": "Maintain",
+      "Type": "Single",
+      "Answer": null,
+      "Split": {
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0
+      },
+      "Filters": null,
+      "CopyQuestion": null,
+      "Min": 0,
+      "Max": 0,
+      "Values": null,
+      "AVG": null,
+      "Labels": {
+        "1": "Extremely important",
+        "2": "Moderately important",
+        "3": "Slightly important",
+        "4": "Not at all important"
+      },
+      "Source": "sav"
+    },
+    {
+      "Name": "D0307",
+      "Method": "Maintain",
+      "Type": "Single",
+      "Answer": null,
+      "Split": {
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0
+      },
+      "Filters": null,
+      "CopyQuestion": null,
+      "Min": 0,
+      "Max": 0,
+      "Values": null,
+      "AVG": null,
+      "Labels": {
+        "1": "Extremely important",
+        "2": "Moderately important",
+        "3": "Slightly important",
+        "4": "Not at all important"
+      },
+      "Source": "sav"
+    },
+    {
+      "Name": "D0308",
+      "Method": "Maintain",
+      "Type": "Single",
+      "Answer": null,
+      "Split": {
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0
+      },
+      "Filters": null,
+      "CopyQuestion": null,
+      "Min": 0,
+      "Max": 0,
+      "Values": null,
+      "AVG": null,
+      "Labels": {
+        "1": "Extremely important",
+        "2": "Moderately important",
+        "3": "Slightly important",
+        "4": "Not at all important"
+      },
+      "Source": "sav"
+    },
+    {
+      "Name": "D0309",
+      "Method": "Maintain",
+      "Type": "Single",
+      "Answer": null,
+      "Split": {
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0
+      },
+      "Filters": null,
+      "CopyQuestion": null,
+      "Min": 0,
+      "Max": 0,
+      "Values": null,
+      "AVG": null,
+      "Labels": {
+        "1": "Extremely important",
+        "2": "Moderately important",
+        "3": "Slightly important",
+        "4": "Not at all important"
+      },
+      "Source": "sav"
+    },
+    {
+      "Name": "D0310",
+      "Method": "Maintain",
+      "Type": "Single",
+      "Answer": null,
+      "Split": {
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0
+      },
+      "Filters": null,
+      "CopyQuestion": null,
+      "Min": 0,
+      "Max": 0,
+      "Values": null,
+      "AVG": null,
+      "Labels": {
+        "1": "Extremely important",
+        "2": "Moderately important",
+        "3": "Slightly important",
+        "4": "Not at all important"
+      },
+      "Source": "sav"
+    },
+    {
+      "Name": "D00_4",
+      "Method": "Maintain",
+      "Type": "Multi",
+      "Answer": null,
+      "Split": {
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0
+      },
+      "Filters": null,
+      "CopyQuestion": null,
+      "Min": 0,
+      "Max": 0,
+      "Values": null,
+      "AVG": null,
+      "Labels": {
+        "1": "{strong}Supported{/strong} (Empowered / Assisted)",
+        "2": "{strong}Productive{/strong} (Efficient)",
+        "3": "{strong}In control{/strong} (Maintaining oversight)",
+        "4": "{strong}Reassured{/strong} (Confident in the output)",
+        "5": "{strong}Confident{/strong} (Trusting its reliability)"
+      },
+      "Source": "sav"
+    },
+    {
+      "Name": "D00_5",
+      "Method": "Maintain",
+      "Type": "Multi",
+      "Answer": null,
+      "Split": {
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0
+      },
+      "Filters": null,
+      "CopyQuestion": null,
+      "Min": 0,
+      "Max": 0,
+      "Values": null,
+      "AVG": null,
+      "Labels": {
+        "1": "Referral from other customers",
+        "2": "Visibility in the market",
+        "3": "Brand reputation",
+        "4": "Vendor's Financial stability",
+        "5": "Connection to legal content providers"
+      },
+      "Source": "sav"
+    },
+    {
+      "Name": "D0605",
+      "Method": "Maintain",
+      "Type": "Multi",
+      "Answer": null,
+      "Split": {
+        "01": 0,
+        "02": 0,
+        "03": 0,
+        "04": 0,
+        "05": 0
+      },
+      "Filters": null,
+      "CopyQuestion": null,
+      "Min": 0,
+      "Max": 0,
+      "Values": null,
+      "AVG": null,
+      "Labels": {
+        "01": "AI workspace for legal professionals",
+        "02": "AI assistant (general purpose)",
+        "03": "Specialized legal AI tool (focused on specific legal tasks)",
+        "04": "Legal knowledge /legal research tool",
+        "05": "Document automation tool"
+      },
+      "Source": "sav"
+    },
+    {
+      "Name": "D0705",
+      "Method": "Maintain",
+      "Type": "Multi",
+      "Answer": null,
+      "Split": {
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0
+      },
+      "Filters": null,
+      "CopyQuestion": null,
+      "Min": 0,
+      "Max": 0,
+      "Values": null,
+      "AVG": null,
+      "Labels": {
+        "1": "Legal research and analysis",
+        "2": "Legal documents and contracts draft, review, redline",
+        "3": "Due diligence and large-scale document review",
+        "4": "Access to internal documents and knowledge base",
+        "5": "Collaboration in workspaces",
+        "6": "Seamless work across tools (Microsoft 365, DMS, matter manag"
+      },
+      "Source": "sav"
+    },
+    {
+      "Name": "P4_05",
+      "Method": "Maintain",
+      "Type": "Single",
+      "Answer": null,
+      "Split": {
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0
+      },
+      "Filters": null,
+      "CopyQuestion": null,
+      "Min": 0,
+      "Max": 0,
+      "Values": null,
+      "AVG": null,
+      "Labels": {
+        "1": "Too inexpensive, I doubt its quality",
+        "2": "Inexpensive and good value",
+        "3": "Average price",
+        "4": "More expensive, but worth the price",
+        "5": "Too expensive for the value you get"
+      },
+      "Source": "sav"
+    },
+    {
+      "Name": "D0905",
+      "Method": "Maintain",
+      "Type": "Single",
+      "Answer": null,
+      "Split": {
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0
+      },
+      "Filters": null,
+      "CopyQuestion": null,
+      "Min": 0,
+      "Max": 0,
+      "Values": null,
+      "AVG": null,
+      "Labels": {
+        "1": "I currently use this AI solution",
+        "2": "I have used this AI solution  in the past 12 months",
+        "3": "I have trialed this AI solution but decided for a different",
+        "4": "I have used this AI solution before, but not in the last yea",
+        "5": "I have never used this AI solution"
+      },
+      "Source": "sav"
+    },
+    {
+      "Name": "D1005",
+      "Method": "Maintain",
+      "Type": "Single",
+      "Answer": null,
+      "Split": {
+        "10": 0,
+        "00": 0,
+        "01": 0,
+        "02": 0,
+        "03": 0,
+        "04": 0,
+        "05": 0,
+        "06": 0,
+        "07": 0,
+        "08": 0,
+        "09": 0
+      },
+      "Filters": null,
+      "CopyQuestion": null,
+      "Min": 0,
+      "Max": 0,
+      "Values": null,
+      "AVG": null,
+      "Labels": {
+        "10": "10 - very likely",
+        "00": "0 - not at all likely",
+        "01": "1",
+        "02": "2",
+        "03": "3",
+        "04": "4",
+        "05": "5",
+        "06": "6",
+        "07": "7",
+        "08": "8",
+        "09": "9"
+      },
+      "Source": "sav"
+    },
+    {
+      "Name": "Q1",
+      "Method": "Maintain",
+      "Type": "Single",
+      "Answer": null,
+      "Split": {
+        "1": 0,
+        "2": 0,
+        "3": 0
+      },
+      "Filters": null,
+      "CopyQuestion": null,
+      "Min": 0,
+      "Max": 0,
+      "Values": null,
+      "AVG": null,
+      "Labels": {
+        "1": "Buyer/Decision Maker",
+        "2": "Influencer",
+        "3": "End User"
+      },
+      "Source": "sav"
+    },
+    {
+      "Name": "Q2A",
+      "Method": "Maintain",
+      "Type": "Single",
+      "Answer": null,
+      "Split": {
+        "98": 0,
+        "01": 0,
+        "02": 0,
+        "03": 0,
+        "04": 0
+      },
+      "Filters": null,
+      "CopyQuestion": null,
+      "Min": 0,
+      "Max": 0,
+      "Values": null,
+      "AVG": null,
+      "Labels": {
+        "98": "Other (please detail)",
+        "01": "Partner",
+        "02": "Associate",
+        "03": "Paralegal",
+        "04": "Knowledge manager / Research Librarian"
+      },
+      "Source": "sav"
+    },
+    {
+      "Name": "Q2B",
+      "Method": "Maintain",
+      "Type": "Single",
+      "Answer": null,
+      "Split": {
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0,
+        "6": 0,
+        "7": 0
+      },
+      "Filters": null,
+      "CopyQuestion": null,
+      "Min": 0,
+      "Max": 0,
+      "Values": null,
+      "AVG": null,
+      "Labels": {
+        "1": "1-5",
+        "2": "6-10",
+        "3": "11-20",
+        "4": "21-50",
+        "5": "51-100",
+        "6": "101-250",
+        "7": "250+"
+      },
+      "Source": "sav"
+    },
+    {
+      "Name": "Q3",
+      "Method": "Maintain",
+      "Type": "Single",
+      "Answer": null,
+      "Split": {
+        "1": 0,
+        "2": 0,
+        "3": 0,
+        "4": 0,
+        "5": 0
+      },
+      "Filters": null,
+      "CopyQuestion": null,
+      "Min": 0,
+      "Max": 0,
+      "Values": null,
+      "AVG": null,
+      "Labels": {
+        "1": "Less than 5 years",
+        "2": "6-10 years",
+        "3": "11 - 15 years",
+        "4": "16 - 20 years",
+        "5": "More than 20"
+      },
+      "Source": "sav"
+    },
+    {
+      "Name": "Q4",
+      "Method": "Maintain",
+      "Type": "Single",
+      "Answer": null,
+      "Split": {
+        "01": 0,
+        "02": 0,
+        "03": 0
+      },
+      "Filters": null,
+      "CopyQuestion": null,
+      "Min": 0,
+      "Max": 0,
+      "Values": null,
+      "AVG": null,
+      "Labels": {
+        "01": "Man / Male",
+        "02": "Woman / Female",
+        "03": "Non-binary"
+      },
+      "Source": "sav"
+    },
+    {
+      "Name": "INT99",
+      "Method": "Maintain",
+      "Type": "Single",
+      "Answer": null,
+      "Split": {
+        "1": 0
+      },
+      "Filters": null,
+      "CopyQuestion": null,
+      "Min": 0,
+      "Max": 0,
+      "Values": null,
+      "AVG": null,
+      "Labels": {
+        "1": "Continue to finish the interview"
+      },
+      "Source": "sav"
+    },
+    {
+      "Name": "ANMER",
+      "Method": "Maintain",
+      "Type": "Single",
+      "Answer": null,
+      "Split": {
+        "1": 0,
+        "2": 0
+      },
+      "Filters": null,
+      "CopyQuestion": null,
+      "Min": 0,
+      "Max": 0,
+      "Values": null,
+      "AVG": null,
+      "Labels": {
+        "1": "No comments",
+        "2": "Please note comments"
+      },
+      "Source": "sav"
     }
   ],
   "Coherencies": [],
