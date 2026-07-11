@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { HelpTip } from "@/components/project/help-tip";
 
 export function FilterBar({
   children,
@@ -19,22 +20,37 @@ export function FilterBar({
 
 export function FilterGroup({
   label,
+  help,
   children,
   className,
   layout = "stacked",
 }: {
   label: string;
+  help?: ReactNode;
   children: ReactNode;
   className?: string;
   /** Inline: label beside control on one row (toolbars). Stacked: label above. */
   layout?: "stacked" | "inline";
 }) {
+  const labelNode = (
+    <span className="inline-flex shrink-0 items-center gap-1">
+      <span
+        className={
+          layout === "inline"
+            ? "text-xs font-medium text-muted-foreground"
+            : "text-[11px] font-semibold tracking-wide text-muted-foreground uppercase"
+        }
+      >
+        {label}
+      </span>
+      {help ? <HelpTip content={help} side="bottom" /> : null}
+    </span>
+  );
+
   if (layout === "inline") {
     return (
       <div className={cn("flex h-9 shrink-0 items-center gap-2", className)}>
-        <span className="shrink-0 text-xs font-medium text-muted-foreground">
-          {label}
-        </span>
+        {labelNode}
         {children}
       </div>
     );
@@ -42,9 +58,7 @@ export function FilterGroup({
 
   return (
     <div className={cn("flex min-w-0 flex-col gap-1.5", className)}>
-      <span className="text-[11px] font-semibold tracking-wide text-muted-foreground uppercase">
-        {label}
-      </span>
+      {labelNode}
       {children}
     </div>
   );

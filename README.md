@@ -50,10 +50,12 @@ Each question in `Definition.json` has an answer policy:
 |-----------|--------|
 | **In dataset** | `Maintain` — use each row's SAV value (explore uses the seed row) |
 | **In dataset** | `Split` — weighted random across codes (explore uses a deterministic seed per row) |
-| **Not in dataset · Open** | Fixed open text (`FixedAnswer`) — required |
-| **Not in dataset · Coded** | Fixed code **or** Split weights |
+| **Not in dataset · Fixed / Split** | Opt-in FixedAnswer or Split weights when the screen will appear |
+| **Not in dataset · default** | Soft-pass — leave unanswered (multi-country / routing; no preflight blocker) |
 
-Guided explore **blocks** when a question has no configured policy (no silent fallbacks). After explore, newly discovered questions missing configuration appear in Definition review.
+Coverage uses the full column catalog (`*-variables.json` when present, otherwise the union of keys across **all** rows). Empty cells omitted from a sparse first row are still treated as in-dataset.
+
+Guided explore **blocks** only when an in-dataset or Fixed/Split answer cannot be applied (no silent inventing of codes). Questions missing from the active SAV soft-pass by default. After explore, in-dataset discoveries that still need Split weights appear in Definition review.
 
 Legacy `ExploreOverride` fields are migrated to `FixedAnswer` on read.
 

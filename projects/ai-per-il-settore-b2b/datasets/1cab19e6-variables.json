@@ -1,9 +1,4 @@
 {
-  "lnksc": {
-    "valueLabels": {
-      "1": "{span id='nv-surv-exit' url=''}{/span}"
-    }
-  },
   "prvcy": {
     "valueLabels": {
       "1": "I accept",
@@ -473,11 +468,6 @@
       "5": "I've not heard of it"
     }
   },
-  "info1": {
-    "valueLabels": {
-      "1": "{strong}&#62;&#62;{/strong}"
-    }
-  },
   "p1_01": {
     "valueLabels": {
       "1": "Is my preferred brand",
@@ -620,11 +610,6 @@
       "2": "Is a brand I would definitely consider",
       "3": "Is a brand I might consider",
       "4": "Is a brand I would not consider"
-    }
-  },
-  "info2": {
-    "valueLabels": {
-      "1": "{strong}&#62;&#62;{/strong}"
     }
   },
   "p2_01": {

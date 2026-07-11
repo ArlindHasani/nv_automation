@@ -1,7 +1,9 @@
 import {
   collectMentionCodesFromRow,
+  codesIncludeOtherSpecify,
   formatCodeForQuestion,
   getDataValue,
+  getOtherSpecifyTextFromRow,
   getOtherTextColumnForQuestion,
   getValueColumnForQuestion,
 } from "./mapping.js";
@@ -13,6 +15,21 @@ import {
 } from "./split.js";
 import type { DataRow, Definition, Question, QuestionType } from "./schemas.js";
 
+/**
+ * Answer policy (explore + live)
+ *
+ * Definition is a union of SAV import, explore/live merges, and manual edits.
+ * The active SAV only drives row values and coverage badges — not hard
+ * requirements for every Definition question.
+ *
+ * | Situation                              | Behavior                                      |
+ * |----------------------------------------|-----------------------------------------------|
+ * | In active SAV + Maintain               | Use row value                                 |
+ * | In active SAV + Split                  | Weighted codes                                |
+ * | Not in active SAV + Fixed or Split     | Use FixedAnswer / Split weights               |
+ * | Not in active SAV + neither            | Soft-pass (leave unanswered; may be routing)  |
+ */
+
 export interface AnswerConfigurationGap {
   question: string;
   type: string;
@@ -20,8 +37,18 @@ export interface AnswerConfigurationGap {
 }
 
 export type AnswerPolicyMode = "explore" | "live";
-export type AnswerPolicySource = "data" | "fixed" | "split" | "fallback";
-export type AnswerPolicyKind = "maintain" | "fixed" | "split" | "unconfigured";
+export type AnswerPolicySource =
+  | "data"
+  | "fixed"
+  | "split"
+  | "fallback"
+  | "optional";
+export type AnswerPolicyKind =
+  | "maintain"
+  | "fixed"
+  | "split"
+  | "unconfigured"
+  | "optional";
 
 export interface PolicyResolvedAnswer {
   codes: string[];
@@ -76,58 +103,51 @@ export function questionNamesInDataset(
   return inDataset;
 }
 
+/** True when FixedAnswer or positive Split weights are set (opt-in for not-in-SAV). */
+export function hasExplicitNotInDatasetPolicy(question: Question): boolean {
+  const fixed = getFixedAnswer(question);
+  if (question.Type === "Open") return fixed.length > 0;
+  if (fixed) return true;
+  return (
+    question.Method === "Split" && hasPositiveSplitWeights(question.Split)
+  );
+}
+
+/**
+ * Whether the question is ready for answer-policy gap checks.
+ * Not-in-active-SAV questions are always OK (soft-pass by default).
+ */
 export function isQuestionAnswerConfigured(
   question: Question,
   inDataset: boolean,
 ): boolean {
-  if (inDataset) {
-    if (question.Method === "Maintain") return true;
-    return hasPositiveSplitWeights(question.Split);
-  }
+  if (!inDataset) return true;
 
-  const fixed = getFixedAnswer(question);
-  if (question.Type === "Open") {
-    return fixed.length > 0;
-  }
-  if (fixed) return true;
-  if (question.Method === "Split" && hasPositiveSplitWeights(question.Split)) {
-    return true;
-  }
-  return false;
+  if (question.Method === "Maintain") return true;
+  return hasPositiveSplitWeights(question.Split);
 }
 
+function softPassNotInDataset(questionName: string): PolicyResolvedAnswer {
+  return {
+    codes: [],
+    source: "optional",
+    policy: "optional",
+    configured: true,
+    warnings: [
+      `Soft-pass for '${questionName}' — leave unanswered / Next with no input (set Fixed or Split only if you need a value)`,
+    ],
+  };
+}
+
+/**
+ * Preflight gaps for Definition questions missing from the active SAV.
+ * Soft-by-default: never emits gaps (Fixed/Split are opt-in, not required).
+ */
 export function findAnswerConfigurationGaps(
-  definition: Definition,
-  questionsInDefinitionNotInData: string[],
+  _definition: Definition,
+  _questionsInDefinitionNotInData: string[],
 ): AnswerConfigurationGap[] {
-  const notInData = new Set(
-    questionsInDefinitionNotInData.map((name) => name.toUpperCase()),
-  );
-  const gaps: AnswerConfigurationGap[] = [];
-
-  for (const q of definition.Questions) {
-    if (!notInData.has(q.Name.toUpperCase())) continue;
-    if (isQuestionAnswerConfigured(q, false)) continue;
-
-    if (q.Type === "Open") {
-      gaps.push({
-        question: q.Name,
-        type: q.Type,
-        reason:
-          "Not in active dataset — set a fixed open-text answer in Definition",
-      });
-      continue;
-    }
-
-    gaps.push({
-      question: q.Name,
-      type: q.Type,
-      reason:
-        "Not in active dataset — set a fixed code or configure Split weights",
-    });
-  }
-
-  return gaps;
+  return [];
 }
 
 export function findPostExploreConfigurationGaps(
@@ -150,16 +170,14 @@ export function findPostExploreConfigurationGaps(
       name,
       questionsInDefinitionNotInData,
     );
-    if (isQuestionAnswerConfigured(q, inDataset)) continue;
+    // Not-in-SAV is soft-pass; only flag in-dataset questions that need Split weights.
+    if (!inDataset) continue;
+    if (isQuestionAnswerConfigured(q, true)) continue;
 
     gaps.push({
       question: q.Name,
       type: q.Type,
-      reason: inDataset
-        ? "Discovered question needs answer policy review"
-        : q.Type === "Open"
-          ? "Not in active dataset — set a fixed open-text answer"
-          : "Not in active dataset — set a fixed code or Split weights",
+      reason: "Discovered question needs answer policy review",
     });
   }
 
@@ -249,8 +267,12 @@ function resolveRowAnswerHeuristic(
   if (questionType === "Multi") {
     const codes = collectMentionCodesFromRow(name, row, columns);
     if (codes.length > 0) {
+      const openText = codesIncludeOtherSpecify(codes)
+        ? getOtherSpecifyTextFromRow(name, row) ?? "Other"
+        : undefined;
       return {
         codes,
+        openText,
         source: "data",
         policy: "maintain",
         configured: true,
@@ -264,8 +286,13 @@ function resolveRowAnswerHeuristic(
     getValueColumnForQuestion(name, columns) ?? name.toLowerCase();
   const raw = getDataValue(row, valueCol);
   if (isPresent(raw)) {
+    const codes = [String(raw)];
+    const openText = codesIncludeOtherSpecify(codes)
+      ? getOtherSpecifyTextFromRow(name, row) ?? "Other"
+      : undefined;
     return {
-      codes: [String(raw)],
+      codes,
+      openText,
       source: "data",
       policy: "maintain",
       configured: true,
@@ -341,6 +368,10 @@ export function resolveQuestionAnswer(
   const effectiveType = question?.Type ?? questionType;
 
   if (!question) {
+    // Unknown Open screens soft-pass (click Next empty) once treated as not-in-SAV.
+    if (effectiveType === "Open" && !inDataset) {
+      return softPassNotInDataset(questionName);
+    }
     if (row && inDataset) {
       const fromRow = resolveRowAnswerHeuristic(
         questionName,
@@ -369,10 +400,7 @@ export function resolveQuestionAnswer(
           warnings: [],
         };
       }
-      return unconfigured(
-        questionName,
-        "Open question not in active dataset",
-      );
+      return softPassNotInDataset(questionName);
     }
 
     if (fixed) {
@@ -390,10 +418,7 @@ export function resolveQuestionAnswer(
       );
     }
 
-    return unconfigured(
-      questionName,
-      "Question not in active dataset",
-    );
+    return softPassNotInDataset(questionName);
   }
 
   if (
@@ -431,6 +456,11 @@ export function migrateFixedAnswerFields(definition: Definition): boolean {
     const current = q.FixedAnswer?.trim();
     if (legacy && !current) {
       q.FixedAnswer = legacy;
+      changed = true;
+    }
+    // Soft-by-default replaced AnswerOptional — strip leftover field.
+    if ("AnswerOptional" in q) {
+      delete (q as { AnswerOptional?: boolean }).AnswerOptional;
       changed = true;
     }
   }

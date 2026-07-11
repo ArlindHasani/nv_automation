@@ -1,9 +1,10 @@
 import type { Page } from "playwright";
-import type { ResolvedAnswer } from "@nv/core";
+import { codesIncludeOtherSpecify, type ResolvedAnswer } from "@nv/core";
 import { NV_SELECTORS } from "../selectors.js";
 import {
+  applyMultiSelections,
   applyNvGridMultiAnswers,
-  selectCheckboxOption,
+  selectMultiOption,
   selectRadioOption,
 } from "../nv-input-actions.js";
 import {
@@ -75,9 +76,95 @@ export class NvInterviewPage {
     return false;
   }
 
+  /**
+   * Fill NV Other/specify box (`QLABEL:O`) after selecting code 98.
+   * Prefer the named textarea/input; also sync livespell proxy tied to that field.
+   */
+  async fillOtherSpecify(text: string, questionName: string): Promise<boolean> {
+    const q = questionName.toUpperCase();
+    const filled = await this.page
+      .evaluate(
+        ({ qLabel, value }) => {
+          const names = [
+            `${qLabel}:O`,
+            `${qLabel}:o`,
+            `${qLabel.toLowerCase()}:O`,
+            `${qLabel.toLowerCase()}:o`,
+          ];
+          let wrote = false;
+          for (const name of names) {
+            const field = document.querySelector(
+              `textarea[name="${name}"], input[name="${name}"]`,
+            ) as HTMLInputElement | HTMLTextAreaElement | null;
+            if (!field) continue;
+            field.value = value;
+            field.dispatchEvent(new Event("input", { bubbles: true }));
+            field.dispatchEvent(new Event("change", { bubbles: true }));
+            wrote = true;
+
+            // Livespell hides the textarea and shows a contenteditable proxy.
+            if (field.id) {
+              const proxy = document.getElementById(
+                `${field.id}___livespell_proxy`,
+              );
+              if (proxy) {
+                proxy.textContent = value;
+                proxy.dispatchEvent(new Event("input", { bubbles: true }));
+              }
+            }
+          }
+
+          // Fallback: Other textarea nested under the 98 funkyradio label.
+          if (!wrote) {
+            const otherInput = document.querySelector(
+              `form#form input[name="${qLabel}:98"], form#form input[value="98"][name^="${qLabel}:"]`,
+            ) as HTMLInputElement | null;
+            const wrap = otherInput?.closest(".funkyradio-info, .funkyradio");
+            const nested = wrap?.querySelector(
+              "textarea, input[type='text'], input[type='TEXT']",
+            ) as HTMLInputElement | HTMLTextAreaElement | null;
+            if (nested) {
+              nested.value = value;
+              nested.dispatchEvent(new Event("input", { bubbles: true }));
+              nested.dispatchEvent(new Event("change", { bubbles: true }));
+              wrote = true;
+            }
+          }
+
+          return wrote;
+        },
+        { qLabel: q, value: text },
+      )
+      .catch(() => false);
+
+    if (filled) return true;
+
+    const byName = this.page
+      .locator(
+        `form#form textarea[name="${q}:O"], form#form textarea[name="${q}:o"], form#form input[name="${q}:O"]`,
+      )
+      .first();
+    if ((await byName.count()) > 0) {
+      await byName.fill(text).catch(async () => {
+        await byName.evaluate((el, value) => {
+          (el as HTMLTextAreaElement).value = value;
+          el.dispatchEvent(new Event("input", { bubbles: true }));
+          el.dispatchEvent(new Event("change", { bubbles: true }));
+        }, text);
+      });
+      return true;
+    }
+
+    return false;
+  }
+
   async applyAnswer(answer: ResolvedAnswer): Promise<void> {
     const current = await this.getCurrentQuestion();
     if (!current) return;
+
+    const otherText =
+      answer.openText?.trim() ||
+      (codesIncludeOtherSpecify(answer.codes) ? "Other" : undefined);
 
     switch (current.type) {
       case "Grid": {
@@ -102,13 +189,46 @@ export class NvInterviewPage {
       }
 
       case "Multi":
-        for (const code of answer.codes) {
-          await selectCheckboxOption(
+        if (current.tileSelect) {
+          for (const code of answer.codes) {
+            const variants = [code];
+            if (/^\d+$/.test(code)) {
+              variants.push(String(Number(code)), code.padStart(2, "0"));
+            }
+            let clicked = false;
+            for (const value of variants) {
+              const tile = this.page
+                .locator(
+                  `form#form div[data-value="${value}"], form#form [data-value="${value}"]`,
+                )
+                .first();
+              if ((await tile.count()) > 0) {
+                await tile.click({ timeout: 5_000 }).catch(async () => {
+                  await tile.click({ force: true });
+                });
+                clicked = true;
+                break;
+              }
+            }
+            if (!clicked) {
+              await selectMultiOption(
+                this.page,
+                current.name,
+                code,
+                current.codes,
+              );
+            }
+          }
+        } else {
+          await applyMultiSelections(
             this.page,
             current.name,
-            code,
+            answer.codes,
             current.codes,
           );
+        }
+        if (otherText) {
+          await this.fillOtherSpecify(otherText, current.name);
         }
         break;
 
@@ -130,6 +250,9 @@ export class NvInterviewPage {
             .first();
           if ((await tile.count()) > 0) {
             await tile.click();
+            if (otherText) {
+              await this.fillOtherSpecify(otherText, current.name);
+            }
             break;
           }
         }
@@ -139,9 +262,15 @@ export class NvInterviewPage {
           await select.selectOption(code).catch(async () => {
             await select.selectOption({ label: code });
           });
+          if (otherText) {
+            await this.fillOtherSpecify(otherText, current.name);
+          }
           break;
         }
         await selectRadioOption(this.page, current.name, code, current.codes);
+        if (otherText) {
+          await this.fillOtherSpecify(otherText, current.name);
+        }
         break;
       }
     }

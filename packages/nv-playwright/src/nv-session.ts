@@ -21,26 +21,36 @@ export function nvEndUrl(liveLink: string): string {
   return new URL("end.php", nvBaseUrl(liveLink)).toString();
 }
 
-/** Tear down NV session and return to login screen. */
+/**
+ * Tear down NV session via end.php (works mid-interview and on home).
+ * EXIT only exists on the home screen — prefer the endpoint.
+ */
 export async function killSession(page: Page, liveLink: string): Promise<void> {
+  const endUrl = nvEndUrl(liveLink);
   try {
-    const exitBtn = await findFirstVisible(page, NV_SELECTORS.home.exit);
-    if (exitBtn) {
-      await exitBtn.click();
-      await page.waitForLoadState("domcontentloaded", { timeout: 15_000 }).catch(() => {});
-      return;
-    }
-  } catch {
-    // fall through to direct navigation
-  }
-
-  try {
-    await page.goto(nvEndUrl(liveLink), {
+    await page.goto(endUrl, {
       waitUntil: "domcontentloaded",
       timeout: 30_000,
     });
   } catch {
-    // session may already be dead
+    try {
+      const exitBtn = await findFirstVisible(page, NV_SELECTORS.home.exit);
+      if (exitBtn) {
+        await exitBtn.click();
+        await page
+          .waitForLoadState("domcontentloaded", { timeout: 15_000 })
+          .catch(() => {});
+      }
+    } catch {
+      // session may already be dead
+    }
+  }
+
+  // end.php can leave a transitional page; wait for login chrome before re-auth.
+  const deadline = Date.now() + 15_000;
+  while (Date.now() < deadline) {
+    if (await isOnLoginScreen(page)) return;
+    await page.waitForTimeout(300);
   }
 }
 

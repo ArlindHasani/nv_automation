@@ -79,10 +79,13 @@ export async function removeProject(slug: string) {
 
 export async function loadDatasetPreview(slug: string, datasetId: string) {
   const rows = await loadDatasetData(slug, datasetId);
+  const { collectDatasetColumns } = await import("@nv/core");
   return {
     rows: rows.slice(0, 100),
     totalRows: rows.length,
-    columns: rows[0] ? Object.keys(rows[0]) : [],
+    columns: collectDatasetColumns(rows).sort((a, b) =>
+      a.localeCompare(b, undefined, { sensitivity: "base" }),
+    ),
   };
 }
 

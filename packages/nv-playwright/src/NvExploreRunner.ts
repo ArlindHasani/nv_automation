@@ -12,12 +12,14 @@ import {
   validateMergedDefinition,
   type ProjectConfig,
   type AnswerConfigurationGap,
+  findQuestion,
 } from "@nv/core";
 import { NvInterviewPage } from "./pages/NvInterviewPage.js";
 import { NvLoginPage } from "./pages/NvLoginPage.js";
 import {
   formatDiscoveredOptions,
   resolveExploreAnswer,
+  ensureMultiMinCodes,
 } from "./explore-answers.js";
 import {
   toDiscoveredQuestion,
@@ -260,6 +262,7 @@ export class NvExploreRunner {
         rowsWalked++;
         let passCompleted = false;
         let passSteps = 0;
+        let carriedQuestion: ClassifiedQuestion | null = null;
 
       while (passSteps < maxSteps) {
         if (shouldAbort()) {
@@ -274,11 +277,15 @@ export class NvExploreRunner {
           warnings: [],
           phase: "loading",
         };
-        const classified = await waitForNvQuestionReady(page, {
-          timeoutMs: 45_000,
-          log: waitLog,
-          shouldAbort,
-        });
+        let classified: ClassifiedQuestion | null = carriedQuestion;
+        carriedQuestion = null;
+        if (!classified) {
+          classified = await waitForNvQuestionReady(page, {
+            timeoutMs: 45_000,
+            log: waitLog,
+            shouldAbort,
+          });
+        }
         if (shouldAbort()) {
           await finishUserStop();
           break;
@@ -330,7 +337,7 @@ export class NvExploreRunner {
           }
           await page.screenshot({
             path: `${outputDir}/explore-${disc.name}.png`,
-            fullPage: true,
+            fullPage: false,
           });
           log(`  Screenshot → explore-cache/explore-${disc.name}.png`, "info");
         } else {
@@ -340,6 +347,10 @@ export class NvExploreRunner {
         const next = await findFirstVisible(page, NV_SELECTORS.interview.nextButton);
         const autoAdvance = expectsAutoAdvance(classified);
         const needsNextMandatory = !autoAdvance;
+        const isEndQuestion = isInterviewEndQuestion(
+          classified.name,
+          exploreEndQuestions,
+        );
 
         if (needsNextMandatory && !next) {
           const screenshot = `explore-blocked-no-next-${classified.name}.png`;
@@ -366,6 +377,7 @@ export class NvExploreRunner {
           seedRow: currentSeedRow,
           definition,
           questionsInDefinitionNotInData,
+          dataRows: datasetRows.map((entry) => entry.row),
           datasetRowIndex: datasetRowIndex,
           mode: "explore",
           splitSeedNonce: runId,
@@ -374,10 +386,19 @@ export class NvExploreRunner {
         stepContext.warnings = [...answer.warnings];
 
         let answerText = answer.openText;
+        const defQuestion = findQuestion(definition, classified.name);
+        const min = defQuestion?.Min ?? 0;
+        const paddedCodes = ensureMultiMinCodes(answer.codes, classified, min);
+        if (paddedCodes.length > answer.codes.length) {
+          log(
+            `  Padded ${classified.name} to Min=${min}: ${paddedCodes.join(",")}`,
+            "info",
+          );
+        }
         if (answer.statementAnswers && Object.keys(answer.statementAnswers).length > 0) {
           answerText = formatStatementAnswersForTrail(answer.statementAnswers);
         } else if (answerText === undefined || answerText === "") {
-          answerText = answer.codes.length > 0 ? answer.codes.join(",") : "(empty)";
+          answerText = paddedCodes.length > 0 ? paddedCodes.join(",") : "(empty)";
         }
         log(
           `  Answering ${prevName} → "${answerText}" (${answer.source}, ${answer.policy})`,
@@ -389,12 +410,14 @@ export class NvExploreRunner {
         const hasGridAnswers =
           answer.statementAnswers &&
           Object.keys(answer.statementAnswers).length > 0;
+        const isOptionalSoftPass = answer.policy === "optional";
         if (
-          !answer.configured ||
-          answer.source === "fallback" ||
-          (answer.codes.length === 0 &&
-            !answer.openText &&
-            !hasGridAnswers)
+          !isOptionalSoftPass &&
+          (!answer.configured ||
+            answer.source === "fallback" ||
+            (paddedCodes.length === 0 &&
+              !answer.openText &&
+              !hasGridAnswers))
         ) {
           const screenshot = `explore-blocked-no-answer-${classified.name}.png`;
           await page.screenshot({ path: `${outputDir}/${screenshot}`, fullPage: true });
@@ -411,9 +434,17 @@ export class NvExploreRunner {
           break;
         }
 
+        if (isOptionalSoftPass) {
+          log(
+            `  Soft-pass ${prevName} (not in active SAV — leaving unanswered)`,
+            "warn",
+          );
+          for (const w of answer.warnings) log(`  ${w}`, "warn");
+        }
+
         try {
           await interview.applyAnswer({
-            codes: answer.codes,
+            codes: paddedCodes,
             openText: answer.openText,
             statementAnswers: answer.statementAnswers,
             source:
@@ -465,8 +496,8 @@ export class NvExploreRunner {
               : "  Option selected — waiting for page advance…",
             "info",
           );
-          await page.waitForLoadState("load", { timeout: 10_000 }).catch(() => {});
-          await page.waitForTimeout(600);
+          await page.waitForLoadState("load", { timeout: 8_000 }).catch(() => {});
+          await page.waitForTimeout(300);
         } else if (next) {
           log("  Clicking Next…", "info");
           await next.click();
@@ -474,8 +505,17 @@ export class NvExploreRunner {
 
         stepContext.phase = "waiting_advance";
 
+        // End questions often never leave QLABEL — don't burn long change timeouts.
+        const advanceTimeoutMs = isEndQuestion
+          ? 2_500
+          : classified.tileSelect
+            ? 12_000
+            : autoAdvance
+              ? 4_000
+              : 20_000;
+
         let after = await waitForNvQuestionChange(page, prevName, {
-          timeoutMs: classified.tileSelect ? 15_000 : autoAdvance ? 6_000 : 30_000,
+          timeoutMs: advanceTimeoutMs,
           log: waitLog,
           shouldAbort,
         });
@@ -485,7 +525,7 @@ export class NvExploreRunner {
           break;
         }
 
-        if (sameQuestion(after) && next) {
+        if (sameQuestion(after) && next && !isEndQuestion) {
           stepContext.phase = "stuck";
           log(
             classified.autoSubmit && autoAdvance
@@ -495,10 +535,14 @@ export class NvExploreRunner {
           );
           await next.click();
           after = await waitForNvQuestionChange(page, prevName, {
-            timeoutMs: 20_000,
+            timeoutMs: 12_000,
             log: waitLog,
             shouldAbort,
           });
+        } else if (sameQuestion(after) && next && isEndQuestion && autoAdvance) {
+          log("  End question — clicking Next before finishing pass…", "info");
+          await next.click().catch(() => {});
+          await page.waitForTimeout(400);
         }
 
         if (shouldAbort()) {
@@ -553,6 +597,7 @@ export class NvExploreRunner {
 
         if (after) {
           log(`  Advanced → ${after.name}`, "success");
+          carriedQuestion = after;
         } else {
           log("  Next page loaded but question not detected yet", "warn");
         }

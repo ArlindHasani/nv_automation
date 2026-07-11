@@ -13,7 +13,44 @@ export interface SavColumnMapping {
 const MENTION_SUFFIX = /^(.+?)m(\d+)$/i;
 const OPEN_OTHER_PREFIX = /^o_(.+)$/i;
 
+/** NV standard "Other (specify)" precoded answer. */
+export const NV_OTHER_SPECIFY_CODE = "98";
+
 const SAV_SENTINEL_CODES = new Set(["-9999", "-9998", "-99", "99"]);
+
+/** True when a code is NV Other/specify (98, including zero-padded forms). */
+export function isOtherSpecifyCode(code: string | number): boolean {
+  const raw = String(code).trim();
+  if (!raw) return false;
+  if (raw === NV_OTHER_SPECIFY_CODE) return true;
+  if (/^\d+$/.test(raw) && String(Number(raw)) === NV_OTHER_SPECIFY_CODE) {
+    return true;
+  }
+  return false;
+}
+
+export function codesIncludeOtherSpecify(
+  codes: Array<string | number>,
+): boolean {
+  return codes.some((code) => isOtherSpecifyCode(code));
+}
+
+/** Read companion `o_<qlabel>` text for Other/specify from a dataset row. */
+export function getOtherSpecifyTextFromRow(
+  questionName: string,
+  row: DataRow,
+): string | undefined {
+  const columns = Object.keys(row);
+  const col =
+    getOtherTextColumnForQuestion(questionName, columns) ??
+    `o_${questionName.toLowerCase()}`;
+  const raw = getDataValue(row, col);
+  if (typeof raw === "string" && raw.trim()) return raw.trim();
+  if (raw !== null && raw !== undefined && String(raw).trim()) {
+    return String(raw).trim();
+  }
+  return undefined;
+}
 
 /** Map a SAV column name to NV question + role. */
 export function mapSavColumn(column: string): SavColumnMapping | null {
@@ -228,6 +265,15 @@ const METADATA_COLUMNS = new Set([
   "S_INI",
 ]);
 
+export interface SavValueLabels {
+  [code: string]: string;
+}
+
+export type SavVariablesMeta = Record<
+  string,
+  { valueLabels?: SavValueLabels }
+>;
+
 export interface CoverageReport {
   mappedColumns: SavColumnMapping[];
   unmappedColumns: string[];
@@ -236,15 +282,36 @@ export interface CoverageReport {
   nvSessionFieldsPresent: Record<string, boolean>;
 }
 
+/**
+ * Column catalog for a dataset.
+ * Prefer SPSS variables.json when present; always union keys across all rows
+ * so sparse empties (NaN omitted from row 0) are not treated as missing columns.
+ */
+export function collectDatasetColumns(
+  dataRows: DataRow[],
+  variables?: SavVariablesMeta | null,
+): string[] {
+  const cols = new Set<string>();
+  if (variables) {
+    for (const name of Object.keys(variables)) {
+      if (name) cols.add(name);
+    }
+  }
+  for (const row of dataRows) {
+    for (const key of Object.keys(row as Record<string, unknown>)) {
+      if (key) cols.add(key);
+    }
+  }
+  return [...cols];
+}
+
 export function buildCoverageReport(
   dataRows: DataRow[],
   definition: Definition,
   savFieldMap: Record<string, string>,
+  variables?: SavVariablesMeta | null,
 ): CoverageReport {
-  const columns =
-    dataRows.length > 0
-      ? Object.keys(dataRows[0] as Record<string, unknown>)
-      : [];
+  const columns = collectDatasetColumns(dataRows, variables);
 
   const columnIndex = buildColumnIndex(columns);
   const mappedColumns: SavColumnMapping[] = [];
@@ -273,7 +340,10 @@ export function buildCoverageReport(
   const sample = dataRows[0] ?? {};
   const nvSessionFieldsPresent: Record<string, boolean> = {};
   for (const field of Object.values(savFieldMap)) {
-    nvSessionFieldsPresent[field] = field in sample;
+    const lower = field.toLowerCase();
+    nvSessionFieldsPresent[field] =
+      field in sample ||
+      columns.some((c) => c.toLowerCase() === lower);
   }
 
   return {
@@ -295,15 +365,6 @@ export function getDataValue(
   }
   return undefined;
 }
-
-export interface SavValueLabels {
-  [code: string]: string;
-}
-
-export type SavVariablesMeta = Record<
-  string,
-  { valueLabels?: SavValueLabels }
->;
 
 const SENTINEL_LABEL_PATTERNS = /refus|don't know|no answer|dk|na\b/i;
 

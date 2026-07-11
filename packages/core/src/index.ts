@@ -1,5 +1,3 @@
-import "server-only";
-
 export * from "./project-store.js";
 export * from "./distribution.js";
 export * from "./fill-gaps.js";

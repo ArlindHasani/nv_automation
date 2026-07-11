@@ -1,7 +1,9 @@
 import type { ClassifiedQuestion } from "./question-classifier.js";
 import {
+  collectDatasetColumns,
   collectMentionCodesFromRow,
   findQuestion,
+  groupSavColumnsByQuestion,
   isQuestionInDataset,
   resolveQuestionAnswer,
   type DataRow,
@@ -14,7 +16,8 @@ export type ExploreAnswerSource =
   | "fixed"
   | "dataset"
   | "split"
-  | "fallback";
+  | "fallback"
+  | "optional";
 
 export interface ExploreResolvedAnswer {
   codes: string[];
@@ -30,6 +33,8 @@ export interface ExploreAnswerContext {
   seedRow?: DataRow;
   definition?: Definition;
   questionsInDefinitionNotInData?: string[];
+  /** All dataset rows — used to detect whether a newly seen question maps to SAV columns. */
+  dataRows?: DataRow[];
   datasetRowIndex?: number;
   mode?: "explore" | "live";
   /** Varies split sampling between explore runs or live interviews. */
@@ -40,6 +45,7 @@ function mapSource(source: PolicyResolvedAnswer["source"]): ExploreAnswerSource 
   if (source === "fixed") return "fixed";
   if (source === "data") return "dataset";
   if (source === "split") return "split";
+  if (source === "optional") return "optional";
   return "fallback";
 }
 
@@ -55,6 +61,65 @@ function toExploreAnswer(result: PolicyResolvedAnswer): ExploreResolvedAnswer {
   };
 }
 
+/** Pad Multi answers up to Definition Min using other on-screen codes. */
+export function ensureMultiMinCodes(
+  codes: string[],
+  classified: ClassifiedQuestion,
+  min: number,
+): string[] {
+  if (classified.type !== "Multi" || min <= 0 || codes.length >= min) {
+    return codes;
+  }
+  const out = [...codes];
+  const skip = new Set(["", "99", "98", "97", ...out]);
+  for (const code of classified.codes) {
+    if (out.length >= min) break;
+    if (skip.has(code)) continue;
+    out.push(code);
+    skip.add(code);
+  }
+  return out;
+}
+
+/** True when this question name maps to at least one column in the active SAV/data. */
+export function questionHasDatasetColumns(
+  questionName: string,
+  columns: string[],
+): boolean {
+  const grouped = groupSavColumnsByQuestion(columns);
+  return grouped.has(questionName.toUpperCase());
+}
+
+export function resolveQuestionInDataset(
+  questionName: string,
+  context: ExploreAnswerContext,
+): boolean {
+  const question = context.definition
+    ? findQuestion(context.definition, questionName)
+    : undefined;
+
+  if (question && context.questionsInDefinitionNotInData) {
+    return isQuestionInDataset(
+      questionName,
+      context.questionsInDefinitionNotInData,
+    );
+  }
+
+  const columns =
+    context.dataRows && context.dataRows.length > 0
+      ? collectDatasetColumns(context.dataRows)
+      : context.seedRow
+        ? Object.keys(context.seedRow)
+        : [];
+
+  if (columns.length > 0) {
+    return questionHasDatasetColumns(questionName, columns);
+  }
+
+  // No dataset signal: unknown questions are not-in-SAV (soft-pass); known ones stay in-SAV.
+  return Boolean(question);
+}
+
 function resolveForClassified(
   classified: ClassifiedQuestion,
   context: ExploreAnswerContext,
@@ -62,12 +127,7 @@ function resolveForClassified(
   const question = context.definition
     ? findQuestion(context.definition, classified.name)
     : undefined;
-  const inDataset = context.questionsInDefinitionNotInData
-    ? isQuestionInDataset(
-        classified.name,
-        context.questionsInDefinitionNotInData,
-      )
-    : true;
+  const inDataset = resolveQuestionInDataset(classified.name, context);
   const deterministicSeed = `${context.datasetRowIndex ?? 0}:${classified.name}`;
 
   return toExploreAnswer(
@@ -98,6 +158,7 @@ export function resolveExploreAnswer(
     let source: ExploreAnswerSource = "dataset";
     let policy: PolicyResolvedAnswer["policy"] = "maintain";
     let configured = true;
+    let sawOptional = false;
 
     for (const stmt of classified.gridStatements) {
       if (classified.gridMulti) {
@@ -135,6 +196,10 @@ export function resolveExploreAnswer(
           context,
         );
         warnings.push(...sub.warnings);
+        if (sub.policy === "optional") {
+          sawOptional = true;
+          continue;
+        }
         if (!sub.configured) {
           configured = false;
           policy = "unconfigured";
@@ -156,6 +221,10 @@ export function resolveExploreAnswer(
         context,
       );
       warnings.push(...sub.warnings);
+      if (sub.policy === "optional") {
+        sawOptional = true;
+        continue;
+      }
       if (!sub.configured) {
         configured = false;
         policy = "unconfigured";
@@ -180,6 +249,20 @@ export function resolveExploreAnswer(
         policy,
         configured,
         warnings,
+      };
+    }
+
+    const parentInDataset = resolveQuestionInDataset(classified.name, context);
+    if (configured && (sawOptional || !parentInDataset)) {
+      return {
+        codes: [],
+        source: "optional",
+        policy: "optional",
+        configured: true,
+        warnings: [
+          ...warnings,
+          `Soft-pass for grid '${classified.name}' — leave unanswered / Next with no input (set Fixed or Split only if you need a value)`,
+        ],
       };
     }
 

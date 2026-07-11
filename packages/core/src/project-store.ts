@@ -3,6 +3,7 @@ import path from "node:path";
 import { randomUUID } from "node:crypto";
 import {
   buildCoverageReport,
+  collectDatasetColumns,
   type CoverageReport,
   type SavVariablesMeta,
 } from "./mapping.js";
@@ -102,6 +103,27 @@ export interface ExploreRun {
   createdAt: string;
 }
 
+export interface LiveRun {
+  id: string;
+  status: "completed" | "partial" | "failed" | "stopped";
+  workerProfileId: string;
+  workerProfileLabel: string;
+  interviewsCompleted: number;
+  interviewsFailed: number;
+  steps?: number;
+  lastRowIndex?: number | null;
+  lastQuest?: string;
+  lastQuestion?: string;
+  error?: string;
+  trailCsv?: string;
+  trailJson?: string;
+  trailWideCsv?: string;
+  logFile?: string;
+  startedAt: string;
+  finishedAt: string;
+  createdAt: string;
+}
+
 interface DatasetsManifest {
   activeId: string | null;
   datasets: DatasetMeta[];
@@ -167,6 +189,10 @@ function manifestPath(slug: string): string {
 
 function exploreRunsPath(slug: string): string {
   return path.join(getProjectPaths(slug).dir, "explore-runs.json");
+}
+
+function liveRunsPath(slug: string): string {
+  return path.join(getProjectPaths(slug).dir, "live-runs.json");
 }
 
 function metaPath(slug: string): string {
@@ -559,6 +585,7 @@ export async function createProject(input: CreateProjectInput): Promise<ProjectM
     JSON.stringify({ activeId: null, datasets: [] } satisfies DatasetsManifest, null, 2),
   );
   await fs.writeFile(exploreRunsPath(slug), JSON.stringify([], null, 2));
+  await fs.writeFile(liveRunsPath(slug), JSON.stringify([], null, 2));
   await syncProjectFiles(slug);
   return meta;
 }
@@ -863,6 +890,7 @@ export async function importDataset(
     rows,
     gapResult.definition,
     projectMeta!.savFieldMap,
+    variables,
   );
 
   await syncProjectFiles(slug);
@@ -1020,6 +1048,39 @@ export async function recordExploreRun(
   return run;
 }
 
+export async function listLiveRuns(slug: string, limit = 20): Promise<LiveRun[]> {
+  await ensureProjectInitialized(slug);
+  try {
+    const runs = JSON.parse(
+      await fs.readFile(liveRunsPath(slug), "utf-8"),
+    ) as LiveRun[];
+    return runs.slice(0, limit);
+  } catch {
+    return [];
+  }
+}
+
+export async function recordLiveRun(
+  slug: string,
+  result: Omit<LiveRun, "createdAt">,
+): Promise<LiveRun> {
+  await ensureProjectInitialized(slug);
+  const run: LiveRun = {
+    ...result,
+    createdAt: result.finishedAt || new Date().toISOString(),
+  };
+
+  let runs: LiveRun[] = [];
+  try {
+    runs = JSON.parse(await fs.readFile(liveRunsPath(slug), "utf-8"));
+  } catch {
+    runs = [];
+  }
+  runs.unshift(run);
+  await fs.writeFile(liveRunsPath(slug), JSON.stringify(runs.slice(0, 50), null, 2));
+  return run;
+}
+
 export async function getProjectBundle(slug: string) {
   const project = await getProject(slug);
   if (!project) return null;
@@ -1029,15 +1090,23 @@ export async function getProjectBundle(slug: string) {
   const datasets = await listDatasets(slug);
   const activeDataset = await getActiveDataset(slug);
   const data = await loadActiveData(slug);
+  const variables = await loadActiveSavVariables(slug);
   await initInterviewQueue(slug, data.length, false);
-  const coverage = buildCoverageReport(data, definition, project.savFieldMap);
+  const coverage = buildCoverageReport(
+    data,
+    definition,
+    project.savFieldMap,
+    variables,
+  );
   const exploreRuns = await listExploreRuns(slug);
+  const liveRuns = await listLiveRuns(slug);
+  const dataColumns = collectDatasetColumns(data, variables);
   const workflow = buildProjectWorkflow({
     config,
     definition,
     activeDataset,
     dataRowCount: data.length,
-    dataColumns: data[0] ? Object.keys(data[0]) : [],
+    dataColumns,
     coverage,
     exploreRuns,
   });
@@ -1068,8 +1137,10 @@ export async function getProjectBundle(slug: string) {
     datasets,
     activeDataset,
     data,
+    dataColumns,
     coverage,
     exploreRuns,
+    liveRuns,
     workflow,
     queueSummary,
   };

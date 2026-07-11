@@ -76,12 +76,12 @@ export function buildLiveRunPreflight(input: {
 
   checks.push({
     id: "answer-gaps",
-    label: "Answer policy configured for all known non-SAV questions",
-    ok: answerGaps.length === 0,
+    label: "Not-in-SAV questions soft-pass by default",
+    ok: true,
     detail:
-      answerGaps.length === 0
-        ? "All questions have Maintain, fixed, or split policy"
-        : `${answerGaps.map((g) => g.question).join(", ")}`,
+      input.questionsInDefinitionNotInData.length === 0
+        ? "All Definition questions are in the active SAV"
+        : `${input.questionsInDefinitionNotInData.length} not in this SAV — soft-pass unless Fixed/Split is set`,
   });
 
   const playwrightOk =

@@ -14,6 +14,9 @@ export async function PATCH(
       ExploreOverride?: string | null;
       Method?: "Maintain" | "Split";
       Split?: Record<string, number>;
+      Min?: number;
+      Max?: number;
+      AVG?: number | null;
     }>;
     if (!Array.isArray(updates) || updates.length === 0) {
       return NextResponse.json(

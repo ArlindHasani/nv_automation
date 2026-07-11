@@ -1,7 +1,9 @@
 import {
   collectMentionCodesFromRow,
+  codesIncludeOtherSpecify,
   formatCodeForQuestion,
   getDataValue,
+  getOtherSpecifyTextFromRow,
   getOtherTextColumnForQuestion,
   getValueColumnForQuestion,
 } from "./mapping.js";
@@ -38,6 +40,26 @@ function isPresent(value: unknown, allowZero: boolean): boolean {
   return true;
 }
 
+function withOtherSpecifyText(
+  questionName: string,
+  row: DataRow,
+  answer: ResolvedAnswer,
+): ResolvedAnswer {
+  if (!codesIncludeOtherSpecify(answer.codes)) return answer;
+  const openText = getOtherSpecifyTextFromRow(questionName, row);
+  if (!openText) {
+    return {
+      ...answer,
+      warnings: [
+        ...answer.warnings,
+        `Code 98 (Other) for '${questionName}' has no o_* text in dataset — using fallback "Other"`,
+      ],
+      openText: answer.openText ?? "Other",
+    };
+  }
+  return { ...answer, openText };
+}
+
 function resolveMaintainSingle(
   question: Question,
   row: DataRow,
@@ -53,18 +75,18 @@ function resolveMaintainSingle(
   if (!isPresent(raw, options.allowZero ?? true)) {
     const fallback = options.missingFallback ?? "1";
     warnings.push(`Value for question '${question.Name}' not found in data.`);
-    return {
+    return withOtherSpecifyText(question.Name, row, {
       codes: [formatCodeForQuestion(question, fallback)],
       source: "fallback",
       warnings,
-    };
+    });
   }
 
-  return {
+  return withOtherSpecifyText(question.Name, row, {
     codes: [formatCodeForQuestion(question, raw as string | number)],
     source: "data",
     warnings,
-  };
+  });
 }
 
 function resolveMaintainMulti(
@@ -85,16 +107,20 @@ function resolveMaintainMulti(
     const fallback = options.missingFallback;
     if (fallback) {
       warnings.push(`No multi values for '${question.Name}' in data.`);
-      return {
+      return withOtherSpecifyText(question.Name, row, {
         codes: [formatCodeForQuestion(question, fallback)],
         source: "fallback",
         warnings,
-      };
+      });
     }
     warnings.push(`No multi values for '${question.Name}' in data.`);
   }
 
-  return { codes, source: codes.length ? "data" : "fallback", warnings };
+  return withOtherSpecifyText(question.Name, row, {
+    codes,
+    source: codes.length ? "data" : "fallback",
+    warnings,
+  });
 }
 
 function resolveMaintainOpen(

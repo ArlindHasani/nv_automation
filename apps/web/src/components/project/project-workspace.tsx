@@ -61,7 +61,6 @@ import type { ProjectSection, WorkerProfileView } from "@/lib/types";
 import { useMemo, useRef, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { formatStatusLabel } from "@/lib/format-labels";
 import { WorkflowProgress } from "@/components/project/workflow-progress";
 import { DefinitionQuestionTable } from "@/components/project/definition-question-table";
 import { ExplorePreflightCard } from "@/components/project/explore-preflight-card";
@@ -75,6 +74,7 @@ import { DeleteProjectDangerZone } from "@/components/project/delete-project-dan
 import { ManualAssignmentSheet } from "@/components/project/manual-assignment-sheet";
 import { InterviewQueueTable } from "@/components/project/interview-queue-table";
 import { ExploreRunsTable } from "@/components/project/explore-runs-table";
+import { LiveRunsTable } from "@/components/project/live-runs-table";
 import { ProjectWorkspaceSkeleton } from "@/components/project/project-workspace-skeleton";
 import { FilterSegment } from "@/components/project/filter-group";
 import { cn } from "@/lib/utils";
@@ -390,10 +390,11 @@ function SetupPanel() {
     await refresh();
   }
 
-  const savColumns =
-    bundle!.activeDataset && bundle!.data[0]
-      ? Object.keys(bundle!.data[0]).sort()
-      : [];
+  const savColumns = bundle!.dataColumns?.length
+    ? [...bundle!.dataColumns].sort((a, b) =>
+        a.localeCompare(b, undefined, { sensitivity: "base" }),
+      )
+    : [];
 
   return (
     <>
@@ -506,7 +507,7 @@ function SetupPanel() {
 
           <SetupConfigSection
             title="Guided explore"
-            description="Guided explore walks the test link using dataset seed rows. Questions not in the dataset need a fixed answer or split weights in Definition."
+            description="Guided explore walks the test link using dataset seed rows. Questions not in this SAV soft-pass unless you set Fixed or Split in Definition."
             help="Explore discovers question order and types from the live test UI, then merges them into your definition. Configure seed row and end questions here before running Explore."
           >
             <div className="space-y-2">
@@ -1075,14 +1076,7 @@ function DefinitionPanel() {
       (q) => !notInSav.has(q.Name.toUpperCase()),
     ).map((q) => q.Name.toUpperCase()),
   );
-  const exploreAnswerGaps =
-    bundle!.workflow?.explorePreflight?.answerGaps ?? [];
   const postExploreConfigGaps = (lastRun?.configurationGaps ?? []).map((g) => ({
-    severity: "warn" as const,
-    question: g.question,
-    message: g.reason,
-  }));
-  const notInSavIssues = exploreAnswerGaps.map((g) => ({
     severity: "warn" as const,
     question: g.question,
     message: g.reason,
@@ -1116,14 +1110,26 @@ function DefinitionPanel() {
               content={
                 <div className="space-y-2">
                   <TipText>
-                    The questionnaire blueprint used by Explore and live workers.
+                    Definition is the questionnaire blueprint for Explore and
+                    live workers. It accumulates questions from SAV imports,
+                    explore runs, and your edits — switching datasets never
+                    removes questions.
                   </TipText>
-                  <TipItem title="Maintain">
-                    Answers come from active dataset rows (SAV columns).
+                  <TipItem title="In SAV">
+                    Column exists in the active dataset. Maintain reads the row;
+                    Split samples from weights instead.
                   </TipItem>
-                  <TipItem title="Fixed / Split">
-                    For questions only found in Explore — set a fixed code or
-                    weighted split.
+                  <TipItem title="Soft-pass">
+                    Not in this SAV and no Fixed/Split. Runs leave it unanswered
+                    (typical for multi-country / routing).
+                  </TipItem>
+                  <TipItem title="Configured">
+                    Not in this SAV, but Fixed or Split is set for when the
+                    screen will appear.
+                  </TipItem>
+                  <TipItem title="Fix gaps">
+                    Adds SAV columns that are missing from Definition. Does not
+                    delete or overwrite manual edits.
                   </TipItem>
                 </div>
               }
@@ -1131,9 +1137,9 @@ function DefinitionPanel() {
           </div>
           <CardDescription>
             {bundle!.definition.Questions.length} questions ·{" "}
-            <strong>Maintain</strong> uses dataset rows ·{" "}
-            <strong>Fixed</strong> or <strong>Split</strong> for questions not in
-            the active dataset
+            <strong>Maintain</strong> uses dataset rows · questions not in this
+            SAV soft-pass unless you set <strong>Fixed</strong> or{" "}
+            <strong>Split</strong>
           </CardDescription>
           {bundle!.activeDataset && (
             <p className="line-clamp-2 text-xs leading-snug break-all text-muted-foreground">
@@ -1174,11 +1180,6 @@ function DefinitionPanel() {
           variant="destructive"
         />
         <ReviewItemsPanel
-          title="Not in dataset — configure answer policy"
-          issues={notInSavIssues}
-          variant="destructive"
-        />
-        <ReviewItemsPanel
           title="Discovered — needs configuration"
           issues={postExploreConfigGaps}
           variant="destructive"
@@ -1204,6 +1205,7 @@ function ExplorePanel() {
   const { bundle, projectId, refresh } = useProject();
   const [running, setRunning] = useState(false);
   const [stopping, setStopping] = useState(false);
+  const [showBrowser, setShowBrowser] = useState(false);
   const [consoleLines, setConsoleLines] = useState<ExploreConsoleLine[]>([]);
   const lineId = useRef(0);
   const exploreAbortRef = useRef<AbortController | null>(null);
@@ -1237,6 +1239,8 @@ function ExplorePanel() {
     try {
       const res = await fetch(`/api/projects/${projectId}/explore`, {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ headed: showBrowser }),
         signal: abortController.signal,
       });
 
@@ -1372,11 +1376,28 @@ function ExplorePanel() {
         {!bundle!.workflow?.explorePreflight?.ready &&
           bundle!.activeDataset && (
             <p className="text-sm text-amber-700 dark:text-amber-400">
-              Complete pre-flight checks in Setup before exploring — questions
-              not in the dataset need a fixed answer or Split weights in
-              Definition.
+              Complete pre-flight checks in Setup before exploring (test link,
+              seed row, etc.).
             </p>
           )}
+
+        <label className="flex cursor-pointer items-start gap-3 rounded-lg border bg-muted/20 px-3 py-2.5 transition-colors hover:bg-muted/40">
+          <input
+            type="checkbox"
+            className="mt-1"
+            checked={showBrowser}
+            onChange={(e) => setShowBrowser(e.target.checked)}
+            disabled={running}
+          />
+          <span>
+            <span className="font-medium">Show browser</span>
+            <span className="mt-0.5 block text-sm text-muted-foreground">
+              Open a visible Chrome window so you can watch each step. Slightly
+              slower / more CPU than headless — fine for debugging, avoid for
+              many parallel workers.
+            </span>
+          </span>
+        </label>
         <ExploreConsole lines={consoleLines} running={running || stopping} />
 
         <div className="space-y-3">
@@ -1421,6 +1442,8 @@ function RunPanel() {
   const [rowAssignments, setRowAssignments] = useState<Record<number, string>>({});
   const [starting, setStarting] = useState(false);
   const [resettingQueue, setResettingQueue] = useState(false);
+  const [skipLoi, setSkipLoi] = useState(true);
+  const [showBrowser, setShowBrowser] = useState(false);
   const preflight = bundle!.workflow?.liveRunPreflight;
   const profiles = bundle!.project.workerProfiles ?? [];
   const queue = bundle!.queueSummary;
@@ -1492,6 +1515,8 @@ function RunPanel() {
           workerProfileIds: selectedProfiles,
           assignmentMode,
           assignments,
+          skipLoi,
+          headed: showBrowser,
         }),
       });
       const data = await res.json();
@@ -1645,6 +1670,39 @@ function RunPanel() {
             />
           </div>
 
+          <label className="flex cursor-pointer items-start gap-3 rounded-lg border bg-muted/20 px-3 py-2.5 transition-colors hover:bg-muted/40">
+            <input
+              type="checkbox"
+              className="mt-1"
+              checked={skipLoi}
+              onChange={(e) => setSkipLoi(e.target.checked)}
+            />
+            <span>
+              <span className="font-medium">Skip LOI delays</span>
+              <span className="mt-0.5 block text-sm text-muted-foreground">
+                For testing insertion logic — answers immediately without
+                pacing toward the target interview length.
+              </span>
+            </span>
+          </label>
+
+          <label className="flex cursor-pointer items-start gap-3 rounded-lg border bg-muted/20 px-3 py-2.5 transition-colors hover:bg-muted/40">
+            <input
+              type="checkbox"
+              className="mt-1"
+              checked={showBrowser}
+              onChange={(e) => setShowBrowser(e.target.checked)}
+            />
+            <span>
+              <span className="font-medium">Show browser</span>
+              <span className="mt-0.5 block text-sm text-muted-foreground">
+                Open a visible Chrome window per worker so you can watch
+                progression. Slightly slower / more CPU — fine for debugging one
+                caller; keep headless when running many workers.
+              </span>
+            </span>
+          </label>
+
           <LoadingButton
             size="lg"
             onClick={handleStartClick}
@@ -1658,8 +1716,8 @@ function RunPanel() {
         </section>
 
         <section className="space-y-3">
-          <LabelWithHelp help="Live stdout from each caller worker. Logs refresh every few seconds while workers are running.">
-            <span className="text-base font-semibold">Caller console</span>
+          <LabelWithHelp help="Live stdout from each caller worker while it runs. Finished sessions stay here briefly; durable history is below.">
+            <span className="text-base font-semibold">Live console</span>
           </LabelWithHelp>
           <WorkerConsole
             workers={liveConsoleWorkers}
@@ -1667,30 +1725,24 @@ function RunPanel() {
           />
         </section>
 
+        <section className="space-y-3">
+          <LabelWithHelp help="Durable live-run history with timed trail CSV, wide insertion CSV, and worker logs — filter by caller.">
+            <span className="text-base font-semibold">
+              Past live runs ({bundle!.liveRuns?.length ?? 0})
+            </span>
+          </LabelWithHelp>
+          <LiveRunsTable
+            runs={bundle!.liveRuns ?? []}
+            projectId={projectId}
+          />
+        </section>
+
         {queue && queue.rows.length > 0 && (
           <section className="space-y-3">
-            <LabelWithHelp help="One row per SAV case. Sort columns and filter by status in the toolbar above the table.">
-              <span className="text-base font-semibold">Interview queue</span>
-            </LabelWithHelp>
-
             <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="secondary">
-                {queue.pending} {formatStatusLabel("pending")}
-              </Badge>
-              <Badge variant="default">
-                {queue.in_progress} {formatStatusLabel("in_progress")}
-              </Badge>
-              <Badge variant="outline">
-                {queue.completed} {formatStatusLabel("completed")}
-              </Badge>
-              <Badge variant="destructive">
-                {queue.failed} {formatStatusLabel("failed")}
-              </Badge>
-              {queue.skipped > 0 && (
-                <Badge variant="secondary" className="opacity-70">
-                  {queue.skipped} {formatStatusLabel("skipped")}
-                </Badge>
-              )}
+              <LabelWithHelp help="One row per SAV case. Sort columns and filter by status in the toolbar above the table.">
+                <span className="text-base font-semibold">Interview queue</span>
+              </LabelWithHelp>
               {(queue.failed > 0 || queue.in_progress > 0) && (
                 <LoadingButton
                   type="button"

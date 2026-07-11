@@ -74,6 +74,7 @@ export async function importSavFile(
     bundle.rows,
     definition,
     project.savFieldMap,
+    bundle.variables,
   );
 
   return { rowCount: bundle.rows.length, coverage };
@@ -83,6 +84,7 @@ export function coverageForRows(
   rows: InterviewData,
   definition: ReturnType<typeof DefinitionSchema.parse>,
   savFieldMap: SavFieldMap,
+  variables?: SavVariablesMeta | null,
 ) {
-  return buildCoverageReport(rows, definition, savFieldMap);
+  return buildCoverageReport(rows, definition, savFieldMap, variables);
 }

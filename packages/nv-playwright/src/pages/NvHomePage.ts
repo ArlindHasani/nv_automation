@@ -21,31 +21,47 @@ export class NvHomePage {
     return Boolean(startForm && questInput);
   }
 
+  /**
+   * Home screen loop: Select Case (ID) → type quest → Start.
+   * After the interview ends, NV returns here for the next quest (or EXIT).
+   *
+   * NV pads the quest and enables #startCase on `keyup`. Playwright `fill()` +
+   * `blur()` skips that handler; focusout then writes the unset `qID` and clears
+   * the field — so we type keystrokes instead.
+   */
   async startCaseByQuest(rawQuest: unknown): Promise<string> {
     const quest = formatQuestId(rawQuest);
     if (!quest) throw new Error("Quest id is empty — check dataset quest column");
 
     await this.waitForHome();
 
-    const recRadio = this.page.locator(NV_SELECTORS.home.recRadio[0]!);
-    if ((await recRadio.count()) > 0) {
-      await recRadio.first().check({ force: true }).catch(async () => {
-        await recRadio.first().click({ force: true });
-      });
+    const recLabel = this.page.locator(
+      'label:has(input[name="nv_manual_type"][value="REC"])',
+    );
+    if ((await recLabel.count()) > 0) {
+      await recLabel.first().click();
+    } else {
+      const recRadio = this.page.locator(NV_SELECTORS.home.recRadio[0]!);
+      if ((await recRadio.count()) > 0) {
+        await recRadio.first().check({ force: true }).catch(async () => {
+          await recRadio.first().click({ force: true });
+        });
+      }
     }
 
     const questInput = await findFirstVisible(this.page, NV_SELECTORS.home.questInput);
     if (!questInput) throw new Error("Quest input (#inputRecTel) not found on home screen");
-    await questInput.fill(quest);
-    await questInput.blur();
-    await this.page.waitForTimeout(300);
+
+    await questInput.click();
+    await questInput.fill("");
+    await questInput.pressSequentially(quest, { delay: 15 });
 
     const startCase = this.page.locator(NV_SELECTORS.home.startCase[0]!);
     await startCase.waitFor({ state: "visible", timeout: 10_000 });
     await this.page.waitForFunction(
       () => {
         const btn = document.querySelector("#startCase") as HTMLButtonElement | null;
-        return btn && !btn.disabled;
+        return Boolean(btn && !btn.disabled);
       },
       undefined,
       { timeout: 10_000 },

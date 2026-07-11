@@ -12,14 +12,21 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { projectId, workerProfileIds, headed, assignmentMode, assignments } =
-      body as {
-        projectId: string;
-        workerProfileIds: string[];
-        headed?: boolean;
-        assignmentMode?: "auto" | "manual";
-        assignments?: Record<string, number[]>;
-      };
+    const {
+      projectId,
+      workerProfileIds,
+      headed,
+      skipLoi,
+      assignmentMode,
+      assignments,
+    } = body as {
+      projectId: string;
+      workerProfileIds: string[];
+      headed?: boolean;
+      skipLoi?: boolean;
+      assignmentMode?: "auto" | "manual";
+      assignments?: Record<string, number[]>;
+    };
 
     if (!projectId || !Array.isArray(workerProfileIds)) {
       return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
@@ -41,7 +48,10 @@ export async function POST(req: Request) {
     const started = [];
     for (const profileId of workerProfileIds) {
       started.push(
-        await manager.startLiveWorker(projectId, profileId, headed ?? false),
+        await manager.startLiveWorker(projectId, profileId, {
+          headed: headed ?? false,
+          skipLoi: skipLoi ?? false,
+        }),
       );
     }
 

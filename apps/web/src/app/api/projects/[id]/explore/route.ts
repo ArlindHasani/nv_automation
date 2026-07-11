@@ -52,10 +52,12 @@ export async function DELETE(
 }
 
 export async function POST(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
+  const body = (await req.json().catch(() => ({}))) as { headed?: boolean };
+  const headed = Boolean(body.headed);
   const encoder = new TextEncoder();
 
   const stream = new ReadableStream({
@@ -161,7 +163,7 @@ export async function POST(
         const runner = new NvExploreRunner();
         const session = startExploreSession(id);
         const runId = randomUUID().slice(0, 8);
-        log("Launching headless browser…");
+        log(headed ? "Launching headed browser (visible)…" : "Launching headless browser…");
 
         const result = await runner.run({
           config: bundle.config,
@@ -169,7 +171,7 @@ export async function POST(
           outputDir: paths.exploreCache,
           datasetRows,
           runId,
-          headless: true,
+          headless: !headed,
           exploreEndQuestions: bundle.config.exploreEndQuestions,
           coverageGaps: bundle.coverage.questionsInDataNotInDefinition,
           questionsInDefinitionNotInData:

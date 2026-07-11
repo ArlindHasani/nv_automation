@@ -39,6 +39,18 @@ export function buildLoiSchedule(options: LoiOptions): LoiSchedule[] {
   }));
 }
 
-export function delay(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+/** Interruptible sleep — returns early when shouldAbort() is true. */
+export async function delay(
+  ms: number,
+  shouldAbort?: () => boolean,
+): Promise<void> {
+  if (ms <= 0) return;
+  const chunk = 200;
+  let left = ms;
+  while (left > 0) {
+    if (shouldAbort?.()) return;
+    const wait = Math.min(chunk, left);
+    await new Promise<void>((resolve) => setTimeout(resolve, wait));
+    left -= wait;
+  }
 }

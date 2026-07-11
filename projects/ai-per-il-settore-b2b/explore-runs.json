@@ -1,24 +1,15 @@
 [
   {
-    "id": "10ad1dea",
-    "status": "partial",
-    "added": [
-      "INFO2"
-    ],
+    "id": "2ae56ebe",
+    "status": "completed",
+    "added": [],
     "updated": [],
     "conflicts": [],
-    "discovered": 10,
-    "blockers": [
-      {
-        "question": "INFO2",
-        "type": "Single",
-        "reason": "Question not in definition — configure Fixed answer or Split weights for 'INFO2' in Definition",
-        "screenshot": "explore-blocked-no-answer-INFO2.png"
-      }
-    ],
+    "discovered": 31,
+    "blockers": [],
     "mergeIssues": [],
     "configurationGaps": [],
-    "steps": 9,
+    "steps": 31,
     "rowsWalked": 1,
     "discoveredNames": [
       "IDINT",
@@ -29,343 +20,32 @@
       "D0_1B",
       "D0201",
       "INFO1",
-      "P1_05",
-      "INFO2"
+      "P1_03",
+      "INFO2",
+      "P2_03",
+      "P3A03",
+      "P3B03",
+      "P3C03",
+      "P3D03",
+      "D0306",
+      "D00_4",
+      "D00_5",
+      "D0603",
+      "D0703",
+      "P4_03",
+      "D0903",
+      "D1003",
+      "Q1",
+      "Q2A",
+      "Q2B",
+      "Q3",
+      "Q4",
+      "ENDIV",
+      "INT99",
+      "ANMER"
     ],
-    "trailCsv": "explore-trail-10ad1dea.csv",
-    "trailJson": "explore-trail-10ad1dea.json",
-    "createdAt": "2026-07-10T09:34:23.773Z"
-  },
-  {
-    "id": "08a2fbec",
-    "status": "partial",
-    "added": [
-      "P1_05"
-    ],
-    "updated": [],
-    "conflicts": [],
-    "discovered": 9,
-    "blockers": [
-      {
-        "question": "P1_05",
-        "type": "Single",
-        "reason": "Question not in definition — configure Fixed answer or Split weights for 'P1_05' in Definition",
-        "screenshot": "explore-blocked-no-answer-P1_05.png"
-      }
-    ],
-    "mergeIssues": [],
-    "configurationGaps": [],
-    "steps": 8,
-    "rowsWalked": 1,
-    "discoveredNames": [
-      "IDINT",
-      "INT01",
-      "PRVCY",
-      "S1",
-      "D00_1",
-      "D0_1B",
-      "D0201",
-      "INFO1",
-      "P1_05"
-    ],
-    "trailCsv": "explore-trail-08a2fbec.csv",
-    "trailJson": "explore-trail-08a2fbec.json",
-    "createdAt": "2026-07-10T09:32:36.186Z"
-  },
-  {
-    "id": "daa9c3c1",
-    "status": "partial",
-    "added": [
-      "INFO1"
-    ],
-    "updated": [
-      "S1",
-      "D00_1",
-      "D0_1B"
-    ],
-    "conflicts": [],
-    "discovered": 8,
-    "blockers": [
-      {
-        "question": "INFO1",
-        "type": "Single",
-        "reason": "Question not in definition — configure Fixed answer or Split weights for 'INFO1' in Definition",
-        "screenshot": "explore-blocked-no-answer-INFO1.png"
-      }
-    ],
-    "mergeIssues": [],
-    "configurationGaps": [],
-    "steps": 7,
-    "rowsWalked": 1,
-    "discoveredNames": [
-      "IDINT",
-      "INT01",
-      "PRVCY",
-      "S1",
-      "D00_1",
-      "D0_1B",
-      "D0201",
-      "INFO1"
-    ],
-    "trailCsv": "explore-trail-daa9c3c1.csv",
-    "trailJson": "explore-trail-daa9c3c1.json",
-    "createdAt": "2026-07-10T09:32:01.344Z"
-  },
-  {
-    "id": "f72bd7c8",
-    "status": "partial",
-    "added": [],
-    "updated": [],
-    "conflicts": [],
-    "discovered": 6,
-    "blockers": [
-      {
-        "question": "D0_1B",
-        "type": "Multi",
-        "reason": "Checkbox option not found: D0_1B=02",
-        "screenshot": "explore-blocked-apply-D0_1B.png"
-      }
-    ],
-    "mergeIssues": [],
-    "configurationGaps": [],
-    "steps": 5,
-    "rowsWalked": 1,
-    "discoveredNames": [
-      "IDINT",
-      "INT01",
-      "PRVCY",
-      "S1",
-      "D00_1",
-      "D0_1B"
-    ],
-    "trailCsv": "explore-trail-f72bd7c8.csv",
-    "trailJson": "explore-trail-f72bd7c8.json",
-    "createdAt": "2026-07-10T09:26:54.877Z"
-  },
-  {
-    "id": "7919f203",
-    "status": "partial",
-    "added": [],
-    "updated": [],
-    "conflicts": [],
-    "discovered": 6,
-    "blockers": [
-      {
-        "question": "D0_1B",
-        "type": "Multi",
-        "reason": "Checkbox option not found: D0_1B=03",
-        "screenshot": "explore-blocked-apply-D0_1B.png"
-      }
-    ],
-    "mergeIssues": [],
-    "configurationGaps": [],
-    "steps": 5,
-    "rowsWalked": 1,
-    "discoveredNames": [
-      "IDINT",
-      "INT01",
-      "PRVCY",
-      "S1",
-      "D00_1",
-      "D0_1B"
-    ],
-    "trailCsv": "explore-trail-7919f203.csv",
-    "trailJson": "explore-trail-7919f203.json",
-    "createdAt": "2026-07-10T09:25:16.236Z"
-  },
-  {
-    "id": "e5684a8d",
-    "status": "partial",
-    "added": [
-      "D0201",
-      "D0202",
-      "D0203",
-      "D0204",
-      "D0205",
-      "D0207"
-    ],
-    "updated": [
-      "D0_1B"
-    ],
-    "conflicts": [],
-    "discovered": 7,
-    "blockers": [
-      {
-        "question": "D0201",
-        "type": "Grid",
-        "reason": "Question not in definition — configure Fixed answer or Split weights for 'D0201' in Definition Question not in definition — configure Fixed answer or Split weights for 'D0202' in Definition Question not in definition — configure Fixed answer or Split weights for 'D0203' in Definition Question not in definition — configure Fixed answer or Split weights for 'D0204' in Definition Question not in definition — configure Fixed answer or Split weights for 'D0205' in Definition Question not in definition — configure Fixed answer or Split weights for 'D0207' in Definition No configured answers for grid 'D0201'",
-        "screenshot": "explore-blocked-no-answer-D0201.png"
-      }
-    ],
-    "mergeIssues": [],
-    "configurationGaps": [],
-    "steps": 6,
-    "rowsWalked": 1,
-    "discoveredNames": [
-      "IDINT",
-      "INT01",
-      "PRVCY",
-      "S1",
-      "D00_1",
-      "D0_1B",
-      "D0201"
-    ],
-    "trailCsv": "explore-trail-e5684a8d.csv",
-    "trailJson": "explore-trail-e5684a8d.json",
-    "createdAt": "2026-07-10T09:23:05.135Z"
-  },
-  {
-    "id": "a6988075",
-    "status": "partial",
-    "added": [
-      "D0_1B"
-    ],
-    "updated": [],
-    "conflicts": [],
-    "discovered": 6,
-    "blockers": [
-      {
-        "question": "D0_1B",
-        "type": "Multi",
-        "reason": "Question not in definition — configure Fixed answer or Split weights for 'D0_1B' in Definition",
-        "screenshot": "explore-blocked-no-answer-D0_1B.png"
-      }
-    ],
-    "mergeIssues": [],
-    "configurationGaps": [],
-    "steps": 5,
-    "rowsWalked": 1,
-    "discoveredNames": [
-      "IDINT",
-      "INT01",
-      "PRVCY",
-      "S1",
-      "D00_1",
-      "D0_1B"
-    ],
-    "trailCsv": "explore-trail-a6988075.csv",
-    "trailJson": "explore-trail-a6988075.json",
-    "createdAt": "2026-07-10T09:21:49.740Z"
-  },
-  {
-    "id": "e927b7b7",
-    "status": "partial",
-    "added": [
-      "D00_1"
-    ],
-    "updated": [
-      "S1"
-    ],
-    "conflicts": [],
-    "discovered": 5,
-    "blockers": [
-      {
-        "question": "D00_1",
-        "type": "Single",
-        "reason": "Question not in definition — configure Fixed answer or Split weights for 'D00_1' in Definition",
-        "screenshot": "explore-blocked-no-answer-D00_1.png"
-      }
-    ],
-    "mergeIssues": [],
-    "configurationGaps": [],
-    "steps": 4,
-    "rowsWalked": 1,
-    "discoveredNames": [
-      "IDINT",
-      "INT01",
-      "PRVCY",
-      "S1",
-      "D00_1"
-    ],
-    "trailCsv": "explore-trail-e927b7b7.csv",
-    "trailJson": "explore-trail-e927b7b7.json",
-    "createdAt": "2026-07-10T09:20:59.114Z"
-  },
-  {
-    "id": "5ffcc741",
-    "status": "partial",
-    "added": [
-      "PRVCY"
-    ],
-    "updated": [],
-    "conflicts": [],
-    "discovered": 3,
-    "blockers": [
-      {
-        "question": "PRVCY",
-        "type": "Single",
-        "reason": "Question not in definition — configure Fixed answer or Split weights for 'PRVCY' in Definition",
-        "screenshot": "explore-blocked-no-answer-PRVCY.png"
-      }
-    ],
-    "mergeIssues": [],
-    "configurationGaps": [],
-    "steps": 2,
-    "rowsWalked": 1,
-    "discoveredNames": [
-      "IDINT",
-      "INT01",
-      "PRVCY"
-    ],
-    "trailCsv": "explore-trail-5ffcc741.csv",
-    "trailJson": "explore-trail-5ffcc741.json",
-    "createdAt": "2026-07-10T09:20:35.320Z"
-  },
-  {
-    "id": "62bf1e41",
-    "status": "partial",
-    "added": [
-      "INT01"
-    ],
-    "updated": [],
-    "conflicts": [],
-    "discovered": 2,
-    "blockers": [
-      {
-        "question": "INT01",
-        "type": "Single",
-        "reason": "Question not in definition — configure Fixed answer or Split weights for 'INT01' in Definition",
-        "screenshot": "explore-blocked-no-answer-INT01.png"
-      }
-    ],
-    "mergeIssues": [],
-    "configurationGaps": [],
-    "steps": 1,
-    "rowsWalked": 1,
-    "discoveredNames": [
-      "IDINT",
-      "INT01"
-    ],
-    "trailCsv": "explore-trail-62bf1e41.csv",
-    "trailJson": "explore-trail-62bf1e41.json",
-    "createdAt": "2026-07-10T09:20:16.009Z"
-  },
-  {
-    "id": "cc476eab",
-    "status": "partial",
-    "added": [
-      "IDINT"
-    ],
-    "updated": [],
-    "conflicts": [],
-    "discovered": 1,
-    "blockers": [
-      {
-        "question": "IDINT",
-        "type": "Open",
-        "reason": "Question not in definition — configure Fixed answer or Split weights for 'IDINT' in Definition",
-        "screenshot": "explore-blocked-no-answer-IDINT.png"
-      }
-    ],
-    "mergeIssues": [],
-    "configurationGaps": [],
-    "steps": 0,
-    "rowsWalked": 1,
-    "discoveredNames": [
-      "IDINT"
-    ],
-    "trailCsv": "explore-trail-cc476eab.csv",
-    "trailJson": "explore-trail-cc476eab.json",
-    "createdAt": "2026-07-10T09:19:53.535Z"
+    "trailCsv": "explore-trail-2ae56ebe.csv",
+    "trailJson": "explore-trail-2ae56ebe.json",
+    "createdAt": "2026-07-11T14:26:21.820Z"
   }
 ]

@@ -127,6 +127,8 @@ export interface ProjectBundle {
   }>;
   activeDataset: { id: string; name: string; rowCount: number } | null;
   data: Array<Record<string, unknown>>;
+  /** Full column catalog (variables.json ∪ all row keys) — not sparse row[0]. */
+  dataColumns?: string[];
   coverage: {
     questionsInDataNotInDefinition: string[];
     questionsInDefinitionNotInData: string[];
@@ -159,6 +161,26 @@ export interface ProjectBundle {
     discoveredNames?: string[];
     trailCsv?: string;
     trailJson?: string;
+    createdAt: string;
+  }>;
+  liveRuns: Array<{
+    id: string;
+    status: "completed" | "partial" | "failed" | "stopped";
+    workerProfileId: string;
+    workerProfileLabel: string;
+    interviewsCompleted: number;
+    interviewsFailed: number;
+    steps?: number;
+    lastRowIndex?: number | null;
+    lastQuest?: string;
+    lastQuestion?: string;
+    error?: string;
+    trailCsv?: string;
+    trailJson?: string;
+    trailWideCsv?: string;
+    logFile?: string;
+    startedAt: string;
+    finishedAt: string;
     createdAt: string;
   }>;
   workflow: ProjectWorkflowView;

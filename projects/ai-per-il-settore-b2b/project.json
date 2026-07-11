@@ -2,9 +2,9 @@
   "name": "AI per il settore B2B",
   "nvLoginUrl": "",
   "liveLink": "https://nv15.ffind.com/nv_rev2/login.php",
-  "testLink": "https://nv15.ffind.com/nv_rev2/test.php?token=cL5GLXnHYR",
+  "testLink": "https://nv15.ffind.com/nv_rev2/test.php?token=lu0OaIaMZm",
   "mode": "Freestyle",
-  "nvProjectId": "V1DB2606.IT261361",
+  "nvProjectId": "V1DB2606.PL261361",
   "nvGroup": "1",
   "questField": "quest",
   "loi": {
@@ -12,7 +12,7 @@
     "jitterPercent": 15
   },
   "workers": {
-    "maxConcurrent": 1
+    "maxConcurrent": 2
   },
   "savFieldMap": {
     "station": "ws",
@@ -25,5 +25,20 @@
   "exploreEndQuestions": [
     "ANMER"
   ],
-  "workerProfiles": []
+  "workerProfiles": [
+    {
+      "id": "caller-1",
+      "label": "Altin Ismajli",
+      "station": "63627",
+      "password": "FA8069CAympWU9eAbtGcbFkk2bv3OEetfnulx7W6",
+      "callerId": "3314"
+    },
+    {
+      "id": "caller-2",
+      "label": "Arlind Hasani",
+      "station": "65260",
+      "password": "FA8069CAympWU9eAbtGcbFkk2bv3OEetfnulx7W6",
+      "callerId": "3320"
+    }
+  ]
 }

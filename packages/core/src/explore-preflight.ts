@@ -56,12 +56,12 @@ export function buildExplorePreflight(input: {
 
   checks.push({
     id: "explore-answer-gaps",
-    label: "Answer policy configured for all known non-SAV questions",
-    ok: answerGaps.length === 0,
+    label: "Not-in-SAV questions soft-pass by default",
+    ok: true,
     detail:
-      answerGaps.length === 0
-        ? "Dataset-backed questions use the seed row; others have fixed answers or split weights"
-        : `${answerGaps.map((g) => g.question).join(", ")} — not in dataset, configure fixed answer or Split weights in Definition`,
+      input.questionsInDefinitionNotInData.length === 0
+        ? "All Definition questions are in the active SAV"
+        : `${input.questionsInDefinitionNotInData.length} not in this SAV — soft-pass unless Fixed/Split is set`,
   });
 
   return {

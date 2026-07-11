@@ -101,7 +101,16 @@ export function nvRadioSelector(questionName: string, code: string): string {
 
 export function nvCheckboxSelector(questionName: string, code: string): string {
   const name = questionName.toUpperCase();
-  return `input[type="checkbox"][name="${name}"][value="${code}"], input[type="CHECKBOX"][name="${name}"][value="${code}"]`;
+  // Spontaneous Multi uses per-code names: D0_1B:03 (same pattern as grid cells).
+  const colon = `${name}:${code}`;
+  return [
+    `input[type="checkbox"][name="${colon}"]`,
+    `input[type="CHECKBOX"][name="${colon}"]`,
+    `input[type="checkbox"][name="${colon}"][value="${code}"]`,
+    `input[type="CHECKBOX"][name="${colon}"][value="${code}"]`,
+    `input[type="checkbox"][name="${name}"][value="${code}"]`,
+    `input[type="CHECKBOX"][name="${name}"][value="${code}"]`,
+  ].join(", ");
 }
 
 export function nvRadioGroupSelector(questionName: string): string {

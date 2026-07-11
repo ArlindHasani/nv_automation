@@ -54,6 +54,7 @@ export function getProjectPaths(projectId: string) {
     dataJson: path.join(dir, "Data.json"),
     datasetsDir: path.join(dir, "datasets"),
     exploreRunsJson: path.join(dir, "explore-runs.json"),
+    liveRunsJson: path.join(dir, "live-runs.json"),
     interviewQueueJson: path.join(dir, "interview-queue.json"),
     runCache: path.join(dir, "run-cache"),
     exploreCache: path.join(dir, "explore-cache"),

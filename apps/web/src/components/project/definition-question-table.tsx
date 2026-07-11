@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -18,9 +17,11 @@ import {
   FilterGroup,
   FilterSegment,
 } from "@/components/project/filter-group";
+import { HelpTip, TipItem, TipText } from "@/components/project/help-tip";
 import { SearchInput, TableResultCount } from "@/components/project/table-toolbar";
 import {
   QuestionAnsweringCell,
+  isNotInSavAnswerConfigured,
   type QuestionAnsweringPatch,
 } from "./question-answering-cell";
 
@@ -41,6 +42,9 @@ interface DefinitionQuestion {
   AVG?: number | null;
 }
 
+type CoverageFilter = "all" | "in-sav" | "soft-pass" | "configured";
+type CoverageStatus = "in-sav" | "soft-pass" | "configured";
+
 function displayTypeLabel(q: DefinitionQuestion): string {
   if (q.Type === "Grid") {
     return q.GridMulti ? "Grid multi" : "Grid single";
@@ -51,11 +55,20 @@ function displayTypeLabel(q: DefinitionQuestion): string {
   return q.Type;
 }
 
-function sourceLabel(source: DefinitionQuestion["Source"]): string {
+function sourceLabel(source: DefinitionQuestion["Source"] | "unknown"): string {
   if (source === "sav") return "SAV";
   if (source === "explore") return "Explore";
   if (source === "manual") return "Manual";
+  if (source === "unknown") return "Unknown";
   return source ?? "";
+}
+
+function resolveCoverage(
+  question: DefinitionQuestion,
+  inSav: boolean,
+): CoverageStatus {
+  if (inSav) return "in-sav";
+  return isNotInSavAnswerConfigured(question) ? "configured" : "soft-pass";
 }
 
 function formatCodeEntries(
@@ -109,6 +122,28 @@ function OptionsCell({ question }: { question: DefinitionQuestion }) {
   );
 }
 
+function CoverageBadge({ status }: { status: CoverageStatus }) {
+  if (status === "in-sav") return null;
+  if (status === "configured") {
+    return (
+      <Badge
+        variant="outline"
+        className="h-5 border-emerald-500/30 bg-emerald-500/10 px-1.5 text-[10px] font-normal text-emerald-700 dark:text-emerald-300"
+      >
+        Configured
+      </Badge>
+    );
+  }
+  return (
+    <Badge
+      variant="outline"
+      className="h-5 border-sky-500/25 bg-sky-500/10 px-1.5 text-[10px] font-normal text-sky-700 dark:text-sky-300"
+    >
+      Soft-pass
+    </Badge>
+  );
+}
+
 interface DefinitionQuestionTableProps {
   questions: DefinitionQuestion[];
   projectId: string;
@@ -125,19 +160,33 @@ export function DefinitionQuestionTable({
   const [saving, setSaving] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [sourceFilter, setSourceFilter] = useState<string>("all");
-  const [datasetFilter, setDatasetFilter] = useState<
-    "all" | "in-dataset" | "not-in-dataset"
-  >("all");
+  const [coverageFilter, setCoverageFilter] = useState<CoverageFilter>("all");
 
-  const filteredQuestions = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    return questions.filter((question) => {
-      if (sourceFilter !== "all" && question.Source !== sourceFilter) return false;
-      const inDataset = questionsInDataset
+  const indexed = useMemo(() => {
+    const coverageCounts: Record<CoverageStatus, number> = {
+      "in-sav": 0,
+      "soft-pass": 0,
+      configured: 0,
+    };
+    const sourceCounts: Record<string, number> = {};
+    const rows = questions.map((question) => {
+      const inSav = questionsInDataset
         ? questionsInDataset.has(question.Name.toUpperCase())
         : true;
-      if (datasetFilter === "in-dataset" && !inDataset) return false;
-      if (datasetFilter === "not-in-dataset" && inDataset) return false;
+      const coverage = resolveCoverage(question, inSav);
+      coverageCounts[coverage] += 1;
+      const sourceKey = question.Source ?? "unknown";
+      sourceCounts[sourceKey] = (sourceCounts[sourceKey] ?? 0) + 1;
+      return { question, inSav, coverage, sourceKey };
+    });
+    return { rows, coverageCounts, sourceCounts };
+  }, [questions, questionsInDataset]);
+
+  const filteredRows = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return indexed.rows.filter(({ question, coverage, sourceKey }) => {
+      if (coverageFilter !== "all" && coverage !== coverageFilter) return false;
+      if (sourceFilter !== "all" && sourceKey !== sourceFilter) return false;
       if (!q) return true;
       const haystack = [
         question.Name,
@@ -145,6 +194,7 @@ export function DefinitionQuestionTable({
         question.Method,
         question.Source ?? "",
         question.GridScreen ?? "",
+        coverage,
         ...Object.keys(question.Split),
         ...Object.values(question.Labels ?? {}),
       ]
@@ -152,16 +202,7 @@ export function DefinitionQuestionTable({
         .toLowerCase();
       return haystack.includes(q);
     });
-  }, [questions, search, sourceFilter, datasetFilter, questionsInDataset]);
-
-  const sourceCounts = useMemo(() => {
-    const counts: Record<string, number> = {};
-    for (const question of questions) {
-      const key = question.Source ?? "unknown";
-      counts[key] = (counts[key] ?? 0) + 1;
-    }
-    return counts;
-  }, [questions]);
+  }, [indexed.rows, search, sourceFilter, coverageFilter]);
 
   async function saveField(
     name: string,
@@ -189,55 +230,105 @@ export function DefinitionQuestionTable({
     }
   }
 
-  const inDatasetCount = questions.filter((q) =>
-    questionsInDataset?.has(q.Name.toUpperCase()),
-  ).length;
-  const notInDatasetCount = questions.length - inDatasetCount;
+  const { coverageCounts, sourceCounts } = indexed;
+  const sourceOrder = ["sav", "explore", "manual", "unknown"] as const;
 
   return (
     <div className="space-y-3">
       <div className="space-y-2 rounded-xl border bg-muted/20 p-3">
         <FilterBar>
-        <SearchInput
-          value={search}
-          onChange={setSearch}
-          placeholder="Search questions, codes, labels…"
-          className="flex-1 sm:max-w-xs"
-        />
-        <FilterGroup label="Dataset" layout="inline">
-          <FilterSegment
-            value={datasetFilter}
-            onChange={(value) =>
-              setDatasetFilter(value as "all" | "in-dataset" | "not-in-dataset")
+          <SearchInput
+            value={search}
+            onChange={setSearch}
+            placeholder="Search questions, codes, labels…"
+            className="flex-1 sm:max-w-xs"
+          />
+          <FilterGroup
+            label="Coverage"
+            layout="inline"
+            help={
+              <div className="space-y-2">
+                <TipText>
+                  Compared to the active SAV file — Definition keeps a union of
+                  all questions seen so far.
+                </TipText>
+                <TipItem title="In SAV">
+                  Column exists in the active dataset; Maintain can use row
+                  values.
+                </TipItem>
+                <TipItem title="Soft-pass">
+                  Not in this SAV and no Fixed/Split set. Explore/live leave it
+                  unanswered (routing / other countries).
+                </TipItem>
+                <TipItem title="Configured">
+                  Not in this SAV, but you set a Fixed answer or Split weights
+                  for when the screen does appear.
+                </TipItem>
+              </div>
             }
-            options={[
-              { value: "all", label: "All", count: questions.length },
-              { value: "in-dataset", label: "In dataset", count: inDatasetCount },
-              {
-                value: "not-in-dataset",
-                label: "Not in dataset",
-                count: notInDatasetCount,
-              },
-            ]}
-          />
-        </FilterGroup>
-        <FilterGroup label="Source" layout="inline">
-          <FilterSegment
-            value={sourceFilter}
-            onChange={setSourceFilter}
-            options={[
-              { value: "all", label: "All", count: questions.length },
-              ...Object.entries(sourceCounts).map(([source, count]) => ({
-                value: source,
-                label: sourceLabel(source as DefinitionQuestion["Source"]),
-                count,
-              })),
-            ]}
-          />
-        </FilterGroup>
+          >
+            <FilterSegment
+              value={coverageFilter}
+              onChange={(value) => setCoverageFilter(value as CoverageFilter)}
+              options={[
+                { value: "all", label: "All", count: questions.length },
+                {
+                  value: "in-sav",
+                  label: "In SAV",
+                  count: coverageCounts["in-sav"],
+                },
+                {
+                  value: "soft-pass",
+                  label: "Soft-pass",
+                  count: coverageCounts["soft-pass"],
+                },
+                {
+                  value: "configured",
+                  label: "Configured",
+                  count: coverageCounts.configured,
+                },
+              ]}
+            />
+          </FilterGroup>
+          <FilterGroup
+            label="Source"
+            layout="inline"
+            help={
+              <div className="space-y-2">
+                <TipText>
+                  Where this question entry was last populated from. Definition
+                  merges everything — nothing is deleted when you switch SAVs.
+                </TipText>
+                <TipItem title="SAV">
+                  Added or updated from an imported dataset.
+                </TipItem>
+                <TipItem title="Explore">
+                  Discovered while walking the test link.
+                </TipItem>
+                <TipItem title="Manual">
+                  You edited Fixed, Split, Method, or related fields.
+                </TipItem>
+              </div>
+            }
+          >
+            <FilterSegment
+              value={sourceFilter}
+              onChange={setSourceFilter}
+              options={[
+                { value: "all", label: "All", count: questions.length },
+                ...sourceOrder
+                  .filter((source) => (sourceCounts[source] ?? 0) > 0)
+                  .map((source) => ({
+                    value: source,
+                    label: sourceLabel(source),
+                    count: sourceCounts[source] ?? 0,
+                  })),
+              ]}
+            />
+          </FilterGroup>
         </FilterBar>
         <TableResultCount
-          filtered={filteredQuestions.length}
+          filtered={filteredRows.length}
           total={questions.length}
           noun="questions"
         />
@@ -246,97 +337,148 @@ export function DefinitionQuestionTable({
         <TableHeader>
           <TableRow className="hover:bg-transparent">
             <TableHead className="h-8 w-[148px] text-[10px] font-semibold tracking-wide text-muted-foreground uppercase">
-              Question
+              <span className="inline-flex items-center gap-1">
+                Question
+                <HelpTip
+                  side="bottom"
+                  content={
+                    <div className="space-y-2">
+                      <TipText>
+                        Question name as it appears in NV (QLABEL). Badges show
+                        type, source, and coverage.
+                      </TipText>
+                      <TipItem title="Grid rows">
+                        Indent under a screen name means this is a statement row
+                        on a grid.
+                      </TipItem>
+                    </div>
+                  }
+                />
+              </span>
             </TableHead>
             <TableHead className="h-8 min-w-[220px] text-[10px] font-semibold tracking-wide text-muted-foreground uppercase">
-              Options
+              <span className="inline-flex items-center gap-1">
+                Options
+                <HelpTip
+                  side="bottom"
+                  content={
+                    <TipText>
+                      Answer codes and labels known for this question (from SAV
+                      value labels or explore). Split weights show % when Method
+                      is Split.
+                    </TipText>
+                  }
+                />
+              </span>
             </TableHead>
             <TableHead className="h-8 w-[248px] text-[10px] font-semibold tracking-wide text-muted-foreground uppercase">
-              Answering
+              <span className="inline-flex items-center gap-1">
+                Answering
+                <HelpTip
+                  side="bottom"
+                  content={
+                    <div className="space-y-2">
+                      <TipItem title="In SAV · Maintain">
+                        Use each interview row&apos;s value from the dataset
+                        (explore uses the seed row).
+                      </TipItem>
+                      <TipItem title="In SAV · Split">
+                        Ignore the row value and sample from weighted codes.
+                      </TipItem>
+                      <TipItem title="Not in SAV · Soft-pass">
+                        Default — leave unanswered if routing skips this screen.
+                      </TipItem>
+                      <TipItem title="Not in SAV · Fixed / Split">
+                        Opt in when this question will appear and needs an
+                        answer.
+                      </TipItem>
+                    </div>
+                  }
+                />
+              </span>
             </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          {filteredQuestions.map((q, index) => (
-            <TableRow
-              key={`${q.Name}-${index}`}
-              className={cn(
-                "align-top [&>td]:py-3",
-                saving === q.Name && "opacity-70",
-              )}
-            >
-              <TableCell className="whitespace-normal">
-                <div className="space-y-1.5">
-                  <div>
-                    <div
-                      className="font-mono text-xs font-semibold"
-                      title={q.Name}
-                    >
-                      {q.Name}
-                    </div>
-                    {q.GridScreen && (
-                      <div
-                        className="mt-0.5 text-[10px] text-muted-foreground"
-                        title={`Screen ${q.GridScreen}`}
-                      >
-                        ↳ {q.GridScreen}
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex flex-wrap gap-1">
-                    <Badge
-                      variant="outline"
-                      className="h-5 text-[10px] font-normal"
-                    >
-                      {displayTypeLabel(q)}
-                    </Badge>
-                    {q.Source && (
-                      <Badge
-                        variant={
-                          q.Source === "explore"
-                            ? "default"
-                            : q.Source === "manual"
-                              ? "outline"
-                              : "secondary"
-                        }
-                        className={cn(
-                          "h-5 text-[10px] font-normal",
-                          q.Source === "explore" && "bg-primary/10 text-primary",
-                        )}
-                      >
-                        {sourceLabel(q.Source)}
-                      </Badge>
-                    )}
-                    {questionsInDataset &&
-                      !questionsInDataset.has(q.Name.toUpperCase()) && (
-                        <Badge
-                          variant="secondary"
-                          className="h-5 gap-1 border border-amber-500/20 bg-amber-500/10 px-1.5 text-[10px] font-normal text-amber-800 dark:text-amber-300"
-                        >
-                          <AlertTriangle className="size-2.5 opacity-80" aria-hidden />
-                          Not in dataset
-                        </Badge>
-                      )}
-                  </div>
-                </div>
-              </TableCell>
-              <TableCell className="whitespace-normal">
-                <OptionsCell question={q} />
-              </TableCell>
-              <TableCell className="whitespace-normal">
-                <QuestionAnsweringCell
-                  question={q}
-                  inDataset={
-                    questionsInDataset
-                      ? questionsInDataset.has(q.Name.toUpperCase())
-                      : true
-                  }
-                  disabled={saving === q.Name}
-                  onSave={(patch) => saveField(q.Name, patch)}
-                />
+          {filteredRows.length === 0 ? (
+            <TableRow className="hover:bg-transparent">
+              <TableCell
+                colSpan={3}
+                className="py-10 text-center text-sm text-muted-foreground"
+              >
+                No questions match these filters
               </TableCell>
             </TableRow>
-          ))}
+          ) : (
+            filteredRows.map(({ question: q, inSav, coverage }, index) => (
+              <TableRow
+                key={`${q.Name}-${index}`}
+                className={cn(
+                  "align-top [&>td]:py-3",
+                  saving === q.Name && "opacity-70",
+                )}
+              >
+                <TableCell className="whitespace-normal">
+                  <div className="space-y-1.5">
+                    <div>
+                      <div
+                        className="font-mono text-xs font-semibold"
+                        title={q.Name}
+                      >
+                        {q.Name}
+                      </div>
+                      {q.GridScreen && (
+                        <div
+                          className="mt-0.5 text-[10px] text-muted-foreground"
+                          title={`Screen ${q.GridScreen}`}
+                        >
+                          ↳ {q.GridScreen}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-1">
+                      <Badge
+                        variant="outline"
+                        className="h-5 text-[10px] font-normal"
+                      >
+                        {displayTypeLabel(q)}
+                      </Badge>
+                      {q.Source && (
+                        <Badge
+                          variant={
+                            q.Source === "explore"
+                              ? "default"
+                              : q.Source === "manual"
+                                ? "outline"
+                                : "secondary"
+                          }
+                          className={cn(
+                            "h-5 text-[10px] font-normal",
+                            q.Source === "explore" &&
+                              "bg-primary/10 text-primary",
+                          )}
+                        >
+                          {sourceLabel(q.Source)}
+                        </Badge>
+                      )}
+                      <CoverageBadge status={coverage} />
+                    </div>
+                  </div>
+                </TableCell>
+                <TableCell className="whitespace-normal">
+                  <OptionsCell question={q} />
+                </TableCell>
+                <TableCell className="whitespace-normal">
+                  <QuestionAnsweringCell
+                    question={q}
+                    inDataset={inSav}
+                    disabled={saving === q.Name}
+                    onSave={(patch) => saveField(q.Name, patch)}
+                  />
+                </TableCell>
+              </TableRow>
+            ))
+          )}
         </TableBody>
       </Table>
     </div>

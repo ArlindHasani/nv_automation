@@ -276,18 +276,49 @@ async function collectCheckboxesViaDom(
   page: Page,
   name: string,
 ): Promise<ClassifiedQuestion | null> {
+  // Use a real function — Playwright 1.6x does not invoke string-form
+  // functions with args (returns undefined), which made Multi questions with
+  // >8 options (e.g. D0_1B) fall through to Open via the Other textarea.
   const result = await page.evaluate((questionName) => {
+    const META = new Set([
+      "MAXANSWER",
+      "CODEWIDTH",
+      "O",
+      "OTHER",
+      "TEXT",
+    ]);
     const inputs = Array.from(
       document.querySelectorAll(
-        'form#form input[type="checkbox"], form#form input[type="CHECKBOX"]',
+        'form#form input[type="checkbox"], form#form input[type="CHECKBOX"], form#form .funkyradio input',
       ),
     ) as HTMLInputElement[];
     if (inputs.length === 0) return null;
 
+    const q = String(questionName).toUpperCase();
     const codes: string[] = [];
     const labels: Record<string, string> = {};
+    let matchedName = false;
 
     for (const input of inputs) {
+      const type = String(input.type || "").toLowerCase();
+      if (type && type !== "checkbox") continue;
+
+      const inputName = String(input.name || "").toUpperCase();
+      if (!inputName) continue;
+
+      const colon = inputName.indexOf(":");
+      if (colon > 0) {
+        const prefix = inputName.slice(0, colon);
+        const suffix = inputName.slice(colon + 1);
+        if (prefix !== q) continue;
+        if (META.has(suffix)) continue;
+        matchedName = true;
+      } else if (inputName === q) {
+        matchedName = true;
+      } else {
+        continue;
+      }
+
       const value = input.value || String(codes.length + 1);
       const labelEl = input.id
         ? document.querySelector(`label[for="${input.id}"]`)
@@ -299,6 +330,8 @@ async function collectCheckboxesViaDom(
       }
     }
 
+    if (codes.length === 0) return null;
+    if (!matchedName && q && q !== "UNKNOWN") return null;
     return { codes, labels };
   }, name);
 
@@ -379,7 +412,10 @@ async function collectCheckboxCodes(
 
   const boxes = page.locator(NV_SELECTORS.interview.checkbox);
   const count = await boxes.count();
-  if (count === 0) return null;
+  if (count === 0) {
+    // Funky Multi may only match via .funkyradio / name prefix.
+    return collectCheckboxesViaDom(page, name);
+  }
   if (count > 8) {
     return collectCheckboxesViaDom(page, name);
   }
@@ -421,6 +457,13 @@ async function collectNvNamedOpen(
 
 async function collectOpenQuestion(page: Page): Promise<ClassifiedQuestion | null> {
   const name = await extractQuestionName(page);
+
+  // Spontaneous Multi often embeds an Other textarea (QLABEL:O) — never treat
+  // those screens as Open when coded funkyradio/checkbox options exist.
+  if (name) {
+    const codedMulti = await collectCheckboxesViaDom(page, name);
+    if (codedMulti) return null;
+  }
 
   if (name) {
     const named = await collectNvNamedOpen(page, name);

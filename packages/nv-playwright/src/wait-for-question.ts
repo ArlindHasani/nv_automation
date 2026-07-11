@@ -7,6 +7,8 @@ import {
 
 export interface WaitForQuestionOptions {
   timeoutMs?: number;
+  /** Extra settle after answer surface appears before classify (default 250). */
+  settleMs?: number;
   log?: (message: string) => void;
   shouldAbort?: () => boolean;
 }
@@ -50,6 +52,7 @@ export async function waitForNvQuestionReady(
   options: WaitForQuestionOptions = {},
 ): Promise<ClassifiedQuestion | null> {
   const { timeoutMs = 45_000, log } = options;
+  const settleMs = options.settleMs ?? 250;
   const start = Date.now();
   let lastHeartbeat = start;
 
@@ -65,7 +68,9 @@ export async function waitForNvQuestionReady(
     if (surfaceReady) {
       const label = await extractNvQuestionLabel(page);
       if (label) {
-        await page.waitForTimeout(600);
+        if (settleMs > 0) {
+          await page.waitForTimeout(settleMs);
+        }
         const classified = await classifyCurrentQuestion(page);
         if (classified) {
           log?.(`Question ready: ${classified.name} (${classified.type})`);
@@ -81,7 +86,7 @@ export async function waitForNvQuestionReady(
       log?.(`Still waiting for question UI (${Math.round(elapsed / 1000)}s)…`);
     }
 
-    await page.waitForTimeout(350);
+    await page.waitForTimeout(200);
   }
 
   log?.("Timed out waiting for question to load");
@@ -109,19 +114,21 @@ export async function waitForNvQuestionChange(
     const label = await extractNvQuestionLabel(page);
     if (label && label !== prev) {
       return waitForNvQuestionReady(page, {
-        timeoutMs: Math.max(5000, timeoutMs - (Date.now() - start)),
+        timeoutMs: Math.max(4000, timeoutMs - (Date.now() - start)),
+        settleMs: options.settleMs ?? 200,
         log,
         shouldAbort: options.shouldAbort,
       });
     }
 
-    await page.waitForTimeout(350);
+    await page.waitForTimeout(200);
   }
 
   const label = await extractNvQuestionLabel(page);
   if (label && label !== prev) {
     return waitForNvQuestionReady(page, {
-      timeoutMs: 5000,
+      timeoutMs: 4000,
+      settleMs: options.settleMs ?? 200,
       log,
       shouldAbort: options.shouldAbort,
     });

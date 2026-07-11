@@ -18,6 +18,6 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const stopped = getWorkerManager().stop(id);
+  const stopped = await getWorkerManager().stop(id);
   return NextResponse.json({ stopped });
 }

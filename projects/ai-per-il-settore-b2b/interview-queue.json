@@ -1,96 +1,72 @@
 {
   "version": 1,
-  "rowCount": 30,
+  "rowCount": 6,
   "rows": {
     "0": {
-      "status": "pending"
+      "status": "completed",
+      "error": null,
+      "quest": "0000004958",
+      "lastQuestion": "ANMER",
+      "workerProfileId": "caller-1",
+      "sessionId": "live-caller-1-1783778675034",
+      "startedAt": "2026-07-11T14:04:58.916Z",
+      "lastHeartbeatAt": "2026-07-11T14:05:34.269Z",
+      "completedAt": "2026-07-11T14:05:34.874Z"
     },
     "1": {
-      "status": "pending"
+      "status": "completed",
+      "error": null,
+      "workerProfileId": "caller-1",
+      "sessionId": "live-caller-1-1783778845876",
+      "startedAt": "2026-07-11T14:07:41.094Z",
+      "lastHeartbeatAt": "2026-07-11T14:09:30.365Z",
+      "lastQuestion": "ANMER",
+      "quest": "0000004959",
+      "completedAt": "2026-07-11T14:09:31.461Z"
     },
     "2": {
-      "status": "pending"
+      "status": "completed",
+      "error": null,
+      "workerProfileId": "caller-2",
+      "sessionId": "live-caller-2-1783778845819",
+      "startedAt": "2026-07-11T14:07:41.300Z",
+      "lastHeartbeatAt": "2026-07-11T14:08:43.011Z",
+      "lastQuestion": "ANMER",
+      "quest": "0000004960",
+      "completedAt": "2026-07-11T14:08:44.163Z"
     },
     "3": {
-      "status": "pending"
+      "status": "completed",
+      "workerProfileId": "caller-2",
+      "sessionId": "live-caller-2-1783778845819",
+      "startedAt": "2026-07-11T14:08:45.015Z",
+      "lastHeartbeatAt": "2026-07-11T14:10:15.574Z",
+      "error": null,
+      "lastQuestion": "ANMER",
+      "quest": "0000004961",
+      "completedAt": "2026-07-11T14:10:16.169Z"
     },
     "4": {
-      "status": "pending"
+      "status": "completed",
+      "workerProfileId": "caller-1",
+      "sessionId": "live-caller-1-1783778845876",
+      "startedAt": "2026-07-11T14:09:31.621Z",
+      "lastHeartbeatAt": "2026-07-11T14:11:53.127Z",
+      "error": null,
+      "lastQuestion": "ANMER",
+      "quest": "0000004962",
+      "completedAt": "2026-07-11T14:11:53.731Z"
     },
     "5": {
-      "status": "pending"
-    },
-    "6": {
-      "status": "pending"
-    },
-    "7": {
-      "status": "pending"
-    },
-    "8": {
-      "status": "pending"
-    },
-    "9": {
-      "status": "pending"
-    },
-    "10": {
-      "status": "pending"
-    },
-    "11": {
-      "status": "pending"
-    },
-    "12": {
-      "status": "pending"
-    },
-    "13": {
-      "status": "pending"
-    },
-    "14": {
-      "status": "pending"
-    },
-    "15": {
-      "status": "pending"
-    },
-    "16": {
-      "status": "pending"
-    },
-    "17": {
-      "status": "pending"
-    },
-    "18": {
-      "status": "pending"
-    },
-    "19": {
-      "status": "pending"
-    },
-    "20": {
-      "status": "pending"
-    },
-    "21": {
-      "status": "pending"
-    },
-    "22": {
-      "status": "pending"
-    },
-    "23": {
-      "status": "pending"
-    },
-    "24": {
-      "status": "pending"
-    },
-    "25": {
-      "status": "pending"
-    },
-    "26": {
-      "status": "pending"
-    },
-    "27": {
-      "status": "pending"
-    },
-    "28": {
-      "status": "pending"
-    },
-    "29": {
-      "status": "pending"
+      "status": "completed",
+      "workerProfileId": "caller-2",
+      "sessionId": "live-caller-2-1783778845819",
+      "startedAt": "2026-07-11T14:10:16.184Z",
+      "lastHeartbeatAt": "2026-07-11T14:11:39.413Z",
+      "error": null,
+      "lastQuestion": "ANMER",
+      "quest": "0000004963",
+      "completedAt": "2026-07-11T14:11:40.028Z"
     }
   }
 }

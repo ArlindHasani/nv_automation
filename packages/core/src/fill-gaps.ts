@@ -1,5 +1,6 @@
 import type { Definition, InterviewData, Question } from "./schemas.js";
 import {
+  collectDatasetColumns,
   groupSavColumnsByQuestion,
   inferQuestionTypeFromSav,
   isMetadataQuestionName,
@@ -111,8 +112,7 @@ export function fillDefinitionGapsFromData(
   data: InterviewData,
   variables: SavVariablesMeta = {},
 ): { definition: Definition; added: string[]; updated: string[] } {
-  const columns =
-    data.length > 0 ? Object.keys(data[0] as Record<string, unknown>) : [];
+  const columns = collectDatasetColumns(data, variables);
   const grouped = groupSavColumnsByQuestion(columns);
   const existing = new Map(
     definition.Questions.map((q) => [q.Name.toUpperCase(), q]),

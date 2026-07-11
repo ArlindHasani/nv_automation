@@ -8,5 +8,6 @@ export * from "./NvExploreRunner.js";
 export * from "./NvLiveWorkerRunner.js";
 export * from "./NvInterviewRunner.js";
 export * from "./explore-trail-export.js";
+export * from "./live-trail-export.js";
 export * from "./nv-session.js";
 export * from "./pages/NvHomePage.js";

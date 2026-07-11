@@ -58,6 +58,16 @@ function isCodedPolicyConfigured(
   return fixed.length > 0;
 }
 
+/** Whether a not-in-SAV question has Fixed/Split set (vs soft-pass). */
+export function isNotInSavAnswerConfigured(
+  question: DefinitionQuestion,
+): boolean {
+  const fixed = getFixedAnswer(question);
+  if (question.Type === "Open") return fixed.length > 0;
+  const codes = Object.keys(question.Split).filter((k) => k !== "");
+  return isCodedPolicyConfigured(question, codes);
+}
+
 function initialPolicyMode(
   question: DefinitionQuestion,
   codes: string[],
@@ -220,30 +230,29 @@ function NotInDatasetShell({
   children: ReactNode;
 }) {
   return (
-    <div className="rounded-lg border border-dashed border-amber-500/25 bg-muted/25 p-2.5 space-y-2.5">
+    <div className="rounded-lg border border-dashed border-border/70 bg-muted/25 p-2.5 space-y-2.5">
       <div className="flex items-start gap-2">
-        <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-md bg-amber-500/15 text-amber-600 dark:text-amber-400">
+        <span className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
           <AlertTriangle className="size-3" aria-hidden />
         </span>
         <div className="min-w-0 flex-1 space-y-0.5">
           <div className="flex flex-wrap items-center gap-1.5">
             <p className="text-[11px] font-medium leading-snug text-foreground/90">
-              Not in active dataset
+              Not in this SAV
             </p>
-            {configured === false && (
+            {configured ? (
               <Badge
                 variant="outline"
-                className="h-4 border-amber-500/30 bg-amber-500/10 px-1 text-[9px] font-medium text-amber-700 dark:text-amber-300"
-              >
-                Required
-              </Badge>
-            )}
-            {configured === true && (
-              <Badge
-                variant="outline"
-                className="h-4 border-border/80 px-1 text-[9px] font-medium text-muted-foreground"
+                className="h-4 border-emerald-500/30 bg-emerald-500/10 px-1 text-[9px] font-medium text-emerald-700 dark:text-emerald-300"
               >
                 Configured
+              </Badge>
+            ) : (
+              <Badge
+                variant="outline"
+                className="h-4 border-sky-500/25 bg-sky-500/10 px-1 text-[9px] font-medium text-sky-700 dark:text-sky-300"
+              >
+                Soft-pass
               </Badge>
             )}
           </div>
@@ -276,12 +285,12 @@ function NotInDatasetCodedPolicy({
   const [policyMode, setPolicyMode] = useState<"fixed" | "split">(() =>
     initialPolicyMode(question, codes),
   );
-  const configured = isCodedPolicyConfigured(question, codes);
+  const configured = isNotInSavAnswerConfigured(question);
 
   return (
     <NotInDatasetShell
       configured={configured}
-      hint="Choose a fixed code or split distribution for explore and live runs."
+      hint="Soft-pass by default — set a fixed code or split if this screen will appear for this wave."
     >
       <Tabs
         value={policyMode}
@@ -461,15 +470,15 @@ export function QuestionAnsweringCell({
 
   if (!inDataset) {
     if (question.Type === "Open") {
-      const openConfigured = fixed.length > 0;
+      const openConfigured = isNotInSavAnswerConfigured(question);
       return (
         <NotInDatasetShell
           configured={openConfigured}
-          hint="Row values aren't available — enter fixed open text for explore and live runs."
+          hint="Leave blank / Next with no text by default. Set fixed open text only if this screen needs a value."
         >
           <Input
             className="h-7 border-border/80 bg-background text-xs"
-            placeholder="Enter fixed open text…"
+            placeholder="Leave empty, or set fixed open text…"
             defaultValue={fixed}
             disabled={disabled}
             onBlur={(e) => {
