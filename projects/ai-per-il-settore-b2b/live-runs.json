@@ -1,5 +1,24 @@
 [
   {
+    "id": "live-caller-1-1784121572165",
+    "status": "completed",
+    "workerProfileId": "caller-1",
+    "workerProfileLabel": "Lirim Koshi",
+    "interviewsCompleted": 2,
+    "interviewsFailed": 0,
+    "steps": 50,
+    "lastRowIndex": 3,
+    "lastQuest": "0000004974",
+    "lastQuestion": "ANMER",
+    "trailCsv": "live-trail-live-caller-1-1784121572165.csv",
+    "trailJson": "live-trail-live-caller-1-1784121572165.json",
+    "trailWideCsv": "live-trail-wide-live-caller-1-1784121572165.csv",
+    "logFile": "live-caller-1-1784121572165-worker.log",
+    "startedAt": "2026-07-15T13:19:34.562Z",
+    "finishedAt": "2026-07-15T13:52:42.143Z",
+    "createdAt": "2026-07-15T13:52:42.143Z"
+  },
+  {
     "id": "live-caller-1-1784120988588",
     "status": "stopped",
     "workerProfileId": "caller-1",

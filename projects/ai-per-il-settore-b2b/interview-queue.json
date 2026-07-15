@@ -25,15 +25,28 @@
       "completedAt": "2026-07-15T13:07:13.419Z"
     },
     "2": {
-      "status": "pending",
-      "error": "Stopped by user",
+      "status": "completed",
+      "error": null,
+      "lastQuestion": "ANMER",
       "assignedProfileId": "caller-1",
-      "lastQuestion": "P1_01"
+      "workerProfileId": "caller-1",
+      "sessionId": "live-caller-1-1784121572165",
+      "startedAt": "2026-07-15T13:19:43.080Z",
+      "lastHeartbeatAt": "2026-07-15T13:34:17.522Z",
+      "quest": "0000004973",
+      "completedAt": "2026-07-15T13:34:19.500Z"
     },
     "3": {
-      "status": "pending",
+      "status": "completed",
       "error": null,
-      "assignedProfileId": "caller-1"
+      "assignedProfileId": "caller-1",
+      "workerProfileId": "caller-1",
+      "sessionId": "live-caller-1-1784121572165",
+      "startedAt": "2026-07-15T13:34:19.509Z",
+      "lastHeartbeatAt": "2026-07-15T13:52:38.281Z",
+      "lastQuestion": "ANMER",
+      "quest": "0000004974",
+      "completedAt": "2026-07-15T13:52:40.261Z"
     },
     "4": {
       "status": "skipped"
