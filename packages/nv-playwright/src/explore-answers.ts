@@ -3,6 +3,7 @@ import {
   collectDatasetColumns,
   collectMentionCodesFromRow,
   findQuestion,
+  getFixedAnswer,
   groupSavColumnsByQuestion,
   isQuestionInDataset,
   resolveQuestionAnswer,
@@ -10,7 +11,10 @@ import {
   type Definition,
   type PolicyResolvedAnswer,
 } from "@nv/core";
-import { normalizeGridStatementCodes } from "./nv-input-actions.js";
+import {
+  normalizeGridStatementCodes,
+  resolveGridColumnCode,
+} from "./nv-input-actions.js";
 
 export type ExploreAnswerSource =
   | "fixed"
@@ -61,19 +65,32 @@ function toExploreAnswer(result: PolicyResolvedAnswer): ExploreResolvedAnswer {
   };
 }
 
-/** Pad Multi answers up to Definition Min using other on-screen codes. */
+/**
+ * Pad Multi answers up to Definition Min using other on-screen codes.
+ * Also clamp to Max. NV rejects under-Min / over-Max regardless of source.
+ */
 export function ensureMultiMinCodes(
   codes: string[],
   classified: ClassifiedQuestion,
   min: number,
+  _source?: ExploreAnswerSource,
+  max?: number,
 ): string[] {
-  if (classified.type !== "Multi" || min <= 0 || codes.length >= min) {
-    return codes;
+  if (classified.type !== "Multi") return codes;
+
+  let out = [...codes];
+  const maxSel = max && max > 0 ? max : Number.POSITIVE_INFINITY;
+  if (out.length > maxSel) {
+    out = out.slice(0, maxSel);
   }
-  const out = [...codes];
+
+  if (min <= 0 || out.length >= min) {
+    return out;
+  }
+
   const skip = new Set(["", "99", "98", "97", ...out]);
   for (const code of classified.codes) {
-    if (out.length >= min) break;
+    if (out.length >= min || out.length >= maxSel) break;
     if (skip.has(code)) continue;
     out.push(code);
     skip.add(code);
@@ -118,6 +135,36 @@ export function resolveQuestionInDataset(
 
   // No dataset signal: unknown questions are not-in-SAV (soft-pass); known ones stay in-SAV.
   return Boolean(question);
+}
+
+/** Prefer a usable scale/code when a visible grid row has no SAV/split answer. */
+function fallbackCodesForGridStatement(
+  statementName: string,
+  availableCodes: string[],
+  context: ExploreAnswerContext,
+  gridMulti: boolean,
+): string[] {
+  const question = context.definition
+    ? findQuestion(context.definition, statementName)
+    : undefined;
+  const fixed = question ? getFixedAnswer(question).trim() : "";
+  if (fixed) {
+    return normalizeGridStatementCodes([fixed], availableCodes);
+  }
+
+  const preferred = ["05", "5", "04", "4", "03", "3", "02", "2", "01", "1"];
+  for (const code of preferred) {
+    const resolved = resolveGridColumnCode(code, availableCodes);
+    if (availableCodes.includes(resolved) || availableCodes.includes(code)) {
+      return [resolved];
+    }
+  }
+
+  const first = availableCodes.find(
+    (c) => c && !["99", "98", "97", ""].includes(c),
+  );
+  if (!first) return [];
+  return gridMulti ? [first] : [first];
 }
 
 function resolveForClassified(
@@ -239,6 +286,24 @@ export function resolveExploreAnswer(
           policy = sub.policy;
         }
       }
+    }
+
+    // Visible grid rows must each have an answer — NV validates every piped brand
+    // row. Soft-pass / missing SAV must not leave blanks on screen.
+    for (const stmt of classified.gridStatements) {
+      if ((statementAnswers[stmt.name] ?? []).length > 0) continue;
+      const filled = fallbackCodesForGridStatement(
+        stmt.name,
+        classified.codes,
+        context,
+        classified.gridMulti === true,
+      );
+      if (filled.length === 0) continue;
+      statementAnswers[stmt.name] = filled;
+      warnings.push(
+        `Filled visible grid row ${stmt.name}${stmt.rowLabel ? ` (${stmt.rowLabel})` : ""} with ${filled.join("+")}`,
+      );
+      if (source === "dataset") source = "fallback";
     }
 
     if (Object.keys(statementAnswers).length > 0) {

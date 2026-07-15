@@ -1,6 +1,16 @@
 {
-  "activeId": "bcfc3c5b",
+  "activeId": "b4343c7d",
   "datasets": [
+    {
+      "id": "b4343c7d",
+      "name": "PL_COMPLETED_PROFILES",
+      "rowCount": 18,
+      "file": "b4343c7d.json",
+      "savFile": "b4343c7d.sav",
+      "variablesFile": "b4343c7d-variables.json",
+      "isActive": true,
+      "importedAt": "2026-07-15T12:36:01.138Z"
+    },
     {
       "id": "bcfc3c5b",
       "name": "PL_PROFILES_REAL",
@@ -8,7 +18,7 @@
       "file": "bcfc3c5b.json",
       "savFile": "bcfc3c5b.sav",
       "variablesFile": "bcfc3c5b-variables.json",
-      "isActive": true,
+      "isActive": false,
       "importedAt": "2026-07-11T10:37:32.620Z"
     },
     {

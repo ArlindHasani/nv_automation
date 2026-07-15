@@ -45,7 +45,8 @@ async function hasNvAnswerSurface(page: Page): Promise<boolean> {
 
 /**
  * Poll until NV finishes rendering the current question (QLABEL + answer UI).
- * NV test/live pages often paint Back/Next before the form body is ready.
+ * Multi/Grid screens wait until option/row counts stabilize — early classify can
+ * miss piped brand rows and leave them unanswered at Next.
  */
 export async function waitForNvQuestionReady(
   page: Page,
@@ -55,6 +56,9 @@ export async function waitForNvQuestionReady(
   const settleMs = options.settleMs ?? 250;
   const start = Date.now();
   let lastHeartbeat = start;
+  let previousFingerprint = "";
+  let stableSince = 0;
+  const stabilityMs = 450;
 
   log?.("Waiting for question to load…");
 
@@ -68,15 +72,30 @@ export async function waitForNvQuestionReady(
     if (surfaceReady) {
       const label = await extractNvQuestionLabel(page);
       if (label) {
-        if (settleMs > 0) {
-          await page.waitForTimeout(settleMs);
-        }
         const classified = await classifyCurrentQuestion(page);
         if (classified) {
-          log?.(`Question ready: ${classified.name} (${classified.type})`);
-          return classified;
+          const fingerprint = questionFingerprint(classified);
+          const now = Date.now();
+          if (fingerprint !== previousFingerprint) {
+            previousFingerprint = fingerprint;
+            stableSince = now;
+          } else if (
+            classified.type !== "Multi" &&
+            classified.type !== "Grid"
+          ) {
+            if (settleMs > 0) await page.waitForTimeout(settleMs);
+            log?.(`Question ready: ${classified.name} (${classified.type})`);
+            return classified;
+          } else if (now - stableSince >= stabilityMs) {
+            // Extra settle so NV can finish funky/label paint after DOM stabilizes.
+            const extra = Math.max(settleMs, 350);
+            if (extra > 0) await page.waitForTimeout(extra);
+            log?.(`Question ready: ${classified.name} (${classified.type})`);
+            return classified;
+          }
+        } else {
+          log?.(`Question shell ready (${label}), finishing detection…`);
         }
-        log?.(`Question shell ready (${label}), finishing detection…`);
       }
     }
 
@@ -86,11 +105,24 @@ export async function waitForNvQuestionReady(
       log?.(`Still waiting for question UI (${Math.round(elapsed / 1000)}s)…`);
     }
 
-    await page.waitForTimeout(200);
+    await page.waitForTimeout(150);
   }
 
   log?.("Timed out waiting for question to load");
   return null;
+}
+
+function questionFingerprint(classified: ClassifiedQuestion): string {
+  if (classified.type === "Grid") {
+    const stmts = (classified.gridStatements ?? [])
+      .map((s) => s.name)
+      .join(",");
+    return `grid:${classified.name}:${stmts}:${classified.codes.length}`;
+  }
+  if (classified.type === "Multi") {
+    return `multi:${classified.name}:${classified.codes.join(",")}`;
+  }
+  return `${classified.type}:${classified.name}:${classified.codes.length}`;
 }
 
 /** After Next, wait until QLABEL / classified name changes from the previous question. */

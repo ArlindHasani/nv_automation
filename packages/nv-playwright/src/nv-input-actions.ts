@@ -609,3 +609,53 @@ export async function applyNvGridMultiAnswers(
     throw new Error(`Grid checkbox not checked: ${remaining.join(", ")}`);
   }
 }
+
+/** Statement names in a radio grid that still have no selected answer. */
+export async function unansweredGridRadioStatements(
+  page: Page,
+  statementNames: string[],
+): Promise<string[]> {
+  if (statementNames.length === 0) return [];
+  return page.evaluate((names) => {
+    const unanswered: string[] = [];
+    for (const raw of names) {
+      const q = String(raw).toUpperCase();
+      const qLower = q.toLowerCase();
+      const inputs = Array.from(
+        document.querySelectorAll(
+          `form#form input[type="radio"][name="${q}"], form#form input[type="RADIO"][name="${q}"], form#form input[type="radio"][name^="${q}:"], form#form input[type="RADIO"][name^="${q}:"], form#form input[type="radio"][name="${qLower}"], form#form input[type="RADIO"][name="${qLower}"]`,
+        ),
+      ) as HTMLInputElement[];
+      if (inputs.length === 0) {
+        unanswered.push(raw);
+        continue;
+      }
+      if (!inputs.some((input) => input.checked)) unanswered.push(raw);
+    }
+    return unanswered;
+  }, statementNames);
+}
+
+/** How many Multi options are currently checked for a question. */
+export async function countCheckedMultiOptions(
+  page: Page,
+  questionName: string,
+): Promise<number> {
+  return page.evaluate((qName) => {
+    const q = String(qName).toUpperCase();
+    const inputs = Array.from(
+      document.querySelectorAll("form#form input"),
+    ) as HTMLInputElement[];
+    let count = 0;
+    for (const input of inputs) {
+      if (!input.checked) continue;
+      const name = String(input.name || "").toUpperCase();
+      if (name !== q && !name.startsWith(`${q}:`)) continue;
+      const type = String(input.type || "").toLowerCase();
+      if (type === "checkbox" || (type === "radio" && name.startsWith(`${q}:`))) {
+        count += 1;
+      }
+    }
+    return count;
+  }, questionName);
+}

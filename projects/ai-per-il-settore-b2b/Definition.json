@@ -18,9 +18,9 @@
       "Values": null,
       "AVG": null,
       "Labels": {
-        "98": "98 - Inne",
-        "01": "01 - Adwokat / radca prawny (pracujący w kancelarii prawnej lub prowadzący własną praktykę)",
-        "02": "02 - Prawnik zatrudniony w przedsiębiorstwie"
+        "98": "Other",
+        "01": "Lawyer / Attorney (working in a law firm or private practice",
+        "02": "In-house Legal Counsel (working within a company)"
       },
       "Source": "explore"
     },
@@ -105,8 +105,8 @@
       "Values": null,
       "AVG": null,
       "Labels": {
-        "1": "1 - Akceptuję",
-        "2": "2 - odmawiam"
+        "1": "I accept",
+        "2": "I refuse"
       },
       "Source": "manual",
       "FixedAnswer": "1"
@@ -150,19 +150,19 @@
         "12": "Legal Mike",
         "13": "Lexroom",
         "14": "Beck-Noxtua",
-        "15": "15 - Protégé LexisNexis",
-        "16": "16 - Omnilexia",
-        "17": "17 - Lex AI (nie dotyczy produktów Wolters Kluwer)",
-        "18": "18 - Gaius-Lex",
-        "98": "98 - Inne (proszę podać:)",
+        "15": "Prot&#233;g&#233; LexisNexis",
+        "16": "Omnilexia",
+        "17": "Lex AI (not referring to Wolters Kluwer products)",
+        "18": "Gaius-Lex",
+        "98": "Other (specify:)",
         "99": "99 - Brak",
-        "01": "01 - Legora",
-        "02": "02 - Harvey",
-        "03": "03 - Claude (Anthropic)",
-        "04": "04 - ChatGPT (OpenAI)",
-        "05": "05 - Libra (Wolters Kluwer)",
+        "01": "Legora",
+        "02": "Harvey",
+        "03": "Claude (Anthropic)",
+        "04": "ChatGPT (OpenAI)",
+        "05": "Libra (Wolters Kluwer)",
         "07": "Lexroom",
-        "06": "06 - Beck-Noxtua",
+        "06": "Beck-Noxtua",
         "08": "Bryter (Bryter Beamon)",
         "09": "Zeno"
       },
@@ -207,19 +207,19 @@
         "12": "Legal Mike",
         "13": "Lexroom",
         "14": "Beck-Noxtua",
-        "15": "15 - Protégé LexisNexis",
-        "16": "16 - Omnilexia",
-        "17": "17 - Lex AI (nie dotyczy produktów Wolters Kluwer)",
+        "15": "Prot&#233;g&#233; LexisNexis",
+        "16": "Omnilexia",
+        "17": "Lex AI (not referring to Wolters Kluwer products)",
         "18": "Gaius-Lex",
-        "98": "98 - Inne (proszę podać:)",
+        "98": "Other (specify:)",
         "99": "99 - Brak",
-        "02": "02 - Harvey",
-        "03": "03 - Claude (Anthropic)",
-        "04": "04 - ChatGPT (OpenAI)",
-        "05": "05 - Libra (Wolters Kluwer)",
+        "02": "Harvey",
+        "03": "Claude (Anthropic)",
+        "04": "ChatGPT (OpenAI)",
+        "05": "Libra (Wolters Kluwer)",
         "07": "Lexroom",
-        "01": "01 - Legora",
-        "06": "06 - Beck-Noxtua",
+        "01": "Legora",
+        "06": "Beck-Noxtua",
         "08": "Bryter (Bryter Beamon)",
         "09": "Zeno"
       },
@@ -431,6 +431,7 @@
       "Type": "Single",
       "Answer": null,
       "Split": {
+        "1": 0,
         "01": 100
       },
       "Filters": null,
@@ -440,6 +441,7 @@
       "Values": null,
       "AVG": null,
       "Labels": {
+        "1": "{strong}&#62;&#62;{/strong}",
         "01": "01 - >>"
       },
       "Source": "manual",
@@ -478,7 +480,7 @@
       },
       "Source": "manual",
       "GridMulti": false,
-      "GridScreen": "P1_04",
+      "GridScreen": "P1_01",
       "FixedAnswer": "02"
     },
     {
@@ -487,6 +489,7 @@
       "Type": "Single",
       "Answer": null,
       "Split": {
+        "1": 0,
         "01": 100
       },
       "Filters": null,
@@ -496,6 +499,7 @@
       "Values": null,
       "AVG": null,
       "Labels": {
+        "1": "{strong}&#62;&#62;{/strong}",
         "01": "01 - >>"
       },
       "Source": "manual",
@@ -538,7 +542,7 @@
       },
       "Source": "explore",
       "GridMulti": false,
-      "GridScreen": "P2_04"
+      "GridScreen": "P2_01"
     },
     {
       "Name": "P3A05",
@@ -565,8 +569,8 @@
       "Values": null,
       "AVG": null,
       "Labels": {
-        "10": "10 - zdecydowanie się zgadzam",
-        "00": "0 - zdecydowanie się nie zgadzam",
+        "10": "10 - strongly agree",
+        "00": "0 - strongly disagree",
         "01": "1",
         "02": "2",
         "03": "3",
@@ -579,7 +583,7 @@
       },
       "Source": "explore",
       "GridMulti": false,
-      "GridScreen": "P3A04"
+      "GridScreen": "P3A01"
     },
     {
       "Name": "P3B05",
@@ -606,8 +610,8 @@
       "Values": null,
       "AVG": null,
       "Labels": {
-        "10": "10 - zdecydowanie się zgadzam",
-        "00": "0 - zdecydowanie się nie zgadzam",
+        "10": "10 - strongly agree",
+        "00": "0 - strongly disagree",
         "01": "1",
         "02": "2",
         "03": "3",
@@ -620,7 +624,7 @@
       },
       "Source": "explore",
       "GridMulti": false,
-      "GridScreen": "P3B04"
+      "GridScreen": "P3B01"
     },
     {
       "Name": "P3C05",
@@ -647,8 +651,8 @@
       "Values": null,
       "AVG": null,
       "Labels": {
-        "10": "10 - zdecydowanie się zgadzam",
-        "00": "0 - zdecydowanie się nie zgadzam",
+        "10": "10 - strongly agree",
+        "00": "0 - strongly disagree",
         "01": "1",
         "02": "2",
         "03": "3",
@@ -661,7 +665,7 @@
       },
       "Source": "explore",
       "GridMulti": false,
-      "GridScreen": "P3C04"
+      "GridScreen": "P3C01"
     },
     {
       "Name": "P3D05",
@@ -688,8 +692,8 @@
       "Values": null,
       "AVG": null,
       "Labels": {
-        "10": "10 - zdecydowanie się zgadzam",
-        "00": "0 - zdecydowanie się nie zgadzam",
+        "10": "10 - strongly agree",
+        "00": "0 - strongly disagree",
         "01": "1",
         "02": "2",
         "03": "3",
@@ -702,7 +706,7 @@
       },
       "Source": "explore",
       "GridMulti": false,
-      "GridScreen": "P3D04"
+      "GridScreen": "P3D01"
     },
     {
       "Name": "D0301",
@@ -1149,15 +1153,15 @@
       "AVG": null,
       "Labels": {
         "99": "Żadna z powyższych",
-        "01": "Przestrzeń robocza AI dla prawników profesjonalistów",
-        "02": "Asystent AI (ogólnego przeznaczenia)",
-        "03": "Wyspecjalizowane narzędzie AI (ukierunkowane na konkretne zadania prawne)",
-        "04": "Narzędzie do reaserchu prawnego",
-        "05": "Narzedzie do automatyzacji pracy z dokumentami"
+        "01": "AI workspace for legal professionals",
+        "02": "AI assistant (general purpose)",
+        "03": "Specialized legal AI tool (focused on specific legal tasks)",
+        "04": "Legal knowledge /legal research tool",
+        "05": "Document automation tool"
       },
       "Source": "explore",
       "GridMulti": true,
-      "GridScreen": "D0604"
+      "GridScreen": "D0601"
     },
     {
       "Name": "D0705",
@@ -1200,7 +1204,7 @@
       },
       "Source": "explore",
       "GridMulti": true,
-      "GridScreen": "D0704"
+      "GridScreen": "D0701"
     },
     {
       "Name": "P4_05",
@@ -1239,7 +1243,7 @@
       },
       "Source": "explore",
       "GridMulti": false,
-      "GridScreen": "P4_04"
+      "GridScreen": "P4_01"
     },
     {
       "Name": "D0905",
@@ -1278,7 +1282,7 @@
       },
       "Source": "explore",
       "GridMulti": false,
-      "GridScreen": "D0904"
+      "GridScreen": "D0901"
     },
     {
       "Name": "D1005",
@@ -1305,8 +1309,8 @@
       "Values": null,
       "AVG": null,
       "Labels": {
-        "10": "10 - bardzo prawdopodobne",
-        "00": "0 - całkiem mało prawdopodobne",
+        "10": "10 - very likely",
+        "00": "0 - not at all likely",
         "01": "1",
         "02": "2",
         "03": "3",
@@ -1369,11 +1373,11 @@
       "Values": null,
       "AVG": null,
       "Labels": {
-        "98": "98 - Inne, proszę podać",
-        "01": "01 - Partner",
-        "02": "02 - Prawnik typu Associate",
-        "03": "03 - Paralegal",
-        "04": "04 - Menadżer ds. zarządzania wiedzą / specjalista ds. informacji prawnej"
+        "98": "Other (please detail)",
+        "01": "Partner",
+        "02": "Associate",
+        "03": "Paralegal",
+        "04": "Knowledge manager / Research Librarian"
       },
       "Source": "explore"
     },
@@ -1478,9 +1482,9 @@
       "AVG": null,
       "Labels": {
         "99": "99 - Wolę nie odpowiadać",
-        "01": "01 - Mężczyzna",
-        "02": "02 - Kobieta",
-        "03": "03 - Osoba niebinarna"
+        "01": "Man / Male",
+        "02": "Woman / Female",
+        "03": "Non-binary"
       },
       "Source": "explore"
     },
@@ -1532,7 +1536,7 @@
     },
     {
       "Name": "D0206",
-      "Method": "Maintain",
+      "Method": "Split",
       "Type": "Single",
       "Answer": null,
       "Split": {
@@ -1540,7 +1544,7 @@
         "2": 0,
         "3": 0,
         "4": 0,
-        "5": 0,
+        "5": 100,
         "01": 0,
         "02": 0,
         "03": 0,
@@ -1565,7 +1569,7 @@
         "04": "Słyszałam(-em) o niej, ale niewiele o niej wiem",
         "05": "Nigdy o niej nie słyszałam(-em)"
       },
-      "Source": "explore",
+      "Source": "manual",
       "GridMulti": false,
       "GridScreen": "D0201"
     },
@@ -1758,7 +1762,7 @@
       },
       "Source": "explore",
       "GridMulti": false,
-      "GridScreen": "P1_03"
+      "GridScreen": "P1_01"
     },
     {
       "Name": "P2_04",
@@ -1797,7 +1801,7 @@
       },
       "Source": "explore",
       "GridMulti": false,
-      "GridScreen": "P2_03"
+      "GridScreen": "P2_01"
     },
     {
       "Name": "P3A04",
@@ -1824,8 +1828,8 @@
       "Values": null,
       "AVG": null,
       "Labels": {
-        "10": "10 - zdecydowanie się zgadzam",
-        "00": "0 - zdecydowanie się nie zgadzam",
+        "10": "10 - strongly agree",
+        "00": "0 - strongly disagree",
         "01": "1",
         "02": "2",
         "03": "3",
@@ -1838,7 +1842,7 @@
       },
       "Source": "explore",
       "GridMulti": false,
-      "GridScreen": "P3A03"
+      "GridScreen": "P3A01"
     },
     {
       "Name": "P3B04",
@@ -1865,8 +1869,8 @@
       "Values": null,
       "AVG": null,
       "Labels": {
-        "10": "10 - zdecydowanie się zgadzam",
-        "00": "0 - zdecydowanie się nie zgadzam",
+        "10": "10 - strongly agree",
+        "00": "0 - strongly disagree",
         "01": "1",
         "02": "2",
         "03": "3",
@@ -1879,7 +1883,7 @@
       },
       "Source": "explore",
       "GridMulti": false,
-      "GridScreen": "P3B03"
+      "GridScreen": "P3B01"
     },
     {
       "Name": "P3C04",
@@ -1906,8 +1910,8 @@
       "Values": null,
       "AVG": null,
       "Labels": {
-        "10": "10 - zdecydowanie się zgadzam",
-        "00": "0 - zdecydowanie się nie zgadzam",
+        "10": "10 - strongly agree",
+        "00": "0 - strongly disagree",
         "01": "1",
         "02": "2",
         "03": "3",
@@ -1920,7 +1924,7 @@
       },
       "Source": "explore",
       "GridMulti": false,
-      "GridScreen": "P3C03"
+      "GridScreen": "P3C01"
     },
     {
       "Name": "P3D04",
@@ -1947,8 +1951,8 @@
       "Values": null,
       "AVG": null,
       "Labels": {
-        "10": "10 - zdecydowanie się zgadzam",
-        "00": "0 - zdecydowanie się nie zgadzam",
+        "10": "10 - strongly agree",
+        "00": "0 - strongly disagree",
         "01": "1",
         "02": "2",
         "03": "3",
@@ -1961,7 +1965,7 @@
       },
       "Source": "explore",
       "GridMulti": false,
-      "GridScreen": "P3D03"
+      "GridScreen": "P3D01"
     },
     {
       "Name": "D0604",
@@ -1984,15 +1988,15 @@
       "AVG": null,
       "Labels": {
         "99": "Żadna z powyższych",
-        "01": "Przestrzeń robocza AI dla prawników profesjonalistów",
-        "02": "Asystent AI (ogólnego przeznaczenia)",
-        "03": "Wyspecjalizowane narzędzie AI (ukierunkowane na konkretne zadania prawne)",
-        "04": "Narzędzie do reaserchu prawnego",
-        "05": "Narzedzie do automatyzacji pracy z dokumentami"
+        "01": "AI workspace for legal professionals",
+        "02": "AI assistant (general purpose)",
+        "03": "Specialized legal AI tool (focused on specific legal tasks)",
+        "04": "Legal knowledge /legal research tool",
+        "05": "Document automation tool"
       },
       "Source": "explore",
       "GridMulti": true,
-      "GridScreen": "D0603"
+      "GridScreen": "D0601"
     },
     {
       "Name": "D0704",
@@ -2035,7 +2039,7 @@
       },
       "Source": "explore",
       "GridMulti": true,
-      "GridScreen": "D0703"
+      "GridScreen": "D0701"
     },
     {
       "Name": "P4_04",
@@ -2074,7 +2078,7 @@
       },
       "Source": "explore",
       "GridMulti": false,
-      "GridScreen": "P4_03"
+      "GridScreen": "P4_01"
     },
     {
       "Name": "D0904",
@@ -2113,7 +2117,7 @@
       },
       "Source": "explore",
       "GridMulti": false,
-      "GridScreen": "D0903"
+      "GridScreen": "D0901"
     },
     {
       "Name": "D1004",
@@ -2140,8 +2144,8 @@
       "Values": null,
       "AVG": null,
       "Labels": {
-        "10": "10 - bardzo prawdopodobne",
-        "00": "0 - całkiem mało prawdopodobne",
+        "10": "10 - very likely",
+        "00": "0 - not at all likely",
         "01": "1",
         "02": "2",
         "03": "3",
@@ -2154,7 +2158,7 @@
       },
       "Source": "explore",
       "GridMulti": false,
-      "GridScreen": "D1004"
+      "GridScreen": "D1001"
     },
     {
       "Name": "ENDIV",
@@ -2172,8 +2176,8 @@
       "Values": null,
       "AVG": null,
       "Labels": {
-        "1": "1 - Chciałbym, aby w przyszłości ponownie się ze mną skontaktowano.",
-        "2": "2 - Nie chcę, aby w przyszłości ponownie się ze mną skontaktowano."
+        "1": "I want to be contacted again in future.",
+        "2": "I don't want to be contacted again in future."
       },
       "Source": "manual",
       "FixedAnswer": "2"
@@ -2211,7 +2215,7 @@
       },
       "Source": "explore",
       "GridMulti": false,
-      "GridScreen": "P1_03"
+      "GridScreen": "P1_01"
     },
     {
       "Name": "P1_15",
@@ -2246,7 +2250,7 @@
       },
       "Source": "explore",
       "GridMulti": false,
-      "GridScreen": "P1_03"
+      "GridScreen": "P1_01"
     },
     {
       "Name": "P1_17",
@@ -2355,7 +2359,7 @@
       },
       "Source": "explore",
       "GridMulti": false,
-      "GridScreen": "P2_03"
+      "GridScreen": "P2_01"
     },
     {
       "Name": "P2_15",
@@ -2394,7 +2398,7 @@
       },
       "Source": "explore",
       "GridMulti": false,
-      "GridScreen": "P2_03"
+      "GridScreen": "P2_01"
     },
     {
       "Name": "P2_17",
@@ -2499,8 +2503,8 @@
       "Values": null,
       "AVG": null,
       "Labels": {
-        "10": "10 - zdecydowanie się zgadzam",
-        "00": "0 - zdecydowanie się nie zgadzam",
+        "10": "10 - strongly agree",
+        "00": "0 - strongly disagree",
         "01": "1",
         "02": "2",
         "03": "3",
@@ -2513,7 +2517,7 @@
       },
       "Source": "explore",
       "GridMulti": false,
-      "GridScreen": "P3A03"
+      "GridScreen": "P3A01"
     },
     {
       "Name": "P3A15",
@@ -2540,8 +2544,8 @@
       "Values": null,
       "AVG": null,
       "Labels": {
-        "10": "10 - zdecydowanie się zgadzam",
-        "00": "0 - zdecydowanie się nie zgadzam",
+        "10": "10 - strongly agree",
+        "00": "0 - strongly disagree",
         "01": "1",
         "02": "2",
         "03": "3",
@@ -2554,7 +2558,7 @@
       },
       "Source": "explore",
       "GridMulti": false,
-      "GridScreen": "P3A03"
+      "GridScreen": "P3A01"
     },
     {
       "Name": "P3A17",
@@ -2581,8 +2585,8 @@
       "Values": null,
       "AVG": null,
       "Labels": {
-        "10": "10 - zdecydowanie się zgadzam",
-        "00": "0 - zdecydowanie się nie zgadzam",
+        "10": "10 - strongly agree",
+        "00": "0 - strongly disagree",
         "01": "1",
         "02": "2",
         "03": "3",
@@ -2622,8 +2626,8 @@
       "Values": null,
       "AVG": null,
       "Labels": {
-        "10": "10 - zdecydowanie się zgadzam",
-        "00": "0 - zdecydowanie się nie zgadzam",
+        "10": "10 - strongly agree",
+        "00": "0 - strongly disagree",
         "01": "1",
         "02": "2",
         "03": "3",
@@ -2663,8 +2667,8 @@
       "Values": null,
       "AVG": null,
       "Labels": {
-        "10": "10 - zdecydowanie się zgadzam",
-        "00": "0 - zdecydowanie się nie zgadzam",
+        "10": "10 - strongly agree",
+        "00": "0 - strongly disagree",
         "01": "1",
         "02": "2",
         "03": "3",
@@ -2677,7 +2681,7 @@
       },
       "Source": "explore",
       "GridMulti": false,
-      "GridScreen": "P3B03"
+      "GridScreen": "P3B01"
     },
     {
       "Name": "P3B15",
@@ -2704,8 +2708,8 @@
       "Values": null,
       "AVG": null,
       "Labels": {
-        "10": "10 - zdecydowanie się zgadzam",
-        "00": "0 - zdecydowanie się nie zgadzam",
+        "10": "10 - strongly agree",
+        "00": "0 - strongly disagree",
         "01": "1",
         "02": "2",
         "03": "3",
@@ -2718,7 +2722,7 @@
       },
       "Source": "explore",
       "GridMulti": false,
-      "GridScreen": "P3B03"
+      "GridScreen": "P3B01"
     },
     {
       "Name": "P3B17",
@@ -2745,8 +2749,8 @@
       "Values": null,
       "AVG": null,
       "Labels": {
-        "10": "10 - zdecydowanie się zgadzam",
-        "00": "0 - zdecydowanie się nie zgadzam",
+        "10": "10 - strongly agree",
+        "00": "0 - strongly disagree",
         "01": "1",
         "02": "2",
         "03": "3",
@@ -2786,8 +2790,8 @@
       "Values": null,
       "AVG": null,
       "Labels": {
-        "10": "10 - zdecydowanie się zgadzam",
-        "00": "0 - zdecydowanie się nie zgadzam",
+        "10": "10 - strongly agree",
+        "00": "0 - strongly disagree",
         "01": "1",
         "02": "2",
         "03": "3",
@@ -2827,8 +2831,8 @@
       "Values": null,
       "AVG": null,
       "Labels": {
-        "10": "10 - zdecydowanie się zgadzam",
-        "00": "0 - zdecydowanie się nie zgadzam",
+        "10": "10 - strongly agree",
+        "00": "0 - strongly disagree",
         "01": "1",
         "02": "2",
         "03": "3",
@@ -2841,7 +2845,7 @@
       },
       "Source": "explore",
       "GridMulti": false,
-      "GridScreen": "P3C03"
+      "GridScreen": "P3C01"
     },
     {
       "Name": "P3C15",
@@ -2868,8 +2872,8 @@
       "Values": null,
       "AVG": null,
       "Labels": {
-        "10": "10 - zdecydowanie się zgadzam",
-        "00": "0 - zdecydowanie się nie zgadzam",
+        "10": "10 - strongly agree",
+        "00": "0 - strongly disagree",
         "01": "1",
         "02": "2",
         "03": "3",
@@ -2882,7 +2886,7 @@
       },
       "Source": "explore",
       "GridMulti": false,
-      "GridScreen": "P3C03"
+      "GridScreen": "P3C01"
     },
     {
       "Name": "P3C17",
@@ -2909,8 +2913,8 @@
       "Values": null,
       "AVG": null,
       "Labels": {
-        "10": "10 - zdecydowanie się zgadzam",
-        "00": "0 - zdecydowanie się nie zgadzam",
+        "10": "10 - strongly agree",
+        "00": "0 - strongly disagree",
         "01": "1",
         "02": "2",
         "03": "3",
@@ -2950,8 +2954,8 @@
       "Values": null,
       "AVG": null,
       "Labels": {
-        "10": "10 - zdecydowanie się zgadzam",
-        "00": "0 - zdecydowanie się nie zgadzam",
+        "10": "10 - strongly agree",
+        "00": "0 - strongly disagree",
         "01": "1",
         "02": "2",
         "03": "3",
@@ -2991,8 +2995,8 @@
       "Values": null,
       "AVG": null,
       "Labels": {
-        "10": "10 - zdecydowanie się zgadzam",
-        "00": "0 - zdecydowanie się nie zgadzam",
+        "10": "10 - strongly agree",
+        "00": "0 - strongly disagree",
         "01": "1",
         "02": "2",
         "03": "3",
@@ -3005,7 +3009,7 @@
       },
       "Source": "explore",
       "GridMulti": false,
-      "GridScreen": "P3D03"
+      "GridScreen": "P3D01"
     },
     {
       "Name": "P3D15",
@@ -3032,8 +3036,8 @@
       "Values": null,
       "AVG": null,
       "Labels": {
-        "10": "10 - zdecydowanie się zgadzam",
-        "00": "0 - zdecydowanie się nie zgadzam",
+        "10": "10 - strongly agree",
+        "00": "0 - strongly disagree",
         "01": "1",
         "02": "2",
         "03": "3",
@@ -3046,7 +3050,7 @@
       },
       "Source": "explore",
       "GridMulti": false,
-      "GridScreen": "P3D03"
+      "GridScreen": "P3D01"
     },
     {
       "Name": "P3D17",
@@ -3073,8 +3077,8 @@
       "Values": null,
       "AVG": null,
       "Labels": {
-        "10": "10 - zdecydowanie się zgadzam",
-        "00": "0 - zdecydowanie się nie zgadzam",
+        "10": "10 - strongly agree",
+        "00": "0 - strongly disagree",
         "01": "1",
         "02": "2",
         "03": "3",
@@ -3114,8 +3118,8 @@
       "Values": null,
       "AVG": null,
       "Labels": {
-        "10": "10 - zdecydowanie się zgadzam",
-        "00": "0 - zdecydowanie się nie zgadzam",
+        "10": "10 - strongly agree",
+        "00": "0 - strongly disagree",
         "01": "1",
         "02": "2",
         "03": "3",
@@ -3151,15 +3155,15 @@
       "AVG": null,
       "Labels": {
         "99": "Żadna z powyższych",
-        "01": "Przestrzeń robocza AI dla prawników profesjonalistów",
-        "02": "Asystent AI (ogólnego przeznaczenia)",
-        "03": "Wyspecjalizowane narzędzie AI (ukierunkowane na konkretne zadania prawne)",
-        "04": "Narzędzie do reaserchu prawnego",
-        "05": "Narzedzie do automatyzacji pracy z dokumentami"
+        "01": "AI workspace for legal professionals",
+        "02": "AI assistant (general purpose)",
+        "03": "Specialized legal AI tool (focused on specific legal tasks)",
+        "04": "Legal knowledge /legal research tool",
+        "05": "Document automation tool"
       },
       "Source": "explore",
       "GridMulti": true,
-      "GridScreen": "D0603"
+      "GridScreen": "D0601"
     },
     {
       "Name": "D0615",
@@ -3182,15 +3186,15 @@
       "AVG": null,
       "Labels": {
         "99": "Żadna z powyższych",
-        "01": "Przestrzeń robocza AI dla prawników profesjonalistów",
-        "02": "Asystent AI (ogólnego przeznaczenia)",
-        "03": "Wyspecjalizowane narzędzie AI (ukierunkowane na konkretne zadania prawne)",
-        "04": "Narzędzie do reaserchu prawnego",
-        "05": "Narzedzie do automatyzacji pracy z dokumentami"
+        "01": "AI workspace for legal professionals",
+        "02": "AI assistant (general purpose)",
+        "03": "Specialized legal AI tool (focused on specific legal tasks)",
+        "04": "Legal knowledge /legal research tool",
+        "05": "Document automation tool"
       },
       "Source": "explore",
       "GridMulti": true,
-      "GridScreen": "D0603"
+      "GridScreen": "D0601"
     },
     {
       "Name": "D0617",
@@ -3213,11 +3217,11 @@
       "AVG": null,
       "Labels": {
         "99": "Żadna z powyższych",
-        "01": "Przestrzeń robocza AI dla prawników profesjonalistów",
-        "02": "Asystent AI (ogólnego przeznaczenia)",
-        "03": "Wyspecjalizowane narzędzie AI (ukierunkowane na konkretne zadania prawne)",
-        "04": "Narzędzie do reaserchu prawnego",
-        "05": "Narzedzie do automatyzacji pracy z dokumentami"
+        "01": "AI workspace for legal professionals",
+        "02": "AI assistant (general purpose)",
+        "03": "Specialized legal AI tool (focused on specific legal tasks)",
+        "04": "Legal knowledge /legal research tool",
+        "05": "Document automation tool"
       },
       "Source": "explore",
       "GridMulti": true,
@@ -3244,11 +3248,11 @@
       "AVG": null,
       "Labels": {
         "99": "Żadna z powyższych",
-        "01": "Przestrzeń robocza AI dla prawników profesjonalistów",
-        "02": "Asystent AI (ogólnego przeznaczenia)",
-        "03": "Wyspecjalizowane narzędzie AI (ukierunkowane na konkretne zadania prawne)",
-        "04": "Narzędzie do reaserchu prawnego",
-        "05": "Narzedzie do automatyzacji pracy z dokumentami"
+        "01": "AI workspace for legal professionals",
+        "02": "AI assistant (general purpose)",
+        "03": "Specialized legal AI tool (focused on specific legal tasks)",
+        "04": "Legal knowledge /legal research tool",
+        "05": "Document automation tool"
       },
       "Source": "explore",
       "GridMulti": true,
@@ -3295,7 +3299,7 @@
       },
       "Source": "explore",
       "GridMulti": true,
-      "GridScreen": "D0703"
+      "GridScreen": "D0701"
     },
     {
       "Name": "D0715",
@@ -3338,7 +3342,7 @@
       },
       "Source": "explore",
       "GridMulti": true,
-      "GridScreen": "D0703"
+      "GridScreen": "D0701"
     },
     {
       "Name": "D0717",
@@ -3463,7 +3467,7 @@
       },
       "Source": "explore",
       "GridMulti": false,
-      "GridScreen": "P4_03"
+      "GridScreen": "P4_01"
     },
     {
       "Name": "P4_15",
@@ -3502,7 +3506,7 @@
       },
       "Source": "explore",
       "GridMulti": false,
-      "GridScreen": "P4_03"
+      "GridScreen": "P4_01"
     },
     {
       "Name": "P4_17",
@@ -3619,7 +3623,7 @@
       },
       "Source": "explore",
       "GridMulti": false,
-      "GridScreen": "D0903"
+      "GridScreen": "D0901"
     },
     {
       "Name": "D0915",
@@ -3658,7 +3662,7 @@
       },
       "Source": "explore",
       "GridMulti": false,
-      "GridScreen": "D0903"
+      "GridScreen": "D0901"
     },
     {
       "Name": "D0917",
@@ -3763,8 +3767,8 @@
       "Values": null,
       "AVG": null,
       "Labels": {
-        "10": "10 - bardzo prawdopodobne",
-        "00": "0 - całkiem mało prawdopodobne",
+        "10": "10 - very likely",
+        "00": "0 - not at all likely",
         "01": "1",
         "02": "2",
         "03": "3",
@@ -3804,8 +3808,8 @@
       "Values": null,
       "AVG": null,
       "Labels": {
-        "10": "10 - bardzo prawdopodobne",
-        "00": "0 - całkiem mało prawdopodobne",
+        "10": "10 - very likely",
+        "00": "0 - not at all likely",
         "01": "1",
         "02": "2",
         "03": "3",
@@ -4125,7 +4129,7 @@
       },
       "Source": "explore",
       "GridMulti": false,
-      "GridScreen": "P1_02"
+      "GridScreen": "P1_01"
     },
     {
       "Name": "P1_06",
@@ -4371,7 +4375,11 @@
         "1": 0,
         "2": 0,
         "3": 0,
-        "4": 0
+        "4": 0,
+        "01": 0,
+        "02": 0,
+        "03": 0,
+        "04": 0
       },
       "Filters": null,
       "CopyQuestion": null,
@@ -4383,9 +4391,15 @@
         "1": "Is my preferred brand",
         "2": "Is a brand I would definitely consider",
         "3": "Is a brand I might consider",
-        "4": "Is a brand I would not consider"
+        "4": "Is a brand I would not consider",
+        "01": "To moja preferowana marka",
+        "02": "To marka, którą zdecydowanie rozważę",
+        "03": "To marka, którą być może rozważę",
+        "04": "To marka, której nie rozważę"
       },
-      "Source": "sav"
+      "Source": "explore",
+      "GridMulti": false,
+      "GridScreen": "P1_01"
     },
     {
       "Name": "P2_01",
@@ -4463,7 +4477,7 @@
       },
       "Source": "explore",
       "GridMulti": false,
-      "GridScreen": "P2_02"
+      "GridScreen": "P2_01"
     },
     {
       "Name": "P2_06",
@@ -4730,7 +4744,12 @@
         "2": 0,
         "3": 0,
         "4": 0,
-        "5": 0
+        "5": 0,
+        "01": 0,
+        "02": 0,
+        "03": 0,
+        "04": 0,
+        "05": 0
       },
       "Filters": null,
       "CopyQuestion": null,
@@ -4743,9 +4762,16 @@
         "2": "A bit better",
         "3": "About the same",
         "4": "A bit worse",
-        "5": "Much worse"
+        "5": "Much worse",
+        "01": "Znacznie lepiej",
+        "02": "Trochę lepiej",
+        "03": "Tak samo",
+        "04": "Trochę gorzej",
+        "05": "Znacznie gorzej"
       },
-      "Source": "sav"
+      "Source": "explore",
+      "GridMulti": false,
+      "GridScreen": "P2_01"
     },
     {
       "Name": "P3A01",
@@ -4772,8 +4798,8 @@
       "Values": null,
       "AVG": null,
       "Labels": {
-        "10": "10 - zdecydowanie się zgadzam",
-        "00": "0 - zdecydowanie się nie zgadzam",
+        "10": "10 - strongly agree",
+        "00": "0 - strongly disagree",
         "01": "1",
         "02": "2",
         "03": "3",
@@ -4813,8 +4839,8 @@
       "Values": null,
       "AVG": null,
       "Labels": {
-        "10": "10 - zdecydowanie się zgadzam",
-        "00": "0 - zdecydowanie się nie zgadzam",
+        "10": "10 - strongly agree",
+        "00": "0 - strongly disagree",
         "01": "1",
         "02": "2",
         "03": "3",
@@ -4827,7 +4853,7 @@
       },
       "Source": "explore",
       "GridMulti": false,
-      "GridScreen": "P3A02"
+      "GridScreen": "P3A01"
     },
     {
       "Name": "P3A06",
@@ -4854,8 +4880,8 @@
       "Values": null,
       "AVG": null,
       "Labels": {
-        "10": "10 - zdecydowanie się zgadzam",
-        "00": "0 - zdecydowanie się nie zgadzam",
+        "10": "10 - strongly agree",
+        "00": "0 - strongly disagree",
         "01": "1",
         "02": "2",
         "03": "3",
@@ -5219,7 +5245,9 @@
         "08": "8",
         "09": "9"
       },
-      "Source": "sav"
+      "Source": "explore",
+      "GridMulti": false,
+      "GridScreen": "P3A01"
     },
     {
       "Name": "P3B01",
@@ -5246,8 +5274,8 @@
       "Values": null,
       "AVG": null,
       "Labels": {
-        "10": "10 - zdecydowanie się zgadzam",
-        "00": "0 - zdecydowanie się nie zgadzam",
+        "10": "10 - strongly agree",
+        "00": "0 - strongly disagree",
         "01": "1",
         "02": "2",
         "03": "3",
@@ -5287,8 +5315,8 @@
       "Values": null,
       "AVG": null,
       "Labels": {
-        "10": "10 - zdecydowanie się zgadzam",
-        "00": "0 - zdecydowanie się nie zgadzam",
+        "10": "10 - strongly agree",
+        "00": "0 - strongly disagree",
         "01": "1",
         "02": "2",
         "03": "3",
@@ -5301,7 +5329,7 @@
       },
       "Source": "explore",
       "GridMulti": false,
-      "GridScreen": "P3B02"
+      "GridScreen": "P3B01"
     },
     {
       "Name": "P3B06",
@@ -5328,8 +5356,8 @@
       "Values": null,
       "AVG": null,
       "Labels": {
-        "10": "10 - zdecydowanie się zgadzam",
-        "00": "0 - zdecydowanie się nie zgadzam",
+        "10": "10 - strongly agree",
+        "00": "0 - strongly disagree",
         "01": "1",
         "02": "2",
         "03": "3",
@@ -5693,7 +5721,9 @@
         "08": "8",
         "09": "9"
       },
-      "Source": "sav"
+      "Source": "explore",
+      "GridMulti": false,
+      "GridScreen": "P3B01"
     },
     {
       "Name": "P3C01",
@@ -5720,8 +5750,8 @@
       "Values": null,
       "AVG": null,
       "Labels": {
-        "10": "10 - zdecydowanie się zgadzam",
-        "00": "0 - zdecydowanie się nie zgadzam",
+        "10": "10 - strongly agree",
+        "00": "0 - strongly disagree",
         "01": "1",
         "02": "2",
         "03": "3",
@@ -5761,8 +5791,8 @@
       "Values": null,
       "AVG": null,
       "Labels": {
-        "10": "10 - zdecydowanie się zgadzam",
-        "00": "0 - zdecydowanie się nie zgadzam",
+        "10": "10 - strongly agree",
+        "00": "0 - strongly disagree",
         "01": "1",
         "02": "2",
         "03": "3",
@@ -5775,7 +5805,7 @@
       },
       "Source": "explore",
       "GridMulti": false,
-      "GridScreen": "P3C02"
+      "GridScreen": "P3C01"
     },
     {
       "Name": "P3C06",
@@ -5802,8 +5832,8 @@
       "Values": null,
       "AVG": null,
       "Labels": {
-        "10": "10 - zdecydowanie się zgadzam",
-        "00": "0 - zdecydowanie się nie zgadzam",
+        "10": "10 - strongly agree",
+        "00": "0 - strongly disagree",
         "01": "1",
         "02": "2",
         "03": "3",
@@ -6167,7 +6197,9 @@
         "08": "8",
         "09": "9"
       },
-      "Source": "sav"
+      "Source": "explore",
+      "GridMulti": false,
+      "GridScreen": "P3C01"
     },
     {
       "Name": "P3D01",
@@ -6194,8 +6226,8 @@
       "Values": null,
       "AVG": null,
       "Labels": {
-        "10": "10 - zdecydowanie się zgadzam",
-        "00": "0 - zdecydowanie się nie zgadzam",
+        "10": "10 - strongly agree",
+        "00": "0 - strongly disagree",
         "01": "1",
         "02": "2",
         "03": "3",
@@ -6235,8 +6267,8 @@
       "Values": null,
       "AVG": null,
       "Labels": {
-        "10": "10 - zdecydowanie się zgadzam",
-        "00": "0 - zdecydowanie się nie zgadzam",
+        "10": "10 - strongly agree",
+        "00": "0 - strongly disagree",
         "01": "1",
         "02": "2",
         "03": "3",
@@ -6249,7 +6281,7 @@
       },
       "Source": "explore",
       "GridMulti": false,
-      "GridScreen": "P3D02"
+      "GridScreen": "P3D01"
     },
     {
       "Name": "P3D06",
@@ -6276,8 +6308,8 @@
       "Values": null,
       "AVG": null,
       "Labels": {
-        "10": "10 - zdecydowanie się zgadzam",
-        "00": "0 - zdecydowanie się nie zgadzam",
+        "10": "10 - strongly agree",
+        "00": "0 - strongly disagree",
         "01": "1",
         "02": "2",
         "03": "3",
@@ -6641,7 +6673,9 @@
         "08": "8",
         "09": "9"
       },
-      "Source": "sav"
+      "Source": "explore",
+      "GridMulti": false,
+      "GridScreen": "P3D01"
     },
     {
       "Name": "P5_01",
@@ -7474,11 +7508,11 @@
       "AVG": null,
       "Labels": {
         "99": "Żadna z powyższych",
-        "01": "Przestrzeń robocza AI dla prawników profesjonalistów",
-        "02": "Asystent AI (ogólnego przeznaczenia)",
-        "03": "Wyspecjalizowane narzędzie AI (ukierunkowane na konkretne zadania prawne)",
-        "04": "Narzędzie do reaserchu prawnego",
-        "05": "Narzedzie do automatyzacji pracy z dokumentami"
+        "01": "AI workspace for legal professionals",
+        "02": "AI assistant (general purpose)",
+        "03": "Specialized legal AI tool (focused on specific legal tasks)",
+        "04": "Legal knowledge /legal research tool",
+        "05": "Document automation tool"
       },
       "Source": "explore",
       "GridMulti": true,
@@ -7505,15 +7539,15 @@
       "AVG": null,
       "Labels": {
         "99": "Żadna z powyższych",
-        "01": "Przestrzeń robocza AI dla prawników profesjonalistów",
-        "02": "Asystent AI (ogólnego przeznaczenia)",
-        "03": "Wyspecjalizowane narzędzie AI (ukierunkowane na konkretne zadania prawne)",
-        "04": "Narzędzie do reaserchu prawnego",
-        "05": "Narzedzie do automatyzacji pracy z dokumentami"
+        "01": "AI workspace for legal professionals",
+        "02": "AI assistant (general purpose)",
+        "03": "Specialized legal AI tool (focused on specific legal tasks)",
+        "04": "Legal knowledge /legal research tool",
+        "05": "Document automation tool"
       },
       "Source": "explore",
       "GridMulti": true,
-      "GridScreen": "D0602"
+      "GridScreen": "D0601"
     },
     {
       "Name": "D0606",
@@ -7536,11 +7570,11 @@
       "AVG": null,
       "Labels": {
         "99": "Żadna z powyższych",
-        "01": "Przestrzeń robocza AI dla prawników profesjonalistów",
-        "02": "Asystent AI (ogólnego przeznaczenia)",
-        "03": "Wyspecjalizowane narzędzie AI (ukierunkowane na konkretne zadania prawne)",
-        "04": "Narzędzie do reaserchu prawnego",
-        "05": "Narzedzie do automatyzacji pracy z dokumentami"
+        "01": "AI workspace for legal professionals",
+        "02": "AI assistant (general purpose)",
+        "03": "Specialized legal AI tool (focused on specific legal tasks)",
+        "04": "Legal knowledge /legal research tool",
+        "05": "Document automation tool"
       },
       "Source": "explore",
       "GridMulti": true,
@@ -7768,6 +7802,7 @@
       "Type": "Multi",
       "Answer": null,
       "Split": {
+        "99": 0,
         "01": 0,
         "02": 0,
         "03": 0,
@@ -7781,13 +7816,16 @@
       "Values": null,
       "AVG": null,
       "Labels": {
+        "99": "Żadna z powyższych",
         "01": "AI workspace for legal professionals",
         "02": "AI assistant (general purpose)",
         "03": "Specialized legal AI tool (focused on specific legal tasks)",
         "04": "Legal knowledge /legal research tool",
         "05": "Document automation tool"
       },
-      "Source": "sav"
+      "Source": "explore",
+      "GridMulti": true,
+      "GridScreen": "D0601"
     },
     {
       "Name": "D0701",
@@ -7873,7 +7911,7 @@
       },
       "Source": "explore",
       "GridMulti": true,
-      "GridScreen": "D0702"
+      "GridScreen": "D0701"
     },
     {
       "Name": "D0706",
@@ -8161,7 +8199,13 @@
         "3": 0,
         "4": 0,
         "5": 0,
-        "6": 0
+        "6": 0,
+        "01": 0,
+        "02": 0,
+        "03": 0,
+        "04": 0,
+        "05": 0,
+        "06": 0
       },
       "Filters": null,
       "CopyQuestion": null,
@@ -8175,9 +8219,17 @@
         "3": "Due diligence and large-scale document review",
         "4": "Access to internal documents and knowledge base",
         "5": "Collaboration in workspaces",
-        "6": "Seamless work across tools (Microsoft 365, DMS, matter manag"
+        "6": "Seamless work across tools (Microsoft 365, DMS, matter manag",
+        "01": "Legal research i analizy",
+        "02": "Tworzenie, analiza i nanoszenie zmian w dokumentach i umowach",
+        "03": "Due diligence i przegląd dużej liczby dokumentów",
+        "04": "Dostęp do dokumentów wewnetrznych i bazy wiedzy",
+        "05": "Praca zespołowa w środowisku roboczym",
+        "06": "Zintegrowana praca w różnych narzedziach (Microsoft 365, DMS, zarządzanie sprawami, CLM, platformy do reaserchu prawnego...)"
       },
-      "Source": "sav"
+      "Source": "explore",
+      "GridMulti": true,
+      "GridScreen": "D0701"
     },
     {
       "Name": "P4_01",
@@ -8255,7 +8307,7 @@
       },
       "Source": "explore",
       "GridMulti": false,
-      "GridScreen": "P4_02"
+      "GridScreen": "P4_01"
     },
     {
       "Name": "P4_06",
@@ -8522,7 +8574,12 @@
         "2": 0,
         "3": 0,
         "4": 0,
-        "5": 0
+        "5": 0,
+        "01": 0,
+        "02": 0,
+        "03": 0,
+        "04": 0,
+        "05": 0
       },
       "Filters": null,
       "CopyQuestion": null,
@@ -8535,9 +8592,16 @@
         "2": "Inexpensive and good value",
         "3": "Average price",
         "4": "More expensive, but worth the price",
-        "5": "Too expensive for the value you get"
+        "5": "Too expensive for the value you get",
+        "01": "Zbyt tanie, wątpię w jego jakość",
+        "02": "Tanie i dobrej jakości",
+        "03": "Średnia cena",
+        "04": "Droższe, ale warte swojej ceny",
+        "05": "Zbyt drogie w stosunku do oferowanej wartości"
       },
-      "Source": "sav"
+      "Source": "explore",
+      "GridMulti": false,
+      "GridScreen": "P4_01"
     },
     {
       "Name": "D0901",
@@ -8615,7 +8679,7 @@
       },
       "Source": "explore",
       "GridMulti": false,
-      "GridScreen": "D0902"
+      "GridScreen": "D0901"
     },
     {
       "Name": "D0906",
@@ -8882,7 +8946,12 @@
         "2": 0,
         "3": 0,
         "4": 0,
-        "5": 0
+        "5": 0,
+        "01": 0,
+        "02": 0,
+        "03": 0,
+        "04": 0,
+        "05": 0
       },
       "Filters": null,
       "CopyQuestion": null,
@@ -8895,9 +8964,16 @@
         "2": "I have used this AI solution  in the past 12 months",
         "3": "I have trialed this AI solution but decided for a different",
         "4": "I have used this AI solution before, but not in the last yea",
-        "5": "I have never used this AI solution"
+        "5": "I have never used this AI solution",
+        "01": "Obecnie korzystam z tego rozwiązania AI",
+        "02": "Korzystałem(-am) z tego rozwiązania AI w ciągu ostatnich 12 miesięcy",
+        "03": "Wypróbowałem(-am) to rozwiązanie AI, ale ostatecznie zdecydowałem(-am) się na inne",
+        "04": "Korzystałem(-am) z tego rozwiązania AI wcześniej, ale nie w ciągu ostatniego roku",
+        "05": "Nigdy nie korzystałem(-am) z tego rozwiązania AI"
       },
-      "Source": "sav"
+      "Source": "explore",
+      "GridMulti": false,
+      "GridScreen": "D0901"
     },
     {
       "Name": "D1001",
@@ -8936,7 +9012,9 @@
         "08": "8",
         "09": "9"
       },
-      "Source": "sav"
+      "Source": "explore",
+      "GridMulti": false,
+      "GridScreen": "D1001"
     },
     {
       "Name": "D1002",
@@ -9002,8 +9080,8 @@
       "Values": null,
       "AVG": null,
       "Labels": {
-        "10": "10 - bardzo prawdopodobne",
-        "00": "0 - całkiem mało prawdopodobne",
+        "10": "10 - very likely",
+        "00": "0 - not at all likely",
         "01": "1",
         "02": "2",
         "03": "3",
@@ -9406,7 +9484,7 @@
         "08": "8",
         "09": "9"
       },
-      "Source": "sav"
+      "Source": "explore"
     },
     {
       "Name": "D1017",
@@ -9491,7 +9569,7 @@
         "01": "Legal",
         "02": "Compliance"
       },
-      "Source": "sav"
+      "Source": "explore"
     },
     {
       "Name": "Q2D",
@@ -9504,7 +9582,13 @@
         "3": 0,
         "4": 0,
         "5": 0,
-        "6": 0
+        "6": 0,
+        "01": 0,
+        "02": 0,
+        "03": 0,
+        "04": 0,
+        "05": 0,
+        "06": 0
       },
       "Filters": null,
       "CopyQuestion": null,
@@ -9518,9 +9602,15 @@
         "3": "21-50",
         "4": "51-100",
         "5": "101-250",
-        "6": "250+"
+        "6": "250+",
+        "01": "01 - 1-10",
+        "02": "02 - 11-20",
+        "03": "03 - 21-50",
+        "04": "04 - 51-100",
+        "05": "05 - 101-250",
+        "06": "06 - 250+"
       },
-      "Source": "sav"
+      "Source": "explore"
     },
     {
       "Name": "IDPRO",

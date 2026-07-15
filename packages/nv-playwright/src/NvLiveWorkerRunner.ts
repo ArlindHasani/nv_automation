@@ -4,12 +4,15 @@ import { chromium } from "playwright";
 import {
   buildCoverageReport,
   claimNextRow,
+  computeLoiStepDelayMs,
   delay,
+  estimateLoiPathSteps,
   findQuestion,
   formatQuestId,
   getChromiumLaunchOptions,
   heartbeatRow,
   initInterviewQueue,
+  listExploreRuns,
   markRowCompleted,
   markRowFailed,
   mergeDefinition,
@@ -245,6 +248,19 @@ export class NvLiveWorkerRunner {
 
     await initInterviewQueue(projectId, data.length);
 
+    const exploreRuns = await listExploreRuns(projectId, 10);
+    const expectedLoiSteps = estimateLoiPathSteps({
+      exploreStepCounts: exploreRuns
+        .filter((r) => r.status === "completed" && (r.steps ?? 0) > 0)
+        .map((r) => r.steps!),
+      definitionQuestionCount: definition.Questions.length,
+    });
+    if (respectLoi) {
+      writeLog(
+        `LOI target ${config.loi.targetMinutes}min (±${config.loi.jitterPercent}%) over ~${expectedLoiSteps} expected steps`,
+      );
+    }
+
     const browser = await chromium.launch(getChromiumLaunchOptions(headless));
     // NV login.js rejects HeadlessChrome / odd UAs ("browser not supported").
     const page = await browser.newPage({
@@ -320,6 +336,7 @@ export class NvLiveWorkerRunner {
         let unexpectedHome = false;
         let pendingQuestion: ClassifiedQuestion | null = null;
         let lastHeartbeatAt = 0;
+        const interviewStartedAtMs = Date.now();
 
         const maybeHeartbeat = async (questionName?: string) => {
           const now = Date.now();
@@ -420,12 +437,24 @@ export class NvLiveWorkerRunner {
           }
 
           const min = defQuestion?.Min ?? 0;
-          const paddedCodes = ensureMultiMinCodes(answer.codes, classified, min);
-          if (paddedCodes.length > answer.codes.length) {
+          const max = defQuestion?.Max ?? 0;
+          const paddedCodes = ensureMultiMinCodes(
+            answer.codes,
+            classified,
+            min,
+            answer.source,
+            max,
+          );
+          if (paddedCodes.length !== answer.codes.length) {
             writeLog(
-              `  Padded ${classified.name} to Min=${min}: ${paddedCodes.join(",")}`,
+              `  Adjusted ${classified.name} to Min=${min}/Max=${max || "∞"}: ${paddedCodes.join(",") || "(empty)"}`,
               "warn",
             );
+          }
+          for (const warning of answer.warnings) {
+            if (warning.startsWith("Filled visible grid row")) {
+              writeLog(`  ${warning}`, "warn");
+            }
           }
 
           let answerText = answer.openText;
@@ -438,19 +467,21 @@ export class NvLiveWorkerRunner {
             `  ${classified.name} → ${answerText} (${answer.source}, ${answer.policy})`,
           );
 
+          const appliedAnswer = {
+            codes: paddedCodes,
+            openText: answer.openText,
+            statementAnswers: answer.statementAnswers,
+            source:
+              answer.source === "dataset"
+                ? ("data" as const)
+                : answer.source === "split"
+                  ? ("split" as const)
+                  : ("fallback" as const),
+            warnings: answer.warnings,
+          };
+
           try {
-            await interview.applyAnswer({
-              codes: paddedCodes,
-              openText: answer.openText,
-              statementAnswers: answer.statementAnswers,
-              source:
-                answer.source === "dataset"
-                  ? "data"
-                  : answer.source === "split"
-                    ? "split"
-                    : "fallback",
-              warnings: answer.warnings,
-            });
+            await interview.applyAnswer(appliedAnswer);
           } catch (e) {
             const message = e instanceof Error ? e.message : String(e);
             writeLog(`Failed to apply ${classified.name}: ${message}`, "error");
@@ -499,35 +530,54 @@ export class NvLiveWorkerRunner {
             outcome: isOptionalSoftPass ? "soft-pass" : "answered",
           });
 
+          const isEnd = isInterviewEndQuestion(classified.name, exploreEndQuestions);
+
           // Pace after selecting (so the UI isn't idle on an unanswered screen).
-          if (respectLoi) {
-            const remaining = Math.max(
-              1,
-              definition.Questions.length - stepNum,
-            );
-            const rawDelay = Math.round(
-              (config.loi.targetMinutes * 60_000) / remaining,
-            );
-            const stepDelay = Math.min(
-              2_500,
-              Math.max(
-                200,
-                Math.round(
-                  rawDelay *
-                    (1 +
-                      ((Math.random() * 2 - 1) * config.loi.jitterPercent) / 100),
-                ),
-              ),
-            );
+          // Spend the LOI budget across real questions only — skip the pause on
+          // end screens (e.g. ANMER): after Next we leave the IV and go home.
+          if (respectLoi && !isEnd) {
+            const stepDelay = computeLoiStepDelayMs({
+              targetMinutes: config.loi.targetMinutes,
+              jitterPercent: config.loi.jitterPercent,
+              elapsedMs: Date.now() - interviewStartedAtMs,
+              stepIndex: stepNum,
+              // Explore step counts include the end question; don't reserve a share for it.
+              expectedTotalSteps: Math.max(1, expectedLoiSteps - 1),
+            });
             writeLog(`  LOI pause ${stepDelay}ms before Next`);
             await delay(stepDelay, shouldAbort);
             if (shouldAbort()) {
               status = "stopped";
               break;
             }
+          } else if (respectLoi && isEnd) {
+            writeLog("  LOI pause skipped on end question");
           }
 
-          const isEnd = isInterviewEndQuestion(classified.name, exploreEndQuestions);
+          // Multi/Grid: re-apply right before Next so long LOI pauses / NV paint
+          // races cannot leave brands unanswered at submit.
+          const needsReseat =
+            !isOptionalSoftPass &&
+            (classified.type === "Multi" || classified.type === "Grid") &&
+            (paddedCodes.length > 0 ||
+              Boolean(
+                answer.statementAnswers &&
+                  Object.keys(answer.statementAnswers).length > 0,
+              ));
+          if (needsReseat) {
+            try {
+              await interview.applyAnswer(appliedAnswer);
+              await page.waitForTimeout(respectLoi ? 250 : 100);
+            } catch (e) {
+              writeLog(
+                `Re-apply before Next failed for ${classified.name}: ${
+                  e instanceof Error ? e.message : String(e)
+                }`,
+                "warn",
+              );
+            }
+          }
+
           const next = await findFirstVisible(page, NV_SELECTORS.interview.nextButton);
           const autoAdvance = expectsAutoAdvance(classified);
 
@@ -558,7 +608,14 @@ export class NvLiveWorkerRunner {
           });
 
           if (!after && !(await home.isOnHome()) && next) {
-            writeLog("Still on question — clicking Next again", "warn");
+            writeLog(
+              "Still on question — re-applying answers and clicking Next again",
+              "warn",
+            );
+            if (needsReseat || !isOptionalSoftPass) {
+              await interview.applyAnswer(appliedAnswer).catch(() => {});
+              await page.waitForTimeout(300);
+            }
             await next.click();
             pendingQuestion = await waitForNvQuestionChange(page, classified.name, {
               timeoutMs: 15_000,

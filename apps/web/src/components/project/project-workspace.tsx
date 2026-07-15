@@ -1442,7 +1442,7 @@ function RunPanel() {
   const [rowAssignments, setRowAssignments] = useState<Record<number, string>>({});
   const [starting, setStarting] = useState(false);
   const [resettingQueue, setResettingQueue] = useState(false);
-  const [skipLoi, setSkipLoi] = useState(true);
+  const [skipLoi, setSkipLoi] = useState(false);
   const [showBrowser, setShowBrowser] = useState(false);
   const preflight = bundle!.workflow?.liveRunPreflight;
   const profiles = bundle!.project.workerProfiles ?? [];

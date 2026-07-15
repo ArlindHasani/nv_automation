@@ -4,8 +4,10 @@ import { NV_SELECTORS } from "../selectors.js";
 import {
   applyMultiSelections,
   applyNvGridMultiAnswers,
+  countCheckedMultiOptions,
   selectMultiOption,
   selectRadioOption,
+  unansweredGridRadioStatements,
 } from "../nv-input-actions.js";
 import {
   classifyCurrentQuestion,
@@ -184,6 +186,31 @@ export class NvInterviewPage {
               );
             }
           }
+          // Brief pause so NV can register last radio before we advance.
+          await this.page.waitForTimeout(150);
+          const unanswered = await unansweredGridRadioStatements(
+            this.page,
+            Object.keys(answers),
+          );
+          for (const statement of unanswered) {
+            const code = answers[statement]?.[0];
+            if (!code) continue;
+            await selectRadioOption(
+              this.page,
+              statement,
+              code,
+              current.codes,
+            );
+          }
+          const stillMissing = await unansweredGridRadioStatements(
+            this.page,
+            Object.keys(answers),
+          );
+          if (stillMissing.length > 0) {
+            throw new Error(
+              `Grid radios not selected: ${stillMissing.join(", ")}`,
+            );
+          }
         }
         break;
       }
@@ -226,6 +253,31 @@ export class NvInterviewPage {
             answer.codes,
             current.codes,
           );
+        }
+        await this.page.waitForTimeout(150);
+        if (answer.codes.length > 0) {
+          const checked = await countCheckedMultiOptions(
+            this.page,
+            current.name,
+          );
+          if (checked < answer.codes.length) {
+            await applyMultiSelections(
+              this.page,
+              current.name,
+              answer.codes,
+              current.codes,
+            );
+            await this.page.waitForTimeout(100);
+            const retryChecked = await countCheckedMultiOptions(
+              this.page,
+              current.name,
+            );
+            if (retryChecked < answer.codes.length) {
+              throw new Error(
+                `Multi '${current.name}' only kept ${retryChecked}/${answer.codes.length} selections`,
+              );
+            }
+          }
         }
         if (otherText) {
           await this.fillOtherSpecify(otherText, current.name);

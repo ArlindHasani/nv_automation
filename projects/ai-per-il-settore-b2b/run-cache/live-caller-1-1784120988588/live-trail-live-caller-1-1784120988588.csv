@@ -1,0 +1,11 @@
+﻿elapsed_ms,quest,row_pass,dataset_row,question,type,answer,source,policy,outcome,error
+12780,0000004973,1,2,INT01,Single,OK,fixed,fixed,answered,
+53432,0000004973,1,2,IDPRO,Open,(empty),optional,optional,soft-pass,
+97557,0000004973,1,2,PRVCY,Single,1,split,split,answered,
+140196,0000004973,1,2,S1,Single,02,dataset,maintain,answered,
+180591,0000004973,1,2,D00_1,Single,04,dataset,maintain,answered,
+219739,0000004973,1,2,D0_1B,Multi,"03,01",dataset,maintain,answered,
+262297,0000004973,1,2,D0201,Grid,"D0201=02, D0202=03, D0203=02, D0204=01, D0205=05, D0206=5, D0215=05, D0216=05, D0217=05, D0218=04",split,split,answered,
+342309,0000004973,1,2,D0201,Grid,"D0201=02, D0202=03, D0203=02, D0204=01, D0205=05, D0206=5, D0215=05, D0216=05, D0217=05, D0218=04",split,split,answered,
+382097,0000004973,1,2,P1_01,Grid,"P1_01=04, P1_02=04, P1_03=04, P1_04=01, P1_18=04",dataset,maintain,answered,
+462529,0000004973,1,2,P1_01,Grid,"P1_01=04, P1_02=04, P1_03=04, P1_04=01, P1_18=04",dataset,maintain,answered,

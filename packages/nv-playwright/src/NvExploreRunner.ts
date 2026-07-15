@@ -388,8 +388,14 @@ export class NvExploreRunner {
         let answerText = answer.openText;
         const defQuestion = findQuestion(definition, classified.name);
         const min = defQuestion?.Min ?? 0;
-        const paddedCodes = ensureMultiMinCodes(answer.codes, classified, min);
-        if (paddedCodes.length > answer.codes.length) {
+        const paddedCodes = ensureMultiMinCodes(
+          answer.codes,
+          classified,
+          min,
+          answer.source,
+          defQuestion?.Max ?? 0,
+        );
+        if (paddedCodes.length !== answer.codes.length) {
           log(
             `  Padded ${classified.name} to Min=${min}: ${paddedCodes.join(",")}`,
             "info",

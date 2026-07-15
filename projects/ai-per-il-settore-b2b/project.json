@@ -8,11 +8,11 @@
   "nvGroup": "1",
   "questField": "quest",
   "loi": {
-    "targetMinutes": 12,
-    "jitterPercent": 15
+    "targetMinutes": 20,
+    "jitterPercent": 5
   },
   "workers": {
-    "maxConcurrent": 2
+    "maxConcurrent": 1
   },
   "savFieldMap": {
     "station": "ws",
@@ -28,17 +28,10 @@
   "workerProfiles": [
     {
       "id": "caller-1",
-      "label": "Altin Ismajli",
-      "station": "63627",
+      "label": "Lirim Koshi",
+      "station": "63623",
       "password": "FA8069CAympWU9eAbtGcbFkk2bv3OEetfnulx7W6",
-      "callerId": "3314"
-    },
-    {
-      "id": "caller-2",
-      "label": "Arlind Hasani",
-      "station": "65260",
-      "password": "FA8069CAympWU9eAbtGcbFkk2bv3OEetfnulx7W6",
-      "callerId": "3320"
+      "callerId": "3311"
     }
   ]
 }

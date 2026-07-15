@@ -1,0 +1,7 @@
+﻿elapsed_ms,quest,row_pass,dataset_row,question,type,answer,source,policy,outcome,error
+12289,0000004971,1,0,INT01,Single,OK,fixed,fixed,answered,
+15521,0000004971,1,0,IDPRO,Open,(empty),optional,optional,soft-pass,
+19204,0000004971,1,0,PRVCY,Single,1,split,split,answered,
+22455,0000004971,1,0,S1,Single,02,dataset,maintain,answered,
+25675,0000004971,1,0,D00_1,Single,04,dataset,maintain,answered,
+28478,0000004971,1,0,D0_1B,Multi,"02,15",dataset,maintain,answered,
